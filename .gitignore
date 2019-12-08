@@ -1,0 +1,7 @@
+node_modules/*
+dist/*
+qb.js
+qb.js.map
+
+yarn.lock
+*.log
