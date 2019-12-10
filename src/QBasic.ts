@@ -226,7 +226,7 @@ export class AstNextStatement implements AstStatement {
 	}
 
 	public accept(visitor: IVisitor) {
-		visitor.visitEndStatement(this)
+		visitor.visitNextStatement(this)
 	}
 }
 

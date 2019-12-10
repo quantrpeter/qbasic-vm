@@ -308,7 +308,7 @@ export class TypeChecker implements IVisitor {
 	}
 
 	public visitCallStatement(call: AstCallStatement) {
-		if (!SystemSubroutines[call.name]) {
+		if (SystemSubroutines[call.name]) {
 			// TODO: Check args for system parameters.
 			for (let i = 0; i < call.args.length; i++) {
 				call.args[i].wantRef = true

@@ -150,16 +150,17 @@ export class Console {
 			}
 		})
 
-		canvas.addEventListener('click', event => {
+		canvas.addEventListener('focus', event => {
 			canvas.style.borderColor = '#008800'
 			canvas.focus()
 			this.hasFocus = true
 			event.stopPropagation()
 		})
 
-		window.addEventListener('click', () => {
+		canvas.addEventListener('blur', event => {
 			this.hasFocus = false
 			canvas.style.borderColor = '#888888'
+			event.stopPropagation()
 		})
 
 		canvas.style.borderColor = this.bocolor
@@ -587,6 +588,7 @@ export class Console {
 				this.ctx.globalCompositeOperation = 'destination-over'
 				this.ctx.fillStyle = this.bgcolor
 				this.ctx.fillRect(this.x * this.charWidth, this.y * this.charHeight, this.charWidth, this.charHeight)
+				this.ctx.globalCompositeOperation = 'source-over'
 				this.ctx.restore()
 
 				this.x += 1
