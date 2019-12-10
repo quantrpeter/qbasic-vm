@@ -550,7 +550,6 @@ export class Console {
 		}
 
 		this.cursor(false)
-		this.ctx.fillStyle = 'rgba(0, 0, 0, 0)'
 
 		for (let i = 0; i < str.length; i++) {
 			if (this.y === this.rows) {
@@ -562,8 +561,13 @@ export class Console {
 			} else {
 				let ch = str.charCodeAt(i)
 				// clear cell
-				this.ctx.fillRect(this.x * this.charWidth, this.y * this.charHeight, this.charWidth, this.charHeight)
+				this.ctx.save()
+				const charRegion = new Path2D()
+				charRegion.rect(this.x * this.charWidth, this.y * this.charHeight, this.charWidth, this.charHeight)
+				this.ctx.clip(charRegion)
+				this.ctx.clearRect(this.x * this.charWidth, this.y * this.charHeight, this.charWidth, this.charHeight)
 				// paint black-on-transparent character
+				this.ctx.globalCompositeOperation = 'source-over'
 				this.ctx.drawImage(
 					this.charImg,
 					this.charWidth * (ch % 16),
@@ -580,9 +584,10 @@ export class Console {
 				this.ctx.fillStyle = this.fgcolor
 				this.ctx.fillRect(this.x * this.charWidth, this.y * this.charHeight, this.charWidth, this.charHeight)
 				// paint background color
-				this.ctx.globalCompositeOperation = 'source-out'
+				this.ctx.globalCompositeOperation = 'destination-over'
 				this.ctx.fillStyle = this.bgcolor
 				this.ctx.fillRect(this.x * this.charWidth, this.y * this.charHeight, this.charWidth, this.charHeight)
+				this.ctx.restore()
 
 				this.x += 1
 				if (this.x === this.cols) {

@@ -6,9 +6,11 @@ import { QBasicProgram } from './QBasic'
 export function legacyAPI() {
 	if (window) {
 		// @ts-ignore
-		window['Console'] = Console
-		window['DebugConsole'] = DebugConsole
-		window['VirtualMachine'] = VirtualMachine
-		window['QBasicProgram'] = QBasicProgram
+		window['qb'] = {
+			Console,
+			DebugConsole,
+			VirtualMachine,
+			QBasicProgram
+		}
 	}
 }

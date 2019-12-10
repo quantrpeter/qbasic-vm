@@ -9,7 +9,7 @@
   "license": "GPL-3.0-only",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "build:bundle": "webpack --config webpack.config.js",
+    "bundle": "yarn build && webpack --config webpack.config.js",
     "docs": "yarn docs:html && opn docs/index.html",
     "docs:html": "typedoc src/index.ts --excludePrivate --mode file --theme minimal --out docs",
     "docs:json": "typedoc --mode file --json docs/typedoc.json src/index.ts",
