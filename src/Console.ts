@@ -115,11 +115,20 @@ export class Console {
 	private height: number = this.rows * this.charHeight
 
 	constructor(className?: string, width?: number, height?: number) {
-		const canvas = document.createElement('canvas')
-		this.canvas = canvas
+		this.canvas = document.createElement('canvas')
+
+		this.rows = VIDEO_MODES[DEFAULT_VIDEO_MODE].rows
+		this.cols = VIDEO_MODES[DEFAULT_VIDEO_MODE].cols
+		this.height = VIDEO_MODES[DEFAULT_VIDEO_MODE].height
+		this.width = VIDEO_MODES[DEFAULT_VIDEO_MODE].width
+
+		this.canvas.width = VIDEO_MODES[DEFAULT_VIDEO_MODE].width
+		this.canvas.height = VIDEO_MODES[DEFAULT_VIDEO_MODE].height
+
+		this.canvas.style.width = (width || this.width) + 'px'
+		this.canvas.style.height = (height || this.height) + 'px'
 		this.canvas.style.imageRendering = 'pixelated'
-		this.canvas.width = width || VIDEO_MODES[DEFAULT_VIDEO_MODE].width
-		this.canvas.height = height || VIDEO_MODES[DEFAULT_VIDEO_MODE].height
+
 		this.canvas.className = className || ''
 		this.canvas.tabIndex = 0
 		const context = this.canvas.getContext('2d')
@@ -131,11 +140,6 @@ export class Console {
 
 		this.width = width || this.canvas.width
 		this.height = height || this.canvas.height
-
-		this.rows = VIDEO_MODES[DEFAULT_VIDEO_MODE].rows
-		this.cols = VIDEO_MODES[DEFAULT_VIDEO_MODE].cols
-		this.height = VIDEO_MODES[DEFAULT_VIDEO_MODE].height
-		this.width = VIDEO_MODES[DEFAULT_VIDEO_MODE].width
 
 		this.interval = undefined
 		this.cursorEnabled = false
@@ -150,22 +154,21 @@ export class Console {
 			}
 		})
 
-		canvas.addEventListener('focus', event => {
-			canvas.style.borderColor = '#008800'
-			canvas.focus()
+		this.canvas.addEventListener('focus', event => {
+			this.canvas.style.borderColor = '#008800'
 			this.hasFocus = true
 			event.stopPropagation()
 		})
 
-		canvas.addEventListener('blur', event => {
+		this.canvas.addEventListener('blur', event => {
 			this.hasFocus = false
-			canvas.style.borderColor = '#888888'
+			this.canvas.style.borderColor = '#888888'
 			event.stopPropagation()
 		})
 
-		canvas.style.borderColor = this.bocolor
-		canvas.style.borderWidth = '5px'
-		canvas.style.borderStyle = 'solid'
+		this.canvas.style.borderColor = this.bocolor
+		this.canvas.style.borderWidth = '5px'
+		this.canvas.style.borderStyle = 'solid'
 
 		this.cls()
 	}
