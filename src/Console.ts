@@ -108,6 +108,9 @@ export class Console {
 
 	private inputMode: boolean = false
 	private onInputDone: ((str: string) => void) | null = null
+	private onTrappedKey: {
+		[key: number]: (num?: number) => void
+	} = {}
 	private inputStr: string = ''
 	// @ts-ignore
 	private inputPos: number = 0
@@ -422,6 +425,14 @@ export class Console {
 		}
 	}
 
+	public onKey(num: number, handler: (() => void) | undefined) {
+		if (handler) {
+			this.onTrappedKey[num] = handler
+		} else {
+			delete this.onTrappedKey[num]
+		}
+	}
+
 	public backup(num: number) {
 		this.cursor(false)
 
@@ -490,6 +501,18 @@ export class Console {
 				const code = event.key.codePointAt(0)
 				if (code !== undefined) this.keyBuffer.push(code)
 			}
+
+			this.handleTrappedKey(this.keyBuffer[this.keyBuffer.length - 1])
+		}
+	}
+
+	private handleTrappedKey(num: number) {
+		if (this.onTrappedKey[num]) {
+			const key = this.getKeyFromBuffer()
+			this.onTrappedKey[num](key)
+		} else if (this.onTrappedKey[-1]) {
+			const key = this.getKeyFromBuffer()
+			this.onTrappedKey[-1](key)
 		}
 	}
 

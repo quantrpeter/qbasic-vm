@@ -572,16 +572,20 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 		args: ['SINGLE'],
 		minArgs: 0,
 		action: function(vm) {
-			// NOT IMPLEMENTED
 			const argCount = vm.stack.pop()
+			vm.suspend()
 			if (argCount === 1) {
-				vm.suspend()
+				// if an argument is provided, wait X seconds
 				const sleep = vm.stack.pop().value
 				setTimeout(() => {
 					vm.resume()
 				}, sleep * 1000)
 			} else {
-				// TODO Await any key
+				// if no argument is provided, use a global trapped key to resume
+				vm.cons.onKey(-1, () => {
+					vm.cons.onKey(-1, undefined)
+					vm.resume()
+				})
 			}
 		}
 	},
