@@ -535,7 +535,7 @@ type SystemSubroutinesDefinition = {
 
     action: A function taking the virtual machine as an argument. To implement
     the function, it should pop its arguments off the stack, and push its
-    return value onto the stack. If minArgs is present, and not equal to 
+    return value onto the stack. If minArgs is present, and not equal to
     args.length, then the top of the stack is an integer variable that
     indicates how many arguments were passed to the function.
  */
@@ -829,7 +829,7 @@ type InstructionDefinition = {
 
  addrLabel: If present, and set to "true", the argument of the instruction is
  interpretted as an address during the linking stage.
- 
+
  dataLabel: If present, and set to "true", the argument of the instruction is
  the index of a DATA statement.
 

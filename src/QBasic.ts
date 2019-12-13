@@ -126,7 +126,7 @@ export class AstPrintUsingStatement implements AstStatement {
 	constructor(locus: ILocus, exprList: any[], terminator: string | null) {
 		this.locus = locus
 		this.exprList = exprList // array of expressions. The first is used as the
-		//format string.
+		// format string.
 		this.terminator = terminator // literal ';', ',', or null
 	}
 
@@ -802,7 +802,7 @@ export class QBasicProgram {
 
 			rules.addRule('program: statements', this.onProgram)
 			rules.addRule('statements: statement*')
-			//rules.addRule( "statement: intconstant istatement separator" );
+			// rules.addRule( "statement: intconstant istatement separator" );
 			rules.addRule('statement: label istatement separator', function(args, locus) {
 				let label = args[0]
 				if (label.substr(-1) === ':') {
@@ -1063,7 +1063,7 @@ export class QBasicProgram {
 			rules.addRule("expr7: expr7 '\\/' expr8", this.onBinaryOp)
 			rules.addRule('expr7: expr8')
 			rules.addRule("expr8: '\\(' expr '\\)'", this.onBracketExpr)
-			//rules.addRule( "expr8: expr8 '\\.' expr10", onBinaryOp );
+			// rules.addRule( "expr8: expr8 '\\.' expr10", onBinaryOp );
 			rules.addRule('expr8: NOT expr9', function(args, locus) {
 				return new AstUnaryOperator(locus, 'NOT', args[1])
 			})
@@ -1099,7 +1099,7 @@ export class QBasicProgram {
 			rules.buildSet.finalize()
 
 			this.parser = new EarleyParser(rules.buildSet)
-			//QBasicProgram.parser.debug = true;
+			// QBasicProgram.parser.debug = true;
 		}
 
 		input += '\n' // parse doesn't handle no newline at end of input.
