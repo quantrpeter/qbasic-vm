@@ -569,9 +569,20 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 	},
 
 	SLEEP: {
+		args: ['SINGLE'],
+		minArgs: 0,
 		action: function(vm) {
 			// NOT IMPLEMENTED
-			vm.stack.pop()
+			const argCount = vm.stack.pop()
+			if (argCount === 1) {
+				vm.suspend()
+				const sleep = vm.stack.pop().value
+				setTimeout(() => {
+					vm.resume()
+				}, sleep * 1000)
+			} else {
+				// TODO Await any key
+			}
 		}
 	},
 
@@ -790,7 +801,7 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 	}
 }
 
-interface IInstruction {
+export interface IInstruction {
 	name: string
 	addrLabel?: boolean
 	dataLabel?: boolean

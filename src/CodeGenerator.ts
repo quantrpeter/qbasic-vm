@@ -19,7 +19,7 @@
 */
 
 import { IVisitor } from './IVisitor'
-import { Instructions, SystemSubroutines, SystemFunctions } from './VirtualMachine'
+import { Instructions, SystemSubroutines, SystemFunctions, IInstruction } from './VirtualMachine'
 import {
 	AstDeclareFunction,
 	AstSubroutine,
@@ -64,7 +64,7 @@ import './array.extensions'
 import { IsArrayType } from './Types'
 
 export class Instruction {
-	instr: any
+	instr: IInstruction
 	arg: any
 
 	constructor(instr, arg) {

@@ -211,7 +211,7 @@ export class EarleyParser {
 		if (item.pos === item.rule.symbols.length) {
 			let baseItems = states[item.base]
 			for (let j = 0; j < baseItems.length; j++) {
-				if (baseItems[j].rule.symbols[baseItems[j].pos] == item.rule.name) {
+				if (baseItems[j].rule.symbols[baseItems[j].pos] === item.rule.name) {
 					this.addToState(
 						states[i],
 						baseItems[j].rule,
@@ -261,14 +261,14 @@ export class EarleyParser {
 	// Given an earley item, reconstruct the dervation and invoke any associated
 	// actions.
 	// ----------------------------------------------------------------------
-	public evaluate(item_in: EarleyItem) {
-		if (!item_in) {
+	public evaluate(itemIn: EarleyItem) {
+		if (!itemIn) {
 			return
 		}
 
 		let args: string[] = []
-		let item: EarleyItem | undefined = item_in
-		let locus = item_in.locus
+		let item: EarleyItem | undefined = itemIn
+		let locus = itemIn.locus
 
 		while (item) {
 			if (item.token instanceof Token) {
@@ -282,8 +282,8 @@ export class EarleyParser {
 
 		let result
 
-		if (item_in.rule.action) {
-			result = item_in.rule.action(args, locus)
+		if (itemIn.rule.action) {
+			result = itemIn.rule.action(args, locus)
 		} else {
 			result = args[0]
 		}
