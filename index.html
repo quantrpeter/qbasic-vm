@@ -9,9 +9,9 @@
 
 		<script>
 			var ScriptSrc = './assets/' // directory of charmap.png
-			var cons = new qb.Console()
-			$('#main').append(cons.canvas)
-			var virtualMachine = new qb.VirtualMachine(cons)
+			var cons = new qb.Console(document.getElementById('main'))
+			var audio = new qb.AudioDevice()
+			var virtualMachine = new qb.VirtualMachine(cons, audio)
 			var dbg = new qb.DebugConsole(document.getElementById('debug'))
 			$.get('helloWorld.bas', { dataType: 'html' }, function(code) {
 				var program = new qb.QBasicProgram(code)

@@ -75,7 +75,47 @@ const VIDEO_MODES: { [key: number]: IVideoMode } = {
 
 const DEFAULT_VIDEO_MODE = 1
 
-export class Console {
+export interface IConsole {
+	x: number
+	y: number
+	reset(testMode?: boolean): void
+	record(str: string): void
+	getRecorded(): string
+	printError(str: string): void
+	setKeyBuffer(str: string): void
+	screen(num: number): boolean
+	line(x1: number, y1: number, x2: number, y2: number): void
+	lineTo(x: number, y: number): void
+	circle(
+		x: number,
+		y: number,
+		radius: number,
+		colour: number | undefined,
+		start: number | undefined,
+		end: number | undefined,
+		aspect: number | undefined,
+		step: number
+	): void
+	get(x1: number, y1: number, x2: number, y2: number, step1?: boolean, step2?: boolean): ImageData
+	put(data: ImageData, x: number, y: number): void
+	paint(x: number, y: number, colour: number, borderColor: number, step: number): void
+	cls(): void
+	locate(row: number, col: number): void
+	color(fg: number | null, bg: number | null, bo: number | null): void
+	scroll(): void
+	input(): Promise<string>
+	onKey(num: number, handler: (() => void) | undefined): void
+	backup(num): void
+	onKeyDown(event: KeyboardEvent): void
+	getKeyFromBuffer(): number
+	enableCursor(enabled: boolean): void
+	toggleCursor(): void
+	cursor(show: boolean): void
+	newline(): void
+	print(str: string): void
+}
+
+export class Console implements IConsole {
 	canvas: HTMLCanvasElement
 	private ctx: CanvasRenderingContext2D
 	private charImg: HTMLImageElement
@@ -117,8 +157,9 @@ export class Console {
 	private width: number = this.cols * this.charWidth
 	private height: number = this.rows * this.charHeight
 
-	constructor(className?: string, width?: number, height?: number) {
+	constructor(parentElement: HTMLElement, className?: string, width?: number, height?: number) {
 		this.canvas = document.createElement('canvas')
+		parentElement.append(this.canvas)
 
 		this.rows = VIDEO_MODES[DEFAULT_VIDEO_MODE].rows
 		this.cols = VIDEO_MODES[DEFAULT_VIDEO_MODE].cols
@@ -408,21 +449,23 @@ export class Console {
 		this.y -= 1
 	}
 
-	public input(onInputDone: (str: string) => void) {
-		if (this.recording) {
-			let str = ''
-			while (this.keyBuffer.length > 0) {
-				str += String.fromCharCode(this.keyBuffer.shift()!)
-			}
+	public input(): Promise<string> {
+		return new Promise<string>(resolve => {
+			if (this.recording) {
+				let str = ''
+				while (this.keyBuffer.length > 0) {
+					str += String.fromCharCode(this.keyBuffer.shift()!)
+				}
 
-			onInputDone(str)
-		} else {
-			this.enableCursor(true)
-			this.onInputDone = onInputDone
-			this.inputMode = true
-			this.inputStr = ''
-			this.inputPos = 0
-		}
+				resolve(str)
+			} else {
+				this.enableCursor(true)
+				this.onInputDone = resolve
+				this.inputMode = true
+				this.inputStr = ''
+				this.inputPos = 0
+			}
+		})
 	}
 
 	public onKey(num: number, handler: (() => void) | undefined) {

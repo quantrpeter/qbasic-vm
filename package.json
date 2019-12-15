@@ -9,6 +9,8 @@
   "license": "GPL-3.0-only",
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "lint": "tslint --project tsconfig.json --config tslint.json",
+    "lint-fix": "",
     "bundle": "yarn build && webpack --config webpack.config.js",
     "docs": "yarn docs:html && opn docs/index.html",
     "docs:html": "typedoc src/index.ts --excludePrivate --mode file --theme minimal --out docs",
@@ -25,5 +27,9 @@
     "typescript": "^3.6.4",
     "webpack": "^4.41.2",
     "webpack-cli": "^3.3.10"
+  },
+  "dependencies": {
+    "mml-iterator": "^1.1.0",
+    "seq-emitter": "^1.2.0"
   }
 }

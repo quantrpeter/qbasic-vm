@@ -11,6 +11,9 @@ END SUB
 
 PrintRainbow "HELLO WORLD!"
 PRINT ""
+PRINT "Press ANY key"
+SLEEP
+PLAY "t200 o6 l8 e g > e c d g"
 PRINT "Enter your name:"
 INPUT Name$
 PRINT "HELLO " + Name$;

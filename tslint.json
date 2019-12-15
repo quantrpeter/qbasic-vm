@@ -14,6 +14,7 @@
 		"triple-equals": true,
 		"no-empty": false,
 		"space-before-function-paren": false,
-		"quotemark": [true, "single", "avoid-escape"]
+		"quotemark": [true, "single", "avoid-escape"],
+		"jsdoc-format": false
 	}
 }

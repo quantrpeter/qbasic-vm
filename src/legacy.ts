@@ -2,6 +2,7 @@ import { Console } from './Console'
 import { DebugConsole } from './DebugConsole'
 import { VirtualMachine } from './VirtualMachine'
 import { QBasicProgram } from './QBasic'
+import { AudioDevice } from './AudioDevice'
 
 export function legacyAPI() {
 	if (window) {
@@ -10,7 +11,8 @@ export function legacyAPI() {
 			Console,
 			DebugConsole,
 			VirtualMachine,
-			QBasicProgram
+			QBasicProgram,
+			AudioDevice
 		}
 	}
 }

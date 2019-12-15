@@ -29,7 +29,8 @@ import {
 	Dimension,
 	SomeType
 } from './Types'
-import { Console } from './Console'
+import { IConsole } from './Console'
+import { IAudioDevice } from './AudioDevice'
 import { QBasicProgram } from './QBasic'
 
 export class TraceBuffer {
@@ -91,7 +92,10 @@ export class VirtualMachine {
 	callstack: StackFrame[] = []
 
 	// The console.
-	cons: Console
+	cons: IConsole
+
+	// The audio device
+	audio: IAudioDevice | undefined
 
 	// The bytecode (array of Instruction objects)
 	instructions: Instruction[] = []
@@ -138,8 +142,9 @@ export class VirtualMachine {
 	/**
 	 * @param console A Console object that will be used as the screen.
 	 */
-	constructor(console: Console) {
+	constructor(console: IConsole, audio?: IAudioDevice) {
 		this.cons = console
+		this.audio = audio
 
 		if (!DEBUG) {
 			this.trace = { printf: function() {} } as TraceBuffer
@@ -562,9 +567,53 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 	},
 
 	PLAY: {
+		args: ['STRING', 'INTEGER'],
+		minArgs: 1,
 		action: function(vm) {
-			// NOT IMPLEMENTED
-			vm.stack.pop()
+			const argCount = vm.stack.pop()
+			let repeat: number | undefined = undefined
+			const music = vm.stack.pop().value
+
+			if (argCount > 1) {
+				repeat = vm.stack.pop().value
+			}
+
+			if (vm.audio) {
+				vm.suspend()
+				vm.audio
+					.musicPlay(music, repeat || 1)
+					.then(() => {
+						vm.resume()
+					})
+					.catch(e => console.error(e))
+			}
+		}
+	},
+
+	BGMPLAY: {
+		args: ['STRING', 'INTEGER'],
+		minArgs: 1,
+		action: function(vm) {
+			// BGMPLAY is the same as PLAY, it just doesn't suspend the VM
+			const argCount = vm.stack.pop()
+			let repeat: number | undefined = undefined
+			const music = vm.stack.pop().value
+
+			if (argCount > 1) {
+				repeat = vm.stack.pop().value
+			}
+
+			if (vm.audio) {
+				vm.audio.musicPlay(music, repeat).catch(e => console.error(e))
+			}
+		}
+	},
+
+	BGMSTOP: {
+		action: function(vm) {
+			if (vm.audio) {
+				vm.audio.musicStop()
+			}
 		}
 	},
 
@@ -778,10 +827,13 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 
 			vm.suspend()
 
-			vm.cons.input(function(result) {
-				vm.resume()
-				args[0].value = result
-			})
+			vm.cons
+				.input()
+				.then(result => {
+					vm.resume()
+					args[0].value = result
+				})
+				.catch(e => console.error(e))
 		}
 	},
 
