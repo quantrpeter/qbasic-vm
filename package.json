@@ -6,6 +6,18 @@
   "types": "dist/index.d.ts",
   "repository": "git@github.com:jstarpl/qb.js.git",
   "author": "Jan Starzak <jan.starzak@gmail.com>",
+  "contributors": [
+    {
+      "name": "Jan Starzak",
+      "email": "jan.starzak@gmail.com",
+      "url": "https://github.com/jstarpl"
+    },
+    {
+      "name": "Steve Hanov",
+      "email": "steve.hanov@gmail.com",
+      "url": "http://stevehanov.ca"
+    }
+  ],
   "license": "GPL-3.0-only",
   "scripts": {
     "build": "tsc -p tsconfig.json",
