@@ -62,21 +62,24 @@ import {
 } from './QBasic'
 import './array.extensions'
 import { IsArrayType } from './Types'
+import { Locus } from './Tokenizer'
 
 export class Instruction {
 	instr: IInstruction
 	arg: any
+	locus: Locus
 
-	constructor(instr, arg) {
+	constructor(instr: IInstruction, arg: any, locus: Locus) {
 		this.instr = instr
 		this.arg = arg
+		this.locus = locus
 	}
 
 	public toString() {
 		if (this.instr.numArgs === 0) {
-			return this.instr.name
+			return this.instr.name + ` (${this.locus.line}:${this.locus.position})`
 		} else {
-			return this.instr.name + ' ' + this.arg
+			return this.instr.name + `${this.arg} (${this.locus.line}:${this.locus.position})`
 		}
 	}
 }
@@ -188,12 +191,12 @@ export class CodeGenerator implements IVisitor {
 		return labelId
 	}
 
-	public write(name: string, arg?: any) {
+	public write(name: string, arg: any, locus: Locus) {
 		let instr = Instructions[name]
 		if (!instr) {
 			throw new Error('Bad instruction: ' + name)
 		}
-		this.instructions.push(new Instruction(instr, arg))
+		this.instructions.push(new Instruction(instr, arg, locus))
 	}
 
 	public visitProgram(program: any) {
@@ -213,25 +216,25 @@ export class CodeGenerator implements IVisitor {
 		this.map(node.locus)
 		if (node.name !== '_main') {
 			skipLabel = this.newLabel('skipsub')
-			this.write('JMP', skipLabel)
+			this.write('JMP', skipLabel, node.locus)
 			this.label(this.getGotoLabel(node.name))
 			for (let i = node.args.length - 1; i >= 0; i--) {
 				// pop each argument off the stack into a variable. The wantRef
 				// parameter of the AST node ensures that these evalauate
-				this.write('POPVAR', node.args[i].name)
+				this.write('POPVAR', node.args[i].name, node.locus)
 			}
 		}
 		node.statements.accept(this)
 		if (node.isFunction) {
 			// when the function returns, place its return value on the top of
 			// the stack.
-			this.write('PUSHVALUE', node.name)
+			this.write('PUSHVALUE', node.name, node.locus)
 		}
-		this.write('RET', null)
+		this.write('RET', null, node.locus)
 		if (skipLabel !== undefined) {
 			this.label(skipLabel)
 		} else {
-			this.write('END', null)
+			this.write('END', null, node.locus)
 		}
 	}
 
@@ -247,14 +250,14 @@ export class CodeGenerator implements IVisitor {
 			// Check if we need to push number of args
 			let sub = SystemSubroutines[node.name]
 			if (sub.args !== undefined && sub.minArgs !== undefined) {
-				this.write('PUSHCONST', node.args.length)
+				this.write('PUSHCONST', node.args.length, node.locus)
 			}
-			this.write('SYSCALL', node.name)
+			this.write('SYSCALL', node.name, node.locus)
 		} else if (node.name === 'PRINT') {
-			this.write('PUSHCONST', node.args.length)
-			this.write('SYSCALL', node.name)
+			this.write('PUSHCONST', node.args.length, node.locus)
+			this.write('SYSCALL', node.name, node.locus)
 		} else {
-			this.write('CALL', this.getGotoLabel(node.name))
+			this.write('CALL', this.getGotoLabel(node.name), node.locus)
 		}
 	}
 
@@ -266,9 +269,9 @@ export class CodeGenerator implements IVisitor {
 		for (let i = 0; i < node.exprList.length; i++) {
 			node.exprList[i].accept(this)
 		}
-		this.write('PUSHCONST', node.terminator)
-		this.write('PUSHCONST', node.exprList.length + 1)
-		this.write('SYSCALL', 'print_using')
+		this.write('PUSHCONST', node.terminator, node.locus)
+		this.write('PUSHCONST', node.exprList.length + 1, node.locus)
+		this.write('SYSCALL', 'print_using', node.locus)
 	}
 
 	public visitPrintStatement(node: AstPrintStatement) {
@@ -277,13 +280,13 @@ export class CodeGenerator implements IVisitor {
 		for (let i = 0; i < node.printItems.length; i++) {
 			node.printItems[i].accept(this)
 			if (node.printItems[i].type === AstPrintItemType.TAB) {
-				this.write('SYSCALL', 'print_tab')
+				this.write('SYSCALL', 'print_tab', node.locus)
 			} else if (node.printItems[i].expr) {
-				this.write('SYSCALL', 'print')
+				this.write('SYSCALL', 'print', node.locus)
 			}
 
 			if (node.printItems[i].terminator === ',') {
-				this.write('SYSCALL', 'print_comma')
+				this.write('SYSCALL', 'print_comma', node.locus)
 			} else if (node.printItems[i].terminator === ';') {
 				newline = false
 			} else {
@@ -292,8 +295,8 @@ export class CodeGenerator implements IVisitor {
 		}
 
 		if (newline) {
-			this.write('PUSHCONST', '\n')
-			this.write('SYSCALL', 'print')
+			this.write('PUSHCONST', '\n', node.locus)
+			this.write('SYSCALL', 'print', node.locus)
 		}
 	}
 
@@ -308,31 +311,31 @@ export class CodeGenerator implements IVisitor {
 		// print the prompt, if any, and question mark, if required.
 		if (node.promptExpr) {
 			node.promptExpr.accept(this)
-			this.write('SYSCALL', 'print')
+			this.write('SYSCALL', 'print', node.locus)
 		}
 
 		if (node.printQuestionMark) {
-			this.write('PUSHCONST', '? ')
-			this.write('SYSCALL', 'print')
+			this.write('PUSHCONST', '? ', node.locus)
+			this.write('SYSCALL', 'print', node.locus)
 		} else {
-			this.write('PUSHCONST', ' ')
-			this.write('SYSCALL', 'print')
+			this.write('PUSHCONST', ' ', node.locus)
+			this.write('SYSCALL', 'print', node.locus)
 		}
 
 		// push onto the stack: identifiers
 		for (let i = 0; i < node.identifiers.length; i++) {
-			this.write('PUSHREF', node.identifiers[i])
+			this.write('PUSHREF', node.identifiers[i], node.locus)
 		}
 
-		this.write('PUSHCONST', node.identifiers.length)
-		this.write('SYSCALL', 'INPUT')
+		this.write('PUSHCONST', node.identifiers.length, node.locus)
+		this.write('SYSCALL', 'INPUT', node.locus)
 	}
 
 	public visitNullStatement(_node: AstNullStatement) {}
 
 	public visitEndStatement(node: AstEndStatement) {
 		this.map(node.locus)
-		this.write('END', null)
+		this.write('END', null, node.locus)
 	}
 
 	public visitForLoop(node: AstForLoop) {
@@ -342,12 +345,12 @@ export class CodeGenerator implements IVisitor {
 		let endLabel = this.newLabel('end_for')
 		this.loopStack.push(new LoopContext(node.identifier, forLabel, nextLabel, endLabel))
 		node.startExpr.accept(this)
-		this.write('POPVAR', node.identifier)
+		this.write('POPVAR', node.identifier, node.locus)
 		node.endExpr.accept(this)
 		node.stepExpr.accept(this)
 		this.label(forLabel)
-		this.write('PUSHVALUE', node.identifier)
-		this.write('FORLOOP', endLabel)
+		this.write('PUSHVALUE', node.identifier, node.locus)
+		this.write('FORLOOP', endLabel, node.locus)
 	}
 
 	public visitNextStatement(node: AstNextStatement) {
@@ -360,26 +363,26 @@ export class CodeGenerator implements IVisitor {
 			// step
 
 			this.label(ctx.nextLabel)
-			this.write('COPYTOP')
-			this.write('PUSHVALUE', ctx.counter)
-			this.write('+')
-			this.write('POPVAL', ctx.counter)
-			this.write('JMP', ctx.forLabel)
+			this.write('COPYTOP', undefined, node.locus)
+			this.write('PUSHVALUE', ctx.counter, node.locus)
+			this.write('+', undefined, node.locus)
+			this.write('POPVAL', ctx.counter, node.locus)
+			this.write('JMP', ctx.forLabel, node.locus)
 			this.label(ctx.endLabel)
 		}
 	}
 
-	public visitExitStatement(_node: AstExitStatement) {
+	public visitExitStatement(node: AstExitStatement) {
 		// Guaranteed to work due to type checker.
 		let context = this.loopStack[this.loopStack.length - 1]
 
 		if (context.counter) {
 			// It's a FOR loop. Pop off the step and end value.
-			this.write('POP')
-			this.write('POP')
+			this.write('POP', undefined, node.locus)
+			this.write('POP', undefined, node.locus)
 		}
 
-		this.write('JMP', context.endLabel)
+		this.write('JMP', context.endLabel, node.locus)
 	}
 
 	public visitArrayDeref(node: AstArrayDeref) {
@@ -387,20 +390,20 @@ export class CodeGenerator implements IVisitor {
 		// check if it's really a function call.
 		if (node.expr instanceof AstVariableReference && this.functionNames[node.expr.name]) {
 			node.parameters.accept(this)
-			this.write('CALL', this.getGotoLabel(node.expr.name))
+			this.write('CALL', this.getGotoLabel(node.expr.name), node.locus)
 		} else if (node.expr instanceof AstVariableReference && SystemFunctions[node.expr.name]) {
 			let func = SystemFunctions[node.expr.name]
 			node.parameters.accept(this)
 			if (func.minArgs < func.args.length) {
 				// variable number of arguments.
-				this.write('PUSHCONST', node.parameters.length)
+				this.write('PUSHCONST', node.parameters.length, node.locus)
 			}
 			node.expr.accept(this)
 		} else {
 			node.parameters.accept(this)
 			node.expr.accept(this)
 			if (node.parameters.length > 0) {
-				this.write('ARRAY_DEREF', node.wantRef)
+				this.write('ARRAY_DEREF', node.wantRef, node.locus)
 			} else {
 				// eg, calling a function with an array as a parameter.
 			}
@@ -411,25 +414,25 @@ export class CodeGenerator implements IVisitor {
 		this.map(node.locus)
 		node.lhs.accept(this)
 		if (node.wantRef) {
-			this.write('MEMBER_DEREF', node.identifier)
+			this.write('MEMBER_DEREF', node.identifier, node.locus)
 		} else {
-			this.write('MEMBER_VALUE', node.identifier)
+			this.write('MEMBER_VALUE', node.identifier, node.locus)
 		}
 	}
 
 	public visitVariableReference(node: AstVariableReference) {
 		this.map(node.locus)
 		if (SystemFunctions[node.name]) {
-			this.write('SYSCALL', node.name)
+			this.write('SYSCALL', node.name, node.locus)
 		} else if (this.functionNames[node.name]) {
-			this.write('CALL', this.getGotoLabel(node.name))
+			this.write('CALL', this.getGotoLabel(node.name), node.locus)
 			if (node.wantRef) {
-				this.write('NEW', node.type.name)
+				this.write('NEW', node.type.name, node.locus)
 			}
 		} else if (node.wantRef || IsArrayType(node.type)) {
-			this.write('PUSHREF', node.name)
+			this.write('PUSHREF', node.name, node.locus)
 		} else {
-			this.write('PUSHVALUE', node.name)
+			this.write('PUSHVALUE', node.name, node.locus)
 		}
 	}
 
@@ -444,7 +447,7 @@ export class CodeGenerator implements IVisitor {
 
 	public visitReturnStatement(node: AstReturnStatement) {
 		this.map(node.locus)
-		this.write('RET')
+		this.write('RET', undefined, node.locus)
 	}
 
 	public visitRestoreStatement(node: AstRestoreStatement) {
@@ -455,13 +458,13 @@ export class CodeGenerator implements IVisitor {
 		} else {
 			where = this.getGotoLabel(':top')
 		}
-		this.write('RESTORE', where)
+		this.write('RESTORE', where, node.locus)
 	}
 
-	public visitConstStatement(constStatement: AstConstStatement) {
-		this.shared[constStatement.name] = true
-		constStatement.expr.accept(this)
-		this.write('POPVAL', constStatement.name)
+	public visitConstStatement(node: AstConstStatement) {
+		this.shared[node.name] = true
+		node.expr.accept(this)
+		this.write('POPVAL', node.name, node.locus)
 	}
 
 	public visitDefTypeStatement(_def: AstDefTypeStatement) {}
@@ -490,18 +493,18 @@ export class CodeGenerator implements IVisitor {
 				node.ranges[i].upperExpr.accept(this)
 			}
 			// push number of ranges.
-			this.write('PUSHCONST', node.ranges.length)
+			this.write('PUSHCONST', node.ranges.length, node.locus)
 			// push typename
-			this.write('PUSHTYPE', typeName)
+			this.write('PUSHTYPE', typeName, node.locus)
 			// syscall alloc.
-			this.write('SYSCALL', 'alloc_array')
+			this.write('SYSCALL', 'alloc_array', node.locus)
 			// pop it into the variable name.
-			this.write('POPVAR', node.name)
+			this.write('POPVAR', node.name, node.locus)
 		} else {
 			// just create a single instance and pop it into the name.
-			this.write('PUSHTYPE', typeName)
-			this.write('SYSCALL', 'alloc_scalar')
-			this.write('POPVAR', node.name)
+			this.write('PUSHTYPE', typeName, node.locus)
+			this.write('SYSCALL', 'alloc_scalar', node.locus)
+			this.write('POPVAR', node.name, node.locus)
 		}
 	}
 
@@ -517,16 +520,16 @@ export class CodeGenerator implements IVisitor {
 		switch (node.type) {
 			case AstDoStatementType.UNTIL:
 				node.expr.accept(this)
-				this.write('BZ', top)
+				this.write('BZ', top, node.locus)
 				break
 
 			case AstDoStatementType.WHILE_AT_END:
 				node.expr.accept(this)
-				this.write('BNZ', top)
+				this.write('BNZ', top, node.locus)
 				break
 
 			case AstDoStatementType.INFINITE:
-				this.write('JMP', top)
+				this.write('JMP', top, node.locus)
 				break
 		}
 
@@ -539,11 +542,11 @@ export class CodeGenerator implements IVisitor {
 		let bottom = this.newLabel('wend')
 		this.label(top)
 		node.expr.accept(this)
-		this.write('BZ', bottom)
+		this.write('BZ', bottom, node.locus)
 		this.loopStack.push(new LoopContext(null, null, null, bottom))
 		node.statements.accept(this)
 		this.loopStack.pop()
-		this.write('JMP', top)
+		this.write('JMP', top, node.locus)
 		this.label(bottom)
 	}
 
@@ -553,15 +556,15 @@ export class CodeGenerator implements IVisitor {
 		let elseLabel = this.newLabel('else')
 
 		node.expr.accept(this)
-		this.write('BZ', elseLabel)
+		this.write('BZ', elseLabel, node.locus)
 		node.statements.accept(this)
-		this.write('JMP', endLabel)
+		this.write('JMP', endLabel, node.locus)
 
 		this.label(elseLabel)
 
 		if (node.elseStatements) {
 			node.elseStatements.accept(this)
-			this.write('JMP', endLabel)
+			this.write('JMP', endLabel, node.locus)
 		}
 
 		this.label(endLabel)
@@ -573,7 +576,7 @@ export class CodeGenerator implements IVisitor {
 		this.selectStack.push(endSelect)
 		node.expr.accept(this)
 		node.cases.accept(this)
-		this.write('POP')
+		this.write('POP', undefined, node.locus)
 		this.label(endSelect)
 		this.selectStack.pop()
 	}
@@ -584,16 +587,16 @@ export class CodeGenerator implements IVisitor {
 			let okayLabel = this.newLabel('case_okay')
 			let skipLabel = this.newLabel('case_skip')
 			for (let i = 0; i < node.exprList.length; i++) {
-				this.write('COPYTOP')
+				this.write('COPYTOP', undefined, node.locus)
 				node.exprList[i].accept(this)
-				this.write('=')
-				this.write('BNZ', okayLabel)
+				this.write('=', undefined, node.locus)
+				this.write('BNZ', okayLabel, node.locus)
 			}
-			this.write('JMP', skipLabel)
+			this.write('JMP', skipLabel, node.locus)
 			this.label(okayLabel)
 
 			node.statements.accept(this)
-			this.write('JMP', this.selectStack[this.selectStack.length - 1])
+			this.write('JMP', this.selectStack[this.selectStack.length - 1], node.locus)
 			this.label(skipLabel)
 		} else {
 			// case else.
@@ -608,13 +611,13 @@ export class CodeGenerator implements IVisitor {
 	public visitGotoStatement(node) {
 		this.map(node.locus)
 		let labelId = this.getGotoLabel(node.label)
-		this.write('JMP', labelId)
+		this.write('JMP', labelId, node.locus)
 	}
 
 	public visitGosub(node: AstGosubStatement) {
 		this.map(node.locus)
 		let labelId = this.getGotoLabel(node.label)
-		this.write('GOSUB', labelId)
+		this.write('GOSUB', labelId, node.locus)
 	}
 
 	public visitLabel(node: AstLabel) {
@@ -627,10 +630,10 @@ export class CodeGenerator implements IVisitor {
 
 		if (node.lhs instanceof AstVariableReference && this.functionNames[node.lhs.name]) {
 			// it was actually a function call.
-			this.write('POPVAL', node.lhs.name)
+			this.write('POPVAL', node.lhs.name, node.locus)
 		} else {
 			node.lhs.accept(this)
-			this.write('ASSIGN')
+			this.write('ASSIGN', undefined, node.locus)
 		}
 	}
 
@@ -638,26 +641,26 @@ export class CodeGenerator implements IVisitor {
 		this.map(node.locus)
 		node.lhs.accept(this)
 		node.rhs.accept(this)
-		this.write(node.op)
+		this.write(node.op, undefined, node.locus)
 		if (node.wantRef) {
-			this.write('NEW', node.type.name)
+			this.write('NEW', node.type.name, node.locus)
 		}
 	}
 
 	public visitUnaryOperator(node: AstUnaryOperator) {
 		this.map(node.locus)
 		node.expr.accept(this)
-		this.write('UNARY_OP', node.op)
+		this.write('UNARY_OP', node.op, node.locus)
 		if (node.wantRef) {
-			this.write('NEW', node.type.name)
+			this.write('NEW', node.type.name, node.locus)
 		}
 	}
 
 	public visitConstantExpr(node: AstConstantExpr) {
 		this.map(node.locus)
-		this.write('PUSHCONST', node.value)
+		this.write('PUSHCONST', node.value, node.locus)
 		if (node.wantRef) {
-			this.write('NEW', node.type.name)
+			this.write('NEW', node.type.name, node.locus)
 		}
 	}
 }

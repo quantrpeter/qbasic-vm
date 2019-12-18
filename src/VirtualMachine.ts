@@ -32,6 +32,31 @@ import {
 import { IConsole } from './Console'
 import { IAudioDevice } from './AudioDevice'
 import { QBasicProgram } from './QBasic'
+import { Locus } from './Tokenizer'
+import * as EventEmitter from 'eventemitter3'
+
+export enum RuntimeErrorCodes {
+	DIVISION_BY_ZERO = 101,
+	STACK_OVERFLOW = 201,
+	STACK_UNDERFLOW = 202,
+	UKNOWN_SYSCALL = 301
+}
+
+export class RuntimeError extends Error {
+	private _code: RuntimeErrorCodes
+	get code(): RuntimeErrorCodes {
+		return this._code
+	}
+	private _locus: Locus | undefined
+	get locus(): Locus | undefined {
+		return this._locus
+	}
+	constructor(code: RuntimeErrorCodes, message: string, locus?: Locus) {
+		super(message)
+		this._code = code
+		this._locus = locus
+	}
+}
 
 export class TraceBuffer {
 	readonly MAX_LINES = 200
@@ -79,7 +104,7 @@ const DEBUG = false
  some instructions and then stop. That way, the program appears to run while
  letting the user use the browser window.
  */
-export class VirtualMachine {
+export class VirtualMachine extends EventEmitter<'error'> {
 	// Stack
 	stack: any[] = []
 
@@ -143,6 +168,7 @@ export class VirtualMachine {
 	 * @param console A Console object that will be used as the screen.
 	 */
 	constructor(console: IConsole, audio?: IAudioDevice) {
+		super()
 		this.cons = console
 		this.audio = audio
 
@@ -193,8 +219,12 @@ export class VirtualMachine {
 		this.asynchronous = !synchronous
 
 		if (synchronous) {
-			while (this.pc < this.instructions.length) {
-				this.runOneInstruction()
+			try {
+				while (this.pc < this.instructions.length) {
+					this.runOneInstruction()
+				}
+			} catch (e) {
+				this.emit('error', e)
 			}
 		} else {
 			this.interval = setInterval(() => this.runSome(), this.INTERVAL_MS)
@@ -225,17 +255,18 @@ export class VirtualMachine {
 	/**
      Runs some instructions during asynchronous mode.
     */
-	public async runSome() {
-		for (
-			let i = 0;
-			i < this.instructionsPerInterval && this.pc < this.instructions.length && !this.suspended;
-			i++
-		) {
-			let instr = this.instructions[this.pc++]
-			if (DEBUG) {
-				this.trace.printf('Execute [%s] %s\n', this.pc - 1, instr)
+	public runSome() {
+		try {
+			for (
+				let i = 0;
+				i < this.instructionsPerInterval && this.pc < this.instructions.length && !this.suspended;
+				i++
+			) {
+				this.runOneInstruction()
 			}
-			instr.instr.execute(this, instr.arg)
+		} catch (e) {
+			this.suspend()
+			this.emit('error', e)
 		}
 
 		if (this.pc === this.instructions.length) {
@@ -245,7 +276,17 @@ export class VirtualMachine {
 
 	public runOneInstruction() {
 		let instr = this.instructions[this.pc++]
-		instr.instr.execute(this, instr.arg)
+		try {
+			if (DEBUG) {
+				this.trace.printf('Execute [%s] %s\n', this.pc - 1, instr)
+			}
+			instr.instr.execute(this, instr.arg)
+		} catch (e) {
+			debugger
+			if (e instanceof RuntimeError) {
+				throw new RuntimeError(e.code, e.message, instr.locus)
+			}
+		}
 	}
 
 	public setVariable(name: string, value: any) {
@@ -1156,9 +1197,9 @@ export const Instructions: InstructionDefinition = {
 		name: '/',
 		numArgs: 0,
 		execute: function(vm) {
-			// TODO: Division by 0 error. Javascript simply results in NaN
 			// TODO: \ operator.
 			let rhs = vm.stack.pop()
+			if (rhs === 0) throw new RuntimeError(RuntimeErrorCodes.DIVISION_BY_ZERO, 'Division by zero')
 			let lhs = vm.stack.pop()
 			vm.stack.push(lhs / rhs)
 		}
@@ -1168,8 +1209,8 @@ export const Instructions: InstructionDefinition = {
 		name: 'mod',
 		numArgs: 0,
 		execute: function(vm) {
-			// TODO: Division by 0 error. Javascript simply results in NaN
 			let rhs = vm.stack.pop()
+			if (rhs === 0) throw new RuntimeError(RuntimeErrorCodes.DIVISION_BY_ZERO, 'Division by zero')
 			let lhs = vm.stack.pop()
 			vm.stack.push(lhs % rhs)
 		}
@@ -1242,7 +1283,7 @@ export const Instructions: InstructionDefinition = {
 		execute: function(vm) {
 			// Return from a gosub, function, or subroutine call.
 			const returnAddr = vm.callstack.pop()
-			if (returnAddr === undefined) throw new Error('Stack underflow')
+			if (returnAddr === undefined) throw new RuntimeError(RuntimeErrorCodes.STACK_UNDERFLOW, 'Stack underflow')
 			vm.pc = returnAddr.pc
 			vm.frame = vm.callstack[vm.callstack.length - 1]
 		}
@@ -1276,7 +1317,7 @@ export const Instructions: InstructionDefinition = {
 			for (let i = 0; i < variable.dimensions.length; i++) {
 				// pop it off the stack in reverse order.
 				const index = vm.stack.pop()
-				if (index === undefined) throw new Error('Stack underflow')
+				if (index === undefined) throw new RuntimeError(RuntimeErrorCodes.STACK_UNDERFLOW, 'Stack underflow')
 				indexes.unshift(index)
 			}
 
@@ -1392,7 +1433,7 @@ export const Instructions: InstructionDefinition = {
 			} else if (SystemSubroutines[arg]) {
 				SystemSubroutines[arg].action(vm)
 			} else {
-				vm.cons.print('Unknown syscall: ' + arg)
+				throw new RuntimeError(RuntimeErrorCodes.UKNOWN_SYSCALL, 'Unknown syscall: ' + arg)
 			}
 		}
 	}
