@@ -41,6 +41,7 @@
     "webpack-cli": "^3.3.10"
   },
   "dependencies": {
+    "eventemitter3": "^4.0.0",
     "mml-iterator": "^1.1.0",
     "seq-emitter": "^1.2.0"
   }

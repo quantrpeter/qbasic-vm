@@ -16,4 +16,4 @@ SLEEP
 PLAY "t200 o6 l8 e g > e c d g"
 PRINT "Enter your name:"
 INPUT Name$
-PRINT "HELLO " + Name$;
+PRINT "HELLO " + Name$
