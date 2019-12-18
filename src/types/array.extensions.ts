@@ -1,4 +1,4 @@
-import { IVisitor } from './IVisitor'
+import { IVisitor } from '../IVisitor'
 
 declare global {
 	interface Array<T> {

@@ -60,7 +60,7 @@ import {
 	AstUnaryOperator,
 	AstConstantExpr
 } from './QBasic'
-import './array.extensions'
+import './types/array.extensions'
 import { IsArrayType } from './Types'
 import { Locus } from './Tokenizer'
 

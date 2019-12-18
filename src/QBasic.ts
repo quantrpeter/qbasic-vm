@@ -21,7 +21,7 @@
 import { SomeType, SomeScalarType } from './Types'
 import { getDebugConsole as dbg } from './DebugConsole'
 import { IVisitor } from './IVisitor'
-import './array.extensions'
+import './types/array.extensions'
 import { TypeChecker } from './TypeChecker'
 import { CodeGenerator } from './CodeGenerator'
 import { RuleParser } from './RuleParser'
