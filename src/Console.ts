@@ -125,7 +125,7 @@ export interface IConsole {
 	animateSprite(spriteNumber: number, startFrame: number, endFrame: number, loop?: boolean)
 }
 
-export class Console implements IConsole {
+export class Console extends EventTarget implements IConsole {
 	private container: HTMLDivElement
 	private canvas: HTMLCanvasElement
 	private ctx: CanvasRenderingContext2D
@@ -155,6 +155,10 @@ export class Console implements IConsole {
 	y: number = 0
 	private rows: number = 75
 	private cols: number = 40
+	private _landscape: boolean = false
+	get landscape(): boolean {
+		return this._landscape
+	}
 	private charWidth: number = 8
 	private charHeight: number = 8
 
@@ -166,13 +170,21 @@ export class Console implements IConsole {
 	private inputStr: string = ''
 	// @ts-ignore
 	private inputPos: number = 0
-	private width: number = this.cols * this.charWidth
-	private height: number = this.rows * this.charHeight
+	private _width: number = this.cols * this.charWidth
+	get width(): number {
+		return this._width
+	}
+	private _height: number = this.rows * this.charHeight
+	get height(): number {
+		return this._height
+	}
 
 	private containerWidth: number
 	private containerHeight: number
 
 	constructor(parentElement: HTMLElement, className?: string, width?: number, height?: number) {
+		super()
+
 		this.canvas = document.createElement('canvas')
 		this.container = document.createElement('div')
 		parentElement.append(this.container)
@@ -180,14 +192,15 @@ export class Console implements IConsole {
 
 		this.rows = VIDEO_MODES[DEFAULT_VIDEO_MODE].rows
 		this.cols = VIDEO_MODES[DEFAULT_VIDEO_MODE].cols
-		this.height = VIDEO_MODES[DEFAULT_VIDEO_MODE].height
-		this.width = VIDEO_MODES[DEFAULT_VIDEO_MODE].width
+		this._height = VIDEO_MODES[DEFAULT_VIDEO_MODE].height
+		this._width = VIDEO_MODES[DEFAULT_VIDEO_MODE].width
+		this._landscape = VIDEO_MODES[DEFAULT_VIDEO_MODE].landscape || false
 
 		this.canvas.width = VIDEO_MODES[DEFAULT_VIDEO_MODE].width
 		this.canvas.height = VIDEO_MODES[DEFAULT_VIDEO_MODE].height
 
-		this.containerWidth = width || this.width
-		this.containerHeight = height || this.height
+		this.containerWidth = width || this._width
+		this.containerHeight = height || this._height
 
 		this.container.style.width = this.containerWidth + 'px'
 		this.container.style.height = this.containerHeight + 'px'
@@ -211,8 +224,8 @@ export class Console implements IConsole {
 		this.charImg = document.createElement('img')
 		this.charImg.src = 'assets/charmap.png'
 
-		this.width = width || this.canvas.width
-		this.height = height || this.canvas.height
+		this._width = width || this.canvas.width
+		this._height = height || this.canvas.height
 
 		this.interval = undefined
 		this.cursorEnabled = false
@@ -274,10 +287,11 @@ export class Console implements IConsole {
 		this.inputPos = 0
 		this.rows = VIDEO_MODES[DEFAULT_VIDEO_MODE].rows
 		this.cols = VIDEO_MODES[DEFAULT_VIDEO_MODE].cols
-		this.height = VIDEO_MODES[DEFAULT_VIDEO_MODE].height
-		this.width = VIDEO_MODES[DEFAULT_VIDEO_MODE].width
+		this._height = VIDEO_MODES[DEFAULT_VIDEO_MODE].height
+		this._width = VIDEO_MODES[DEFAULT_VIDEO_MODE].width
 
 		this.cls()
+		this.clearAllSprites()
 		this.recording = testMode || false
 		this.recorded = ''
 	}
@@ -316,11 +330,19 @@ export class Console implements IConsole {
 
 		this.canvas.width = dimensions.width
 		this.canvas.height = dimensions.height
+		this.rows = dimensions.rows
+		this.cols = dimensions.cols
 
-		this.width = dimensions.width
-		this.height = dimensions.height
+		if (this._landscape !== (dimensions.landscape || false)) {
+			this._landscape = dimensions.landscape || false
+			this.dispatchEvent(new Event('orientationchange'))
+		}
+
+		this._width = dimensions.width
+		this._height = dimensions.height
 
 		this.cls()
+		this.clearAllSprites()
 
 		return true
 	}
@@ -356,7 +378,7 @@ export class Console implements IConsole {
 		}
 
 		if (aspect === undefined) {
-			aspect = (4 * (this.height / this.width)) / 3
+			aspect = (4 * (this._height / this._width)) / 3
 		}
 
 		this.ctx.save()
@@ -422,7 +444,7 @@ export class Console implements IConsole {
 	}
 
 	public paint(_x: number, _y: number, _colour: number, _borderColour: number, _step: number) {
-		let image = new ImageManipulator(this.ctx.getImageData(0, 0, this.width, this.height))
+		let image = new ImageManipulator(this.ctx.getImageData(0, 0, this._width, this._height))
 
 		dbg().printf('%s\n', image.get(10, 10))
 	}
@@ -433,7 +455,7 @@ export class Console implements IConsole {
 		this.x = 0
 		this.y = 0
 		this.ctx.fillStyle = this.bgcolor
-		this.ctx.fillRect(0, 0, this.width, this.height)
+		this.ctx.fillRect(0, 0, this._width, this._height)
 	}
 
 	public locate(row: number, col: number) {
@@ -474,15 +496,15 @@ export class Console implements IConsole {
 			this.canvas,
 			0,
 			this.charHeight,
-			this.width,
-			this.height - this.charHeight,
+			this._width,
+			this._height - this.charHeight,
 			0,
 			0,
-			this.width,
-			this.height - this.charHeight
+			this._width,
+			this._height - this.charHeight
 		)
 		this.ctx.fillStyle = this.bgcolor
-		this.ctx.fillRect(0, this.height - this.charHeight, this.width, this.charHeight)
+		this.ctx.fillRect(0, this._height - this.charHeight, this._width, this.charHeight)
 		this.y -= 1
 	}
 
@@ -714,8 +736,8 @@ export class Console implements IConsole {
 			const sprite = new Sprite(
 				imageBlob,
 				frames,
-				this.containerWidth / this.width,
-				this.containerHeight / this.height
+				this.containerWidth / this._width,
+				this.containerHeight / this._height
 			)
 			this.container.appendChild(sprite.getElement())
 			this.sprites[spriteNumber] = sprite
@@ -737,6 +759,15 @@ export class Console implements IConsole {
 			this.container.removeChild(sprite.getElement())
 			this.sprites[spriteNumber] = undefined
 		}
+	}
+
+	public clearAllSprites() {
+		this.sprites.forEach(sprite => {
+			if (sprite) {
+				this.container.removeChild(sprite.getElement())
+			}
+		})
+		this.sprites.length = 0
 	}
 
 	public offsetSprite(spriteNumber: number, x: number, y: number) {
