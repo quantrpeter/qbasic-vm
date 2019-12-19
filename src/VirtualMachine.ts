@@ -903,9 +903,9 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 		action: function(vm) {
 			vm.suspend()
 			if (window) {
-				window.requestAnimationFrame(() => {
-					vm.resume()
-				})
+				window.requestAnimationFrame(() => vm.resume())
+			} else {
+				setTimeout(() => vm.resume())
 			}
 		}
 	},
