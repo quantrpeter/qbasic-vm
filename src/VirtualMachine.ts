@@ -284,7 +284,6 @@ export class VirtualMachine extends EventEmitter<'error'> {
 			}
 			instr.instr.execute(this, instr.arg)
 		} catch (e) {
-			debugger
 			if (e instanceof RuntimeError) {
 				throw new RuntimeError(e.code, e.message, instr.locus)
 			}
