@@ -23,7 +23,7 @@
     "build": "tsc -p tsconfig.json",
     "lint": "tslint --project tsconfig.json --config tslint.json",
     "lint-fix": "",
-    "bundle": "yarn build && webpack --config webpack.config.js",
+    "bundle": "webpack --config webpack.config.js",
     "docs": "yarn docs:html && opn docs/index.html",
     "docs:html": "typedoc src/index.ts --excludePrivate --mode file --theme minimal --out docs",
     "docs:json": "typedoc --mode file --json docs/typedoc.json src/index.ts",

@@ -36,11 +36,11 @@ class MMLEmitter extends SeqEmitter {
 
 export interface IAudioDevice {
 	beep(num: number): Promise<void>
-	beepSet(num: number, data: string | Blob): Promise<void>
-	beepClear(num: number): void
+	setBeep(num: number, data: string | Blob): Promise<void>
+	clearBeep(num: number): void
 
-	musicPlay(str: string, repeat?: number): Promise<void>
-	musicStop(): void
+	playMusic(str: string, repeat?: number): Promise<void>
+	stopMusic(): void
 }
 
 export class AudioDevice implements IAudioDevice {
@@ -66,7 +66,7 @@ export class AudioDevice implements IAudioDevice {
 			this.beeps[num].play().catch(e => reject(e))
 		})
 	}
-	beepSet(num: number, data: string | Blob): Promise<void> {
+	setBeep(num: number, data: string | Blob): Promise<void> {
 		return new Promise((resolve, reject) => {
 			let beepAudio: HTMLAudioElement
 			if (typeof data === 'string') {
@@ -83,10 +83,10 @@ export class AudioDevice implements IAudioDevice {
 			})
 		})
 	}
-	beepClear(num: number): void {
+	clearBeep(num: number): void {
 		delete this.beeps[num]
 	}
-	musicPlay(mml: string, repeat?: number): Promise<void> {
+	playMusic(mml: string, repeat?: number): Promise<void> {
 		return new Promise<void>(resolve => {
 			const config = { context: this.audioContext }
 
@@ -104,7 +104,7 @@ export class AudioDevice implements IAudioDevice {
 				// console.log('END : ' + JSON.stringify(e))
 				// loop forever
 				if (repeat === undefined || repeat > 1) {
-					resolve(this.musicPlay(mml, repeat === undefined ? undefined : repeat - 1))
+					resolve(this.playMusic(mml, repeat === undefined ? undefined : repeat - 1))
 				} else {
 					resolve()
 				}
@@ -114,7 +114,7 @@ export class AudioDevice implements IAudioDevice {
 			this.currentMMLEmitter = mmlEmitter
 		})
 	}
-	musicStop(): void {
+	stopMusic(): void {
 		if (this.currentMMLEmitter) {
 			this.currentMMLEmitter.stop()
 			delete this.currentMMLEmitter

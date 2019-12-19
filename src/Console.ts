@@ -20,6 +20,7 @@
 // #include <debug.js>
 
 import { getDebugConsole as dbg } from './DebugConsole'
+import { Sprite } from './Sprite'
 
 export class ImageManipulator {
 	image: ImageData
@@ -113,13 +114,24 @@ export interface IConsole {
 	cursor(show: boolean): void
 	newline(): void
 	print(str: string): void
+
+	createSprite(spriteNumber: number, image: Blob | string, frames: number): Promise<void>
+	clearSprite(spriteNumber: number)
+	offsetSprite(spriteNumber: number, x: number, y: number)
+	scaleSprite(spriteNumber: number, scaleX: number, scaleY: number)
+	homeSprite(spriteNumber: number, homeX: number, homeY: number)
+	displaySprite(spriteNumber: number, display: boolean)
+	rotateSprite(spriteNumber: number, angle: number)
+	animateSprite(spriteNumber: number, startFrame: number, endFrame: number, loop?: boolean)
 }
 
 export class Console implements IConsole {
-	canvas: HTMLCanvasElement
+	private container: HTMLDivElement
+	private canvas: HTMLCanvasElement
 	private ctx: CanvasRenderingContext2D
 	private charImg: HTMLImageElement
 	private interval: number | undefined = undefined
+	private sprites: Array<Sprite | undefined> = []
 
 	private cursorEnabled: boolean = false
 	private cursorShown: boolean = false
@@ -157,9 +169,14 @@ export class Console implements IConsole {
 	private width: number = this.cols * this.charWidth
 	private height: number = this.rows * this.charHeight
 
+	private containerWidth: number
+	private containerHeight: number
+
 	constructor(parentElement: HTMLElement, className?: string, width?: number, height?: number) {
 		this.canvas = document.createElement('canvas')
-		parentElement.append(this.canvas)
+		this.container = document.createElement('div')
+		parentElement.append(this.container)
+		this.container.append(this.canvas)
 
 		this.rows = VIDEO_MODES[DEFAULT_VIDEO_MODE].rows
 		this.cols = VIDEO_MODES[DEFAULT_VIDEO_MODE].cols
@@ -169,18 +186,30 @@ export class Console implements IConsole {
 		this.canvas.width = VIDEO_MODES[DEFAULT_VIDEO_MODE].width
 		this.canvas.height = VIDEO_MODES[DEFAULT_VIDEO_MODE].height
 
-		this.canvas.style.width = (width || this.width) + 'px'
-		this.canvas.style.height = (height || this.height) + 'px'
-		this.canvas.style.imageRendering = 'pixelated'
+		this.containerWidth = width || this.width
+		this.containerHeight = height || this.height
+
+		this.container.style.width = this.containerWidth + 'px'
+		this.container.style.height = this.containerHeight + 'px'
+		this.container.style.imageRendering = 'pixelated'
+		this.container.style.position = 'relative'
+		this.container.style.overflow = 'hidden'
+		this.canvas.style.position = 'absolute'
+		this.canvas.style.top = '0'
+		this.canvas.style.left = '0'
+		this.canvas.style.right = '0'
+		this.canvas.style.bottom = '0'
+		this.canvas.style.width = '100%'
+		this.canvas.style.height = '100%'
 
 		this.canvas.className = className || ''
-		this.canvas.tabIndex = 0
+		this.container.tabIndex = 0
 		const context = this.canvas.getContext('2d')
 		if (context === null) throw new Error('Could not get 2D context for Console')
 		this.ctx = context
 		this.ctx.setTransform(1, 0, 0, 1, 0, 0)
 		this.charImg = document.createElement('img')
-		this.charImg.setAttribute('src', 'assets/charmap.png')
+		this.charImg.src = 'assets/charmap.png'
 
 		this.width = width || this.canvas.width
 		this.height = height || this.canvas.height
@@ -198,23 +227,30 @@ export class Console implements IConsole {
 			}
 		})
 
-		this.canvas.addEventListener('focus', event => {
-			this.canvas.style.borderColor = '#008800'
+		this.container.addEventListener('focus', event => {
+			this.container.style.borderColor = '#008800'
 			this.hasFocus = true
 			event.stopPropagation()
 		})
 
-		this.canvas.addEventListener('blur', event => {
+		this.container.addEventListener('blur', event => {
 			this.hasFocus = false
-			this.canvas.style.borderColor = '#888888'
+			this.container.style.borderColor = '#888888'
 			event.stopPropagation()
 		})
 
-		this.canvas.style.borderColor = this.bocolor
-		this.canvas.style.borderWidth = '5px'
-		this.canvas.style.borderStyle = 'solid'
+		window.requestAnimationFrame(this.animationFrame)
+
+		this.container.style.borderColor = this.bocolor
+		this.container.style.borderWidth = '5px'
+		this.container.style.borderStyle = 'solid'
 
 		this.cls()
+	}
+
+	public animationFrame = () => {
+		this.sprites.forEach(sprite => sprite && sprite.update())
+		window.requestAnimationFrame(this.animationFrame)
 	}
 
 	public reset(testMode?: boolean) {
@@ -281,10 +317,11 @@ export class Console implements IConsole {
 		this.canvas.width = dimensions.width
 		this.canvas.height = dimensions.height
 
-		this.ctx.scale(this.width / dimensions.width, this.height / dimensions.height)
-
 		this.width = dimensions.width
 		this.height = dimensions.height
+
+		this.cls()
+
 		return true
 	}
 
@@ -665,6 +702,82 @@ export class Console implements IConsole {
 					this.newline()
 				}
 			}
+		}
+	}
+
+	public createSprite(spriteNumber: number, image: Blob | string, frames: number = 1): Promise<void> {
+		if (this.sprites[spriteNumber]) {
+			this.clearSprite(spriteNumber)
+		}
+
+		const createSpriteInner = imageBlob => {
+			const sprite = new Sprite(
+				imageBlob,
+				frames,
+				this.containerWidth / this.width,
+				this.containerHeight / this.height
+			)
+			this.container.appendChild(sprite.getElement())
+			this.sprites[spriteNumber] = sprite
+			return sprite.loaded
+		}
+
+		if (typeof image === 'string') {
+			return fetch(image)
+				.then(r => r.blob())
+				.then(createSpriteInner)
+		} else {
+			return createSpriteInner(image)
+		}
+	}
+
+	public clearSprite(spriteNumber: number) {
+		const sprite = this.sprites[spriteNumber]
+		if (sprite) {
+			this.container.removeChild(sprite.getElement())
+			this.sprites[spriteNumber] = undefined
+		}
+	}
+
+	public offsetSprite(spriteNumber: number, x: number, y: number) {
+		const sprite = this.sprites[spriteNumber]
+		if (sprite) {
+			sprite.setPosition(x, y)
+		}
+	}
+
+	public scaleSprite(spriteNumber: number, scaleX: number, scaleY: number) {
+		const sprite = this.sprites[spriteNumber]
+		if (sprite) {
+			sprite.setScale(scaleX, scaleY)
+		}
+	}
+
+	public homeSprite(spriteNumber: number, homeX: number, homeY: number) {
+		const sprite = this.sprites[spriteNumber]
+		if (sprite) {
+			sprite.setAnchor(homeX, homeY)
+		}
+	}
+
+	public displaySprite(spriteNumber: number, display: boolean) {
+		const sprite = this.sprites[spriteNumber]
+		if (sprite) {
+			sprite.setDisplay(display)
+		}
+	}
+
+	public rotateSprite(spriteNumber: number, angle: number) {
+		const sprite = this.sprites[spriteNumber]
+		if (sprite) {
+			sprite.setRotate(angle)
+		}
+	}
+
+	public animateSprite(spriteNumber: number, startFrame: number, endFrame: number, loop?: boolean) {
+		const sprite = this.sprites[spriteNumber]
+		if (sprite) {
+			sprite.setAnimate(startFrame - 1, endFrame - 1, loop || true)
 		}
 	}
 }

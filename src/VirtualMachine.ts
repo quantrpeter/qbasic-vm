@@ -39,7 +39,8 @@ export enum RuntimeErrorCodes {
 	DIVISION_BY_ZERO = 101,
 	STACK_OVERFLOW = 201,
 	STACK_UNDERFLOW = 202,
-	UKNOWN_SYSCALL = 301
+	UKNOWN_SYSCALL = 301,
+	IO_ERROR = 401
 }
 
 export class RuntimeError extends Error {
@@ -248,6 +249,7 @@ export class VirtualMachine extends EventEmitter<'error'> {
 	public resume() {
 		this.suspended = false
 		if (this.asynchronous) {
+			this.runSome()
 			this.interval = setInterval(() => this.runSome(), this.INTERVAL_MS)
 		}
 	}
@@ -622,7 +624,7 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 			if (vm.audio) {
 				vm.suspend()
 				vm.audio
-					.musicPlay(music, repeat || 1)
+					.playMusic(music, repeat || 1)
 					.then(() => {
 						vm.resume()
 					})
@@ -645,7 +647,7 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 			}
 
 			if (vm.audio) {
-				vm.audio.musicPlay(music, repeat).catch(e => console.error(e))
+				vm.audio.playMusic(music, repeat).catch(e => console.error(e))
 			}
 		}
 	},
@@ -653,7 +655,7 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 	BGMSTOP: {
 		action: function(vm) {
 			if (vm.audio) {
-				vm.audio.musicStop()
+				vm.audio.stopMusic()
 			}
 		}
 	},
@@ -848,8 +850,8 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 
 	SCREEN: {
 		action: function(vm) {
-			// TODO: NOT IMPLEMENTED
-			vm.stack.pop()
+			const mode = vm.stack.pop().value
+			vm.cons.screen(mode)
 		}
 	},
 
@@ -871,8 +873,8 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 			vm.cons
 				.input()
 				.then(result => {
-					vm.resume()
 					args[0].value = result
+					vm.resume()
 				})
 				.catch(e => console.error(e))
 		}
@@ -894,6 +896,118 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 			// TODO: NOT IMPLEMENTED
 			vm.stack.pop()
 			vm.stack.pop()
+		}
+	},
+
+	YIELD: {
+		action: function(vm) {
+			vm.suspend()
+			if (window) {
+				window.requestAnimationFrame(() => {
+					vm.resume()
+				})
+			}
+		}
+	},
+
+	SPSET: {
+		args: ['INTEGER', 'ANY'],
+		minArgs: 2,
+		action: function(vm) {
+			vm.suspend()
+			let argCount = vm.stack.pop()
+			let frames = 1
+			if (argCount > 2) {
+				frames = vm.stack.pop().value
+			}
+			const image = vm.stack.pop().value
+			const spriteNum = vm.stack.pop().value
+
+			vm.cons
+				.createSprite(spriteNum, image, frames)
+				.then(() => {
+					vm.resume()
+				})
+				.catch(e => console.error(e))
+		}
+	},
+
+	SPOFS: {
+		args: ['INTEGER', 'INTEGER', 'INTEGER'],
+		action: function(vm) {
+			const y = vm.stack.pop().value
+			const x = vm.stack.pop().value
+			const spriteNum = vm.stack.pop().value
+			vm.cons.offsetSprite(spriteNum, x, y)
+		}
+	},
+
+	SPSCALE: {
+		args: ['INTEGER', 'INTEGER', 'INTEGER'],
+		action: function(vm) {
+			const scaleY = vm.stack.pop().value
+			const scaleX = vm.stack.pop().value
+			const spriteNum = vm.stack.pop().value
+			vm.cons.scaleSprite(spriteNum, scaleX, scaleY)
+		}
+	},
+
+	SPROT: {
+		args: ['INTEGER', 'INTEGER'],
+		action: function(vm) {
+			const angle = vm.stack.pop().value
+			const spriteNum = vm.stack.pop().value
+			vm.cons.rotateSprite(spriteNum, angle)
+		}
+	},
+
+	SPHOME: {
+		args: ['INTEGER', 'INTEGER', 'INTEGER'],
+		action: function(vm) {
+			const homeY = vm.stack.pop().value
+			const homeX = vm.stack.pop().value
+			const spriteNum = vm.stack.pop().value
+			vm.cons.homeSprite(spriteNum, homeX, homeY)
+		}
+	},
+
+	SPHIDE: {
+		args: ['INTEGER'],
+		action: function(vm) {
+			const spriteNum = vm.stack.pop().value
+			vm.cons.displaySprite(spriteNum, false)
+		}
+	},
+
+	SPSHOW: {
+		args: ['INTEGER'],
+		action: function(vm) {
+			const spriteNum = vm.stack.pop().value
+			vm.cons.displaySprite(spriteNum, true)
+		}
+	},
+
+	SPANIM: {
+		args: ['INTEGER', 'INTEGER', 'INTEGER', 'INTEGER'],
+		minArgs: 3,
+		action: function(vm) {
+			const argCount = vm.stack.pop()
+			let loop = true
+			if (argCount > 3) {
+				loop = vm.stack.pop().value === -1 ? true : false
+			}
+			const stopFrame = vm.stack.pop().value
+			const startFrame = vm.stack.pop().value
+			const spriteNum = vm.stack.pop().value
+			vm.cons.animateSprite(spriteNum, startFrame, stopFrame, loop)
+		}
+	},
+
+	SPCLR: {
+		args: ['INTEGER'],
+		action: function(vm) {
+			const spriteNum = vm.stack.pop().value
+			vm.cons.clearSprite(spriteNum)
 		}
 	}
 }

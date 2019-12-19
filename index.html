@@ -8,7 +8,7 @@
 
 		<script>
 			var ScriptSrc = './assets/' // directory of charmap.png
-			var cons = new qb.Console(document.getElementById('main'))
+			var cons = new qb.Console(document.getElementById('main'), undefined, 320, 600)
 			var audio = new qb.AudioDevice()
 			var virtualMachine = new qb.VirtualMachine(cons, audio)
 			var dbg = new qb.DebugConsole(document.getElementById('debug'))
