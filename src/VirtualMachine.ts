@@ -923,7 +923,7 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 			const spriteNum = vm.stack.pop().value
 
 			vm.cons
-				.createSprite(spriteNum, image, frames)
+				.createSprite(spriteNum - 1, image, frames)
 				.then(() => {
 					vm.resume()
 				})
@@ -937,7 +937,7 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 			const y = vm.stack.pop().value
 			const x = vm.stack.pop().value
 			const spriteNum = vm.stack.pop().value
-			vm.cons.offsetSprite(spriteNum, x, y)
+			vm.cons.offsetSprite(spriteNum - 1, x, y)
 		}
 	},
 
@@ -947,7 +947,7 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 			const scaleY = vm.stack.pop().value
 			const scaleX = vm.stack.pop().value
 			const spriteNum = vm.stack.pop().value
-			vm.cons.scaleSprite(spriteNum, scaleX, scaleY)
+			vm.cons.scaleSprite(spriteNum - 1, scaleX, scaleY)
 		}
 	},
 
@@ -956,7 +956,7 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 		action: function(vm) {
 			const angle = vm.stack.pop().value
 			const spriteNum = vm.stack.pop().value
-			vm.cons.rotateSprite(spriteNum, angle)
+			vm.cons.rotateSprite(spriteNum - 1, angle)
 		}
 	},
 
@@ -966,7 +966,7 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 			const homeY = vm.stack.pop().value
 			const homeX = vm.stack.pop().value
 			const spriteNum = vm.stack.pop().value
-			vm.cons.homeSprite(spriteNum, homeX, homeY)
+			vm.cons.homeSprite(spriteNum - 1, homeX, homeY)
 		}
 	},
 
@@ -974,7 +974,7 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 		args: ['INTEGER'],
 		action: function(vm) {
 			const spriteNum = vm.stack.pop().value
-			vm.cons.displaySprite(spriteNum, false)
+			vm.cons.displaySprite(spriteNum - 1, false)
 		}
 	},
 
@@ -982,7 +982,7 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 		args: ['INTEGER'],
 		action: function(vm) {
 			const spriteNum = vm.stack.pop().value
-			vm.cons.displaySprite(spriteNum, true)
+			vm.cons.displaySprite(spriteNum - 1, true)
 		}
 	},
 
@@ -998,7 +998,7 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 			const stopFrame = vm.stack.pop().value
 			const startFrame = vm.stack.pop().value
 			const spriteNum = vm.stack.pop().value
-			vm.cons.animateSprite(spriteNum, startFrame, stopFrame, loop)
+			vm.cons.animateSprite(spriteNum - 1, startFrame - 1, stopFrame - 1, loop)
 		}
 	},
 
@@ -1006,7 +1006,7 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 		args: ['INTEGER'],
 		action: function(vm) {
 			const spriteNum = vm.stack.pop().value
-			vm.cons.clearSprite(spriteNum)
+			vm.cons.clearSprite(spriteNum - 1)
 		}
 	}
 }

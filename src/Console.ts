@@ -808,7 +808,7 @@ export class Console extends EventTarget implements IConsole {
 	public animateSprite(spriteNumber: number, startFrame: number, endFrame: number, loop?: boolean) {
 		const sprite = this.sprites[spriteNumber]
 		if (sprite) {
-			sprite.setAnimate(startFrame - 1, endFrame - 1, loop || true)
+			sprite.setAnimate(startFrame, endFrame, loop || true)
 		}
 	}
 }
