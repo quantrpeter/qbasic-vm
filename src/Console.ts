@@ -75,6 +75,7 @@ const VIDEO_MODES: { [key: number]: IVideoMode } = {
 }
 
 const DEFAULT_VIDEO_MODE = 1
+const SCREEN_BORDER_VARIABLE = '--qbasic-interpreter-screen-border-color'
 
 export interface IConsole {
 	x: number
@@ -100,6 +101,17 @@ export interface IConsole {
 	get(x1: number, y1: number, x2: number, y2: number, step1?: boolean, step2?: boolean): ImageData
 	put(data: ImageData, x: number, y: number): void
 	paint(x: number, y: number, colour: number, borderColor: number, step: number): void
+	putImage(
+		image: HTMLImageElement,
+		dx: number,
+		dy: number,
+		dwidth?: number,
+		dheight?: number,
+		sx?: number,
+		sy?: number,
+		swidth?: number,
+		sheight?: number
+	): void
 	cls(): void
 	locate(row: number, col: number): void
 	color(fg: number | null, bg: number | null, bo: number | null): void
@@ -115,7 +127,10 @@ export interface IConsole {
 	newline(): void
 	print(str: string): void
 
-	createSprite(spriteNumber: number, image: Blob | string, frames: number): Promise<void>
+	loadImage(file: String): Promise<number>
+	getImage(handle: number): HTMLImageElement
+
+	createSprite(spriteNumber: number, image: HTMLImageElement, frames: number): Promise<void>
 	clearSprite(spriteNumber: number)
 	offsetSprite(spriteNumber: number, x: number, y: number)
 	scaleSprite(spriteNumber: number, scaleX: number, scaleY: number)
@@ -131,6 +146,7 @@ export class Console extends EventTarget implements IConsole {
 	private ctx: CanvasRenderingContext2D
 	private charImg: HTMLImageElement
 	private interval: number | undefined = undefined
+	private images: Array<HTMLImageElement | undefined> = []
 	private sprites: Array<Sprite | undefined> = []
 
 	private cursorEnabled: boolean = false
@@ -221,6 +237,7 @@ export class Console extends EventTarget implements IConsole {
 		if (context === null) throw new Error('Could not get 2D context for Console')
 		this.ctx = context
 		this.ctx.setTransform(1, 0, 0, 1, 0, 0)
+		this.ctx.imageSmoothingEnabled = false
 		this.charImg = document.createElement('img')
 		this.charImg.src = 'assets/charmap.png'
 
@@ -241,22 +258,18 @@ export class Console extends EventTarget implements IConsole {
 		})
 
 		this.container.addEventListener('focus', event => {
-			this.container.style.borderColor = '#008800'
 			this.hasFocus = true
 			event.stopPropagation()
 		})
 
 		this.container.addEventListener('blur', event => {
 			this.hasFocus = false
-			this.container.style.borderColor = '#888888'
 			event.stopPropagation()
 		})
 
 		window.requestAnimationFrame(this.animationFrame)
 
-		this.container.style.borderColor = this.bocolor
-		this.container.style.borderWidth = '5px'
-		this.container.style.borderStyle = 'solid'
+		document.body.style.setProperty(SCREEN_BORDER_VARIABLE, this.bocolor)
 
 		this.cls()
 	}
@@ -294,6 +307,8 @@ export class Console extends EventTarget implements IConsole {
 		this.clearAllSprites()
 		this.recording = testMode || false
 		this.recorded = ''
+
+		document.body.style.setProperty(SCREEN_BORDER_VARIABLE, this.bocolor)
 	}
 
 	public record(str: string) {
@@ -449,6 +464,103 @@ export class Console extends EventTarget implements IConsole {
 		dbg().printf('%s\n', image.get(10, 10))
 	}
 
+	public loadImage(file: string): Promise<number> {
+		return new Promise((resolve, reject) => {
+			const img = document.createElement('img')
+			img.src = file
+			img.decode()
+				.then(() => {
+					const idx = this.images.findIndex(i => i === undefined)
+					if (idx >= 0) {
+						this.images[idx] = img
+						resolve(idx)
+					} else {
+						resolve(this.images.push(img) - 1)
+					}
+				})
+				.catch(reject)
+		})
+	}
+
+	public getImage(handle: number): HTMLImageElement {
+		const image = this.images[handle]
+		if (image === undefined) throw new Error('Floating image handle')
+		return image
+	}
+
+	private static drawImageWithWrap(
+		ctx: CanvasRenderingContext2D,
+		image: HTMLImageElement,
+		sx: number,
+		sy: number,
+		sw: number,
+		sh: number,
+		dx: number,
+		dy: number,
+		dw: number,
+		dh: number
+	) {
+		let curDX = dx
+		let curDY = dy
+		let curSX = sx
+		let curSY = sy
+		let curSW = sw
+		let curSH = sh
+		// let curDW = dw
+		// let curDH = dh
+
+		while (curDY < dy + dh) {
+			let clampedSH = Math.min(image.naturalHeight, curSY + curSH) - curSY
+			let curDH = (clampedSH / sh) * dh
+			while (curDX < dx + dw) {
+				let clampedSW = Math.min(image.naturalWidth, curSX + curSW) - curSX
+				let curDW = (clampedSW / sw) * dw
+				ctx.drawImage(image, curSX, curSY, clampedSW, clampedSH, curDX, curDY, curDW, curDH)
+				curSW = curSW - clampedSW
+				curSX = 0
+				curDX = curDX + curDW
+			}
+			curSH = curSH - clampedSH
+			curSY = 0
+			curDY = curDY + curDH
+
+			curDX = dx
+			curSW = sw
+			curSX = sx
+		}
+	}
+
+	public putImage(
+		image: HTMLImageElement,
+		dx: number,
+		dy: number,
+		dw?: number,
+		dh?: number,
+		sx?: number,
+		sy?: number,
+		sw?: number,
+		sh?: number
+	): void {
+		if (sx !== undefined && sy !== undefined && dh !== undefined && dw !== undefined) {
+			Console.drawImageWithWrap(
+				this.ctx,
+				image,
+				sx,
+				sy,
+				sw || image.naturalWidth,
+				sh || image.naturalHeight,
+				dx,
+				dy,
+				dw,
+				dh
+			)
+		} else if (dh !== undefined && dw !== undefined) {
+			this.ctx.drawImage(image, dx, dy, dh, dw)
+		} else {
+			this.ctx.drawImage(image, dx, dy)
+		}
+	}
+
 	public cls() {
 		this.record('[CLS]')
 		this.cursor(false)
@@ -487,7 +599,7 @@ export class Console extends EventTarget implements IConsole {
 		this.bocolorNum = bo
 		this.bocolor = VIDEO_COLORS[bo]
 
-		this.canvas.style.borderColor = this.bocolor
+		document.body.style.setProperty(SCREEN_BORDER_VARIABLE, this.bocolor)
 	}
 
 	public scroll() {
@@ -727,30 +839,15 @@ export class Console extends EventTarget implements IConsole {
 		}
 	}
 
-	public createSprite(spriteNumber: number, image: Blob | string, frames: number = 1): Promise<void> {
+	public createSprite(spriteNumber: number, image: HTMLImageElement, frames: number = 1): Promise<void> {
 		if (this.sprites[spriteNumber]) {
 			this.clearSprite(spriteNumber)
 		}
 
-		const createSpriteInner = imageBlob => {
-			const sprite = new Sprite(
-				imageBlob,
-				frames,
-				this.containerWidth / this._width,
-				this.containerHeight / this._height
-			)
-			this.container.appendChild(sprite.getElement())
-			this.sprites[spriteNumber] = sprite
-			return sprite.loaded
-		}
-
-		if (typeof image === 'string') {
-			return fetch(image)
-				.then(r => r.blob())
-				.then(createSpriteInner)
-		} else {
-			return createSpriteInner(image)
-		}
+		const sprite = new Sprite(image, frames, this.containerWidth / this._width, this.containerHeight / this._height)
+		this.container.appendChild(sprite.getElement())
+		this.sprites[spriteNumber] = sprite
+		return sprite.loaded
 	}
 
 	public clearSprite(spriteNumber: number) {

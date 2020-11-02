@@ -38,7 +38,6 @@ export class Sprite {
 		return this._anchorY
 	}
 
-	private _img: HTMLImageElement
 	private _el: HTMLDivElement
 
 	private _pAspectX: number = 1
@@ -74,7 +73,7 @@ export class Sprite {
 	 * @param pAspectX Display (BASIC Console) pixel X aspect ratio
 	 * @param pAspectY Display (BASIC COnsole) pixel Y aspect ratio
 	 */
-	constructor(image: Blob, frames: number, pAspectX: number, pAspectY: number) {
+	constructor(image: HTMLImageElement, frames: number, pAspectX: number, pAspectY: number) {
 		this._pAspectX = pAspectX
 		this._pAspectY = pAspectY
 		this._totalFrames = frames
@@ -84,24 +83,17 @@ export class Sprite {
 		this._el.style.top = '0'
 		this._el.style.left = '0'
 		this._loaded = new Promise<void>((resolve, reject) => {
-			this._img = new Image()
-			const url = URL.createObjectURL(image)
-			this._img.onload = () => {
-				this._el.style.backgroundImage = `url('${url}')`
-				this._imgHeight = this._img.height
-				this._imgWidth = this._img.width
-				this._frameWidth = this._img.width / frames
-				this._el.style.height = `${this._img.height * this._pAspectY}px`
-				this._el.style.width = `${this._frameWidth * this._pAspectX}px`
-				this._el.style.backgroundSize = `${this._imgWidth * pAspectX}px ${this._imgHeight * pAspectY}px`
-				this.reposition()
-				this.bkgReposition()
-				resolve()
-			}
-			this._img.onerror = e => {
-				reject(e)
-			}
-			this._img.src = url
+			const url = image.src
+			this._el.style.backgroundImage = `url('${url}')`
+			this._imgHeight = image.naturalHeight
+			this._imgWidth = image.naturalWidth
+			this._frameWidth = image.naturalWidth / frames
+			this._el.style.height = `${image.naturalHeight * this._pAspectY}px`
+			this._el.style.width = `${this._frameWidth * this._pAspectX}px`
+			this._el.style.backgroundSize = `${this._imgWidth * pAspectX}px ${this._imgHeight * pAspectY}px`
+			this.reposition()
+			this.bkgReposition()
+			resolve()
 		})
 	}
 
