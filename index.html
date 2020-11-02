@@ -1,29 +1,35 @@
+<!DOCTYPE html>
 <html>
 	<head>
-		<script src="qb.js"></script>
+		<script src="qb.js" type="text/javascript"></script>
 	</head>
 	<body>
 		<div id="main"></div>
 		<div id="debug"></div>
 
-		<script>
-			var ScriptSrc = './assets/' // directory of charmap.png
-			var cons = new qb.Console(document.getElementById('main'), undefined, 320, 600)
-			var audio = new qb.AudioDevice()
-			var virtualMachine = new qb.VirtualMachine(cons, audio)
-			var dbg = new qb.DebugConsole(document.getElementById('debug'))
-			fetch('helloWorld.bas')
+		<script type="text/javascript">
+			const ScriptSrc = './assets/' // directory of charmap.png
+			const cons = new qb.Console(document.getElementById('main'), undefined, 320, 600)
+			const audio = new qb.AudioDevice()
+			const virtualMachine = new qb.VirtualMachine(cons, audio)
+			const dbg = new qb.DebugConsole(document.getElementById('debug'))
+			const fileName = 'demo/driveBy/driveBy.bas'
+			fetch(fileName)
 				.then(resp => {
 					if (resp.status === 200) return resp.text()
 					throw new Error(404, 'Program not found.')
 				})
 				.then(code => {
-					var program = new qb.QBasicProgram(code)
+					const program = new qb.QBasicProgram(code)
 					if (program.errors.length === 0) {
+						const fileNameAbsUrl = new URL(fileName, window.location.href)
+						const baseUrl = new URL('./', fileNameAbsUrl.toString())
+						virtualMachine.cwd = baseUrl.toString()
+
 						virtualMachine.run(program, false)
 					} else {
 						virtualMachine.reset(null)
-						for (var i = 0; i < program.errors.length; i++) {
+						for (let i = 0; i < program.errors.length; i++) {
 							dbg.print(program.errors[i] + '\n')
 						}
 						cons.enableCursor(true)

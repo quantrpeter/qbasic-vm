@@ -1,3 +1,7 @@
+REM Very basic demo of the QBasic implementation for Meritum
+REM Uses all the advanced APIs
+REM ---
+
 DECLARE SUB PrintRainbow (text$)
 
 SUB PrintRainbow (text$)
@@ -9,7 +13,9 @@ SUB PrintRainbow (text$)
 	COLOR 0, 15
 END SUB
 
-SPSET 1, "test.png"
+DIM Sprite AS INTEGER
+Sprite = LOADIMAGE("test.png")
+SPSET 1, Sprite
 SPOFS 1, 0, 50
 PrintRainbow "HELLO WORLD!"
 PRINT ""
@@ -28,3 +34,7 @@ SPCLR 1
 PRINT "Enter your name:"
 INPUT Name$
 PRINT "HELLO " + Name$
+SLEEP
+PUTIMAGE Sprite, 0, 0
+LOCATE 1, 1
+PrintRainbow "GOOD BYE!       "
