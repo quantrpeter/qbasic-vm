@@ -790,6 +790,7 @@ export class QBasicProgram {
 			rules.addToken('VIEW', 'VIEW')
 			rules.addToken('WEND', 'WEND')
 			rules.addToken('WHILE', 'WHILE')
+			rules.addToken('REM', 'REM ?.*$')
 			rules.addToken('minus', '\\-')
 			rules.addToken('endl', '\\n')
 			rules.addToken('comment', "'.*$")
@@ -991,6 +992,9 @@ export class QBasicProgram {
 			rules.addRule("AssignStatement: ReferenceList '=' expr2", function(args, locus) {
 				return new AstAssignStatement(locus, args[0], args[2])
 			})
+			rules.addRule('istatement: REM', function() {
+				return undefined
+			})
 			rules.addRule('istatement: identifier Parameters', function(args, locus) {
 				return new AstCallStatement(locus, args[0], args[1])
 			})
@@ -1061,6 +1065,7 @@ export class QBasicProgram {
 			rules.addRule('expr6: expr7')
 			rules.addRule("expr7: expr7 '\\*' expr8", this.onBinaryOp)
 			rules.addRule("expr7: expr7 '\\/' expr8", this.onBinaryOp)
+			rules.addRule("expr7: expr7 '\\^' expr8", this.onBinaryOp)
 			rules.addRule('expr7: expr8')
 			rules.addRule("expr8: '\\(' expr '\\)'", this.onBracketExpr)
 			// rules.addRule( "expr8: expr8 '\\.' expr10", onBinaryOp );
