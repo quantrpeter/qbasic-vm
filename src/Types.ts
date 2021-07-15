@@ -59,6 +59,22 @@ export function DeriveTypeNameFromVariable(name) {
 	return null // Must use default type from DEFINT or single.
 }
 
+export class JSONType extends Type<object> {
+	constructor() {
+		super()
+
+		this.name = 'JSON'
+	}
+
+	public createInstance() {
+		return {}
+	}
+
+	public copy(value: object) {
+		return JSON.parse(JSON.stringify(value))
+	}
+}
+
 export class IntegerType extends Type<number> {
 	constructor() {
 		super()
@@ -172,7 +188,7 @@ export type SomeArrayType =
 	| ArrayType<AnyType>
 	| ArrayType<UserType>
 export type SomeScalarType = NullType | IntegerType | SingleType | DoubleType | StringType | AnyType
-export type SomeType = SomeScalarType | SomeArrayType | UserType
+export type SomeType = SomeScalarType | SomeArrayType | JSONType | UserType
 
 export interface IUserTypeMembers {
 	[key: string]: SomeScalarType

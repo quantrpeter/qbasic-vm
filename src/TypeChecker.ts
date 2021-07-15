@@ -44,7 +44,8 @@ import {
 	IsNumericType,
 	IsArrayType,
 	IsUserType,
-	SomeScalarType
+	SomeScalarType,
+	JSONType
 } from './Types'
 import { IVisitor } from './IVisitor'
 import { sprintf, getDebugConsole as dbg } from './DebugConsole'
@@ -97,6 +98,7 @@ export class TypeChecker implements IVisitor {
 		SINGLE: SingleType
 		DOUBLE: DoubleType
 		STRING: StringType
+		JSON: JSONType
 		ANY: AnyType
 		':NULL': NullType
 		[key: string]: SomeType
@@ -120,6 +122,7 @@ export class TypeChecker implements IVisitor {
 			SINGLE: new SingleType(),
 			DOUBLE: new DoubleType(),
 			STRING: new StringType(),
+			JSON: new JSONType(),
 			ANY: new AnyType(),
 			':NULL': new NullType()
 		}

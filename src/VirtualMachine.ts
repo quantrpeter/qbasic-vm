@@ -575,7 +575,7 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 		args: ['ANY'],
 		minArgs: 1,
 		action: function(vm) {
-			vm.stack.push(Math.sqrt(vm.stack.pop()))
+			vm.stack.push(Math.sqrt(Number(vm.stack.pop())))
 		}
 	},
 
@@ -584,7 +584,7 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 		args: ['ANY'],
 		minArgs: 1,
 		action: function(vm) {
-			const val = vm.stack.pop()
+			const val = Number(vm.stack.pop())
 			vm.stack.push(val === 0 ? 0 : val < 0 ? -1 : 1)
 		}
 	},
@@ -594,7 +594,7 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 		args: ['ANY'],
 		minArgs: 1,
 		action: function(vm) {
-			vm.stack.push(Math.abs(vm.stack.pop()))
+			vm.stack.push(Math.abs(Number(vm.stack.pop())))
 		}
 	},
 
@@ -876,15 +876,15 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 		action: function(vm) {
 			let argCount = vm.stack.pop()
 
-			let bg = null
-			let bo = null
+			let bg: number | null = null
+			let bo: number | null = null
 			if (argCount > 2) {
-				bo = vm.stack.pop().value
+				bo = Number(vm.stack.pop().value) || 0
 			}
 			if (argCount > 1) {
-				bg = vm.stack.pop().value
+				bg = Number(vm.stack.pop().value) || 0
 			}
-			let fg = vm.stack.pop().value
+			let fg = Number(vm.stack.pop().value) || 0
 			vm.cons.color(fg, bg, bo)
 		}
 	},
