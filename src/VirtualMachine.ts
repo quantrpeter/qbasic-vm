@@ -736,15 +736,31 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 			if (argCount === 1) {
 				// if an argument is provided, wait X seconds
 				const sleep = vm.stack.pop().value
-				setTimeout(() => {
+				let cancelSleep: () => void
+				
+				const timeout = setTimeout(() => {
+					vm.off('suspended', cancelSleep)
 					vm.resume()
 				}, sleep * 1000)
+				cancelSleep = () => {
+					clearTimeout(timeout)
+				}
+
+				vm.once('suspended', cancelSleep)
 			} else {
 				// if no argument is provided, use a global trapped key to resume
+				let cancelSleep: () => void
+
 				vm.cons.onKey(-1, () => {
+					vm.off('suspended', cancelSleep)
 					vm.cons.onKey(-1, undefined)
 					vm.resume()
 				})
+				cancelSleep = () => {
+					vm.cons.onKey(-1, undefined)
+				}
+
+				vm.once('suspended', cancelSleep)
 			}
 		}
 	},
