@@ -98,9 +98,11 @@ export interface IConsole {
 		aspect: number | undefined,
 		step: number
 	): void
+	box(x1: number, y1: number, x2: number, y2: number): void
+	fill(x1: number, y1: number, x2: number, y2: number): void
 	get(x1: number, y1: number, x2: number, y2: number, step1?: boolean, step2?: boolean): ImageData
 	put(data: ImageData, x: number, y: number): void
-	paint(x: number, y: number, colour: number, borderColor: number, step: number): void
+	paint(x: number, y: number, colour: number, borderColor: number, step?: number): void
 	putImage(
 		image: HTMLImageElement,
 		dx: number,
@@ -426,6 +428,14 @@ export class Console extends EventTarget implements IConsole {
 		this.ctx.restore()
 	}
 
+	public box(x1: number, y1: number, x2: number, y2: number): void {
+		throw new Error('Method not implemented.')
+	}
+	
+	public fill(x1: number, y1: number, x2: number, y2: number): void {
+		throw new Error('Method not implemented.')
+	}
+
 	public get(x1, y1, x2, y2, step1?: boolean, step2?: boolean): ImageData {
 		let temp: number
 
@@ -458,7 +468,7 @@ export class Console extends EventTarget implements IConsole {
 		this.ctx.putImageData(data, x, y)
 	}
 
-	public paint(_x: number, _y: number, _colour: number, _borderColour: number, _step: number) {
+	public paint(x: number, y: number, colour: number, borderColour: number, _step?: number) {
 		let image = new ImageManipulator(this.ctx.getImageData(0, 0, this._width, this._height))
 
 		dbg().printf('%s\n', image.get(10, 10))
@@ -539,7 +549,7 @@ export class Console extends EventTarget implements IConsole {
 					curDX = Math.round(curDX + curDW)
 				}
 			}
-			
+
 			curSH = curSH - clampedSH
 			curSY = 0
 			curDY = Math.round(curDY + curDH)
