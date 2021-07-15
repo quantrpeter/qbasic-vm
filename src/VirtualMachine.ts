@@ -1095,18 +1095,22 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 	},
 
 	SPANIM: {
-		args: ['INTEGER', 'INTEGER', 'INTEGER', 'INTEGER'],
+		args: ['INTEGER', 'INTEGER', 'INTEGER', 'INTEGER', 'INTEGER'],
 		minArgs: 3,
 		action: function(vm) {
 			const argCount = vm.stack.pop()
 			let loop = true
+			let speed = 1
 			if (argCount > 3) {
-				loop = vm.stack.pop().value === -1 ? true : false
+				speed = vm.stack.pop().value
+			}
+			if (argCount > 4) {
+				loop = vm.stack.pop().value === 0 ? false : true
 			}
 			const stopFrame = vm.stack.pop().value
 			const startFrame = vm.stack.pop().value
 			const spriteNum = vm.stack.pop().value
-			vm.cons.animateSprite(spriteNum - 1, startFrame - 1, stopFrame - 1, loop)
+			vm.cons.animateSprite(spriteNum - 1, startFrame - 1, stopFrame - 1, speed, loop)
 		}
 	},
 

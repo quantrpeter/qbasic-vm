@@ -55,6 +55,8 @@ export class Sprite {
 	private _animDirection: number = 1
 	private _animating: boolean = false
 	private _loop: boolean = false
+	private _speed: number = 1
+	private _skip: number = 0
 
 	private _display: boolean = true
 	get display(): boolean {
@@ -99,6 +101,14 @@ export class Sprite {
 
 	update() {
 		if (this._animating) {
+			this._skip++
+			if (this._skip < this._speed) {
+				// wait at _skip-times until actually animating this sprite
+				return
+			} else {
+				this._skip = 0
+			}
+
 			const oldFrame = this._curFrame
 			this._curFrame = Math.max(Math.min(this._curFrame + this._animDirection, this._totalFrames - 1), 0)
 			if (this._curFrame > this._endFrame) {
@@ -165,11 +175,12 @@ export class Sprite {
 		return this._el
 	}
 
-	setAnimate(startFrame: number, endFrame: number, loop: boolean) {
+	setAnimate(startFrame: number, endFrame: number, speed: number, loop: boolean) {
 		this._beginFrame = startFrame
 		this._endFrame = endFrame
 		this._loop = loop
 		this._animating = true
 		this._animDirection = this._beginFrame <= this._endFrame ? 1 : -1
+		this._speed = speed
 	}
 }

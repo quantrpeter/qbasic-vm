@@ -139,7 +139,7 @@ export interface IConsole {
 	homeSprite(spriteNumber: number, homeX: number, homeY: number)
 	displaySprite(spriteNumber: number, display: boolean)
 	rotateSprite(spriteNumber: number, angle: number)
-	animateSprite(spriteNumber: number, startFrame: number, endFrame: number, loop?: boolean)
+	animateSprite(spriteNumber: number, startFrame: number, endFrame: number, speed?: number, loop?: boolean)
 }
 
 export class Console extends EventTarget implements IConsole {
@@ -947,10 +947,10 @@ export class Console extends EventTarget implements IConsole {
 		}
 	}
 
-	public animateSprite(spriteNumber: number, startFrame: number, endFrame: number, loop?: boolean) {
+	public animateSprite(spriteNumber: number, startFrame: number, endFrame: number, speed = 1, loop?: boolean) {
 		const sprite = this.sprites[spriteNumber]
 		if (sprite) {
-			sprite.setAnimate(startFrame, endFrame, loop || true)
+			sprite.setAnimate(startFrame, endFrame, speed, loop || true)
 		}
 	}
 }
