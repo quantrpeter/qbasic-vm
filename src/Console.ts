@@ -498,7 +498,9 @@ export class Console extends EventTarget implements IConsole {
 		dx: number,
 		dy: number,
 		dw: number,
-		dh: number
+		dh: number,
+		screenWidth: number,
+		screenHeight: number
 	) {
 		let curDX = dx
 		let curDY = dy
@@ -506,23 +508,41 @@ export class Console extends EventTarget implements IConsole {
 		let curSY = sy
 		let curSW = sw
 		let curSH = sh
+
+		if (curSX < 0) {
+			curSX = 0
+		}
+		if (curSY < 0) {
+			curSY = 0
+		}
 		// let curDW = dw
 		// let curDH = dh
 
 		while (curDY < dy + dh) {
 			let clampedSH = Math.min(image.naturalHeight, curSY + curSH) - curSY
 			let curDH = (clampedSH / sh) * dh
-			while (curDX < dx + dw) {
-				let clampedSW = Math.min(image.naturalWidth, curSX + curSW) - curSX
-				let curDW = (clampedSW / sw) * dw
-				ctx.drawImage(image, curSX, curSY, clampedSW, clampedSH, curDX, curDY, curDW, curDH)
-				curSW = curSW - clampedSW
-				curSX = 0
-				curDX = curDX + curDW
+			// skip drawing if outside of the canvas
+			if (curDY + curDH > 0 && curDY < screenHeight) {
+				while (curDX < dx + dw) {
+					let clampedSW = Math.min(image.naturalWidth, curSX + curSW) - curSX
+					if (clampedSW === 0) {
+						curSW = sw
+						clampedSW = Math.min(image.naturalWidth, curSX + curSW) - curSX
+					}
+					let curDW = (clampedSW / sw) * dw
+					// skip drawing if outside of the canvas
+					if (curDX + curDW > 0 && curDX < screenWidth) {
+						ctx.drawImage(image, curSX, curSY, clampedSW, clampedSH, curDX, curDY, curDW, curDH)
+					}
+					curSW = curSW - clampedSW
+					curSX = 0
+					curDX = Math.round(curDX + curDW)
+				}
 			}
+			
 			curSH = curSH - clampedSH
 			curSY = 0
-			curDY = curDY + curDH
+			curDY = Math.round(curDY + curDH)
 
 			curDX = dx
 			curSW = sw
@@ -552,7 +572,9 @@ export class Console extends EventTarget implements IConsole {
 				dx,
 				dy,
 				dw,
-				dh
+				dh,
+				this._width,
+				this._height
 			)
 		} else if (dh !== undefined && dw !== undefined) {
 			this.ctx.drawImage(image, dx, dy, dh, dw)

@@ -13,16 +13,29 @@ interface IMMLEmitterConfig {
 class MMLEmitter extends SeqEmitter {
 	tracksNum: number
 
-	constructor(source, config: IMMLEmitterConfig = {}) {
+	constructor(source: string, config: IMMLEmitterConfig = {}) {
 		if (config.reverseOctave) {
 			source = MMLEmitter.reverseOctave(source)
 		}
 
-		let MMLIteratorClass = config.MMLIterator || MMLIterator
-		let tracks = source.split(';')
-
-		tracks = tracks.filter(source => !!source.trim())
-		tracks = tracks.map(track => new MMLIteratorClass(track, config))
+		const MMLIteratorClass = config.MMLIterator || MMLIterator
+		let lastTempo: number | undefined = undefined
+		const tracks = source
+			.split(/[;,]/)
+			.filter((source) => !!source.trim())
+			// strip out MML header
+			.map((source) => source.replace(/^MML@/, ''))
+			// MML songs available on the internet often assume the player is going to use the same tempo as in the previous track
+			.map((track) => {
+				const tempo = track.match(/t(\d+)/i)
+				if (!tempo && lastTempo) {
+					return `t${lastTempo}` + track
+				} else if (tempo) {
+					lastTempo = parseInt(tempo[1])
+				}
+				return track
+			})
+			.map((track) => new MMLIteratorClass(track, config))
 
 		super(tracks, config)
 
@@ -41,6 +54,7 @@ export interface IAudioDevice {
 
 	playMusic(str: string, repeat?: number): Promise<void>
 	stopMusic(): void
+	isPlayingMusic(): boolean
 }
 
 export class AudioDevice implements IAudioDevice {
@@ -117,8 +131,11 @@ export class AudioDevice implements IAudioDevice {
 	stopMusic(): void {
 		if (this.currentMMLEmitter) {
 			this.currentMMLEmitter.stop()
-			delete this.currentMMLEmitter
+			this.currentMMLEmitter = undefined
 		}
+	}
+	isPlayingMusic(): boolean {
+		return !this.currentMMLEmitter
 	}
 	private mtof(noteNumber: number) {
 		return 440 * Math.pow(2, (noteNumber - 69) / 12)
