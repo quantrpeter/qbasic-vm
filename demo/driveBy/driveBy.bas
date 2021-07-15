@@ -77,7 +77,7 @@ REM 		BGMPLAY Song1
 REM 	END IF
 REM END SUB
 
-BGMPLAY Song2
+REM BGMPLAY Song2
 
 t = 0
 f = 0

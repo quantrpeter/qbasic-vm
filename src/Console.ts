@@ -352,7 +352,11 @@ export class Console extends EventTarget implements IConsole {
 
 		if (this._landscape !== (dimensions.landscape || false)) {
 			this._landscape = dimensions.landscape || false
-			this.dispatchEvent(new Event('orientationchange'))
+			this.dispatchEvent(new CustomEvent('orientationchange', {
+				detail: {
+					landscape: this._landscape
+				}
+			}))
 		}
 
 		this._width = dimensions.width
@@ -360,6 +364,15 @@ export class Console extends EventTarget implements IConsole {
 
 		this.cls()
 		this.clearAllSprites()
+
+		this.dispatchEvent(new CustomEvent('resize', {
+			detail: {
+				width: this._width,
+				height: this._height,
+				rows: this.rows,
+				cols: this.cols
+			}
+		}))
 
 		return true
 	}
