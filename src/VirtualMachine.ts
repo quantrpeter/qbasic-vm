@@ -982,26 +982,43 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 		}
 	},
 
-	YIELD: {
+	WAIT: {
+		args: ['INTEGER'],
+		minArgs: 0,
 		action: function(vm) {
 			vm.suspend()
 
-			let cancelYield: () => void
-			if (window) {
-				const frameRequest = window.requestAnimationFrame(() => {
-					vm.off('suspended', cancelYield)
-					vm.resume()
-				})
-				cancelYield = () => window.cancelAnimationFrame(frameRequest)
-			} else {
-				const timeout = setTimeout(() => {
-					vm.off('suspended', cancelYield)
-					vm.resume()
-				}, 1)
-				cancelYield = () => clearTimeout(timeout)
+			const argCount = vm.stack.pop()
+			let frames = 1
+			if (argCount === 1) {
+				// if an argument is provided, wait X frames
+				frames = vm.stack.pop().value
 			}
 
-			vm.once('suspended', cancelYield)
+			let cancelWait: () => void
+			if (window) {
+				let waitedFrames = 0
+				let frameRequest: number
+				const waitFrame = () => {
+					waitedFrames++
+					if (waitedFrames >= frames) {
+						vm.off('suspended', cancelWait)
+						vm.resume()
+					} else {
+						frameRequest = window.requestAnimationFrame(waitFrame)
+					}
+				}
+				frameRequest = window.requestAnimationFrame(waitFrame)
+				cancelWait = () => window.cancelAnimationFrame(frameRequest)
+			} else {
+				const timeout = setTimeout(() => {
+					vm.off('suspended', cancelWait)
+					vm.resume()
+				}, frames)
+				cancelWait = () => clearTimeout(timeout)
+			}
+
+			vm.once('suspended', cancelWait)
 		}
 	},
 

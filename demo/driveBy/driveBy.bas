@@ -132,5 +132,5 @@ DO
 	f = f + 1
 	t = t + speed
 
-	YIELD
+	WAIT
 LOOP WHILE 1 = 1
