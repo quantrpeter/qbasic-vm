@@ -60,8 +60,8 @@ SUB DrawRoad (time)
 	NEXT i
 END SUB
 
-DATA "Epic Sax", "t132v127o5a+8.r4r16a+16r16a+16a+16g+16a+8r16a+8.r4r16a+16r16a+16a+16g+16a+8r16a+8.r8.>c16c+8.<a+8r8g+4f+8r8d+8d+8f8f+8d+8,v100o3d+8r4d+8r4d+8r8<b8r4b8r4b8r8f+8r4f+8r4f+8r8a+8r4a+8r4a+8r8,v60o6d+32r32d+32r32d+8d+32r32d+32r32d+8d+32r32d+32r32d+8d+32r32d+32r32d+8f+32r32f+32r32f+8f+32r32f+32r32f+8f+32r32f+32r32f+8f+32r32f+32r32f+8d+32r32d+32r32d+8d+32r32d+32r32d+8d+32r32d+32r32d+8d+32r32d+32r32d+8a+32r32a+32r32a+8a+32r32a+32r32a+8a+32r32a+32r32a+8a+32r32a+32r32a+8"
 SongPtr:
+DATA "Epic Sax", "t132v127o5a+8.r4r16a+16r16a+16a+16g+16a+8r16a+8.r4r16a+16r16a+16a+16g+16a+8r16a+8.r8.>c16c+8.<a+8r8g+4f+8r8d+8d+8f8f+8d+8,v100o3d+8r4d+8r4d+8r8<b8r4b8r4b8r8f+8r4f+8r4f+8r8a+8r4a+8r4a+8r8,v60o6d+32r32d+32r32d+8d+32r32d+32r32d+8d+32r32d+32r32d+8d+32r32d+32r32d+8f+32r32f+32r32f+8f+32r32f+32r32f+8f+32r32f+32r32f+8f+32r32f+32r32f+8d+32r32d+32r32d+8d+32r32d+32r32d+8d+32r32d+32r32d+8d+32r32d+32r32d+8a+32r32a+32r32a+8a+32r32a+32r32a+8a+32r32a+32r32a+8a+32r32a+32r32a+8"
 DATA "Unknown", "t152o5b2a1a8f+4.b4f+8f+4e4f+1f+2f+8d4.c+4.<b1b2.>b2a1a8f+4.>d4c+4<b8a4f+1f+2<b8>d8d8<b8>d2d8d8d8<b8>d4<b4>d1d1,o3b8b8>f+8<b8>f+8f+8<b8>f+8<b8b8>f+8<b8>>c+8c+8c+8<<d8g8g8>d8<g8g8g8>a8<g8b8b8>f+8<b8b8b8>f+8<b8b8b8>f+8<b8b8b8>f+8<b8d8d8>f+8<d8>f+8f+8<d8>f+8f+8<d8>f+8<d8>f+8f+8f+8<d8b8b8>f+8<b8>f+8f+8<b8>f+8<b8b8>f+8<b8>>c+8c+8c+8<<d8g8g8>d8<g8g8g8>a8<g8b8b8>f+8<b8b8b8>f+8<b8b8b8>f+8<b8b8b8>f+8<b8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8"
 DATA "Journey – Don't Stop Believin'", "l8g+c-g+c-g+c-g+c-f+c-f+c-f+c-f+c-e<g+>e<g+>e<g+>e<g+>e<a>e<g+>e<a>e<a>g+<b>g+<b>g+<b>g+<b>f+<b>f+<b>f+<b>f+<b>e<g+>e<g+>e<g+>e<g+>e<a>e<g+>e<a>e<al1.rrrrrrrrrrr1r2l8>c+c+2c+c+e2ee2eeeeb4al4.g+f+4c+c+2c+8c+e4f+8e8f+l8g+e2e>d+r4e2e,o4l1.rrrrrr2r2r4l8>g+ef+f+4g+4.r2r4eeeeb4bg+4f+4.r2rc-g+ef+f+4g+4g+32f+.ee32f+4.g+4.e2.r1r4g+ef+f+4g+4.r2r4eeeeb4bg+4f+4.r2rc-g+ef+f+4g+4g+32f+.ee32f+4g+l4.f+g+8f+g+8g+16f+16e2f+er4f+g+r2r4l8eeeeb4al4.g+g+4f+er4f+g+4f+8e8f+g+8e,o3e2l8ef+g+b2.>c+d+c+2.d+e<a2.>d+e<e2.f+g+b2.>c+d+<g+2.g+g+a2.>d+e4l2bbbb>c+c+c+c+<bg+bbbb>c+c+<bbbb>c+c+c+c+<bg+bbbb>c+c+4c+4"
 DATA "Metallica - Nothing Else Matters", "v120t74l8o4<e>g<>b>e<bg<e>gb>gl16<g>e<bg>f+8<d>gd<g>e8d<g<gf+e8>g8b8>g8<g>e<bg>f+8<d>d<ag>d8<g>d<<gf+e8>g8b8>g8<g>e<bg>f+8<d>gd<gl8>gd<g<g>g>gf+<c-16>f+16<b<e>gb>e<bg<e>gb>e<b<g16f+16e>gb>gl16<g>e<bg>f+8<d>gd<g>e8d<g<gf+e8>g8b8>g8<g>e<bg>f+8<d>d<ag>d8<g>d<<gf+e8>g8b8>g8<g>e<bg>f+8<d>gd<gl8>gd<g<g>g>gf+<c-16>f+16<b<e>gb>e<bg<e>gb>e<b<g16f+16e>gb>gl16<g>e<bg>f+8<d>gd<g>e8d<g<gf+e8>g8b8>g8<g>e<bg>f+8<d>d<ag>d8<g>d<<gf+e8>g8b8>g8<g>e<bg>f+8<d>gd<gl8>gd<g<g>g>gf+<c-16>f+16<b<e>gb>e<bg>e4.e4.f+.l16f+rf+gf+8e8f+e4.e4.f+8.f+rf+gf+8e8f+e4.e4.f+8f+f+l8f+e2.,v105l1.o2r2r4e4l16>ere4erd4drc4<gf+e4>ere4erd4drc4<gf+e4>ere4erd4drl4.c<gbe2.e2r8l16gf+e4>ere4erd4drc4<gf+e4>ere4erd4drc4<gf+e4>ere4erd4drl4.c<gbe2.e2r8l16gf+e4>ere4erd4drc4<gf+e4>ere4erd4drc4<gf+e4>ere4erd4drl4.c<gbe2r8g16f+16b+a>d8.l16ddddd8d8dc4.<a4.,v110l4.o4rregf+e4o4g8o3egf+e4o3g8o5egf+g4o3g8>>gf+l2.>er<gl8.abg4.r2r4abb+4.b2.abl4.ggf+e2.r1l8<gg16aa16gf+.e.e4.r4gg16aa16gf+.d.d4.r4gg16aa16gf+.g.e4.dl16c-c<b8r8bb+l8b>e>ef+gf+egf+<e"
@@ -144,11 +144,10 @@ DO
 		t = t - moveFactor%
 	END IF
 
-	IF f MOD (5 - INT(MIN(4, ABS(speed) / 5.0))) = 0 THEN
-		frequency% = MIN(50, 10 + MAX(0, ABS(speed - 4) / 10) * 10)
-		length% = 10.0 / MAX(1, ABS(speed))
-		volume% = MIN(50, MAX(12, speed))
-		SOUND frequency%, length%, volume%
+	IF f MOD (10 - MIN(5, INT(speed / 10))) = 0 THEN
+		frequency% = 5 + INT(speed / 10)
+		volume% = MIN(128, MAX(100, INT(128 * (speed / 10))))
+		SOUND frequency%, 75, volume%
 	END IF
 
 	WAIT

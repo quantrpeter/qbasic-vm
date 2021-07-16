@@ -806,7 +806,7 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 		minArgs: 2,
 		action: function(vm) {
 			const argCount = vm.stack.pop()
-			let volume = 255
+			let volume = 1
 			if (argCount > 2) {
 				volume = vm.stack.pop().value / 255
 			}

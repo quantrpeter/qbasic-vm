@@ -177,30 +177,20 @@ export class AudioDevice implements IAudioDevice {
 			const t1 = t0 + (duration / 1000)
 			const t2 = t1 + (duration / 1000)
 			const osc1 = this.audioContext.createOscillator()
-			const osc2 = this.audioContext.createOscillator()
 			const amp = this.audioContext.createGain()
 
 			osc1.frequency.value = frequency
-			// osc1.type = 'square'
 			osc1.detune.setValueAtTime(+12, t0)
 			osc1.detune.linearRampToValueAtTime(+1, t1)
 			osc1.start(t0)
 			osc1.stop(t2)
 			osc1.connect(amp)
 
-			osc2.frequency.value = frequency
-			// osc1.type = 'square'
-			osc2.detune.setValueAtTime(-12, t0)
-			osc2.detune.linearRampToValueAtTime(-1, t1)
-			osc2.start(t0)
-			osc2.stop(t2)
-			osc2.connect(amp)
-
 			amp.gain.setValueAtTime(volume, t0)
 			amp.gain.setValueAtTime(volume, t1)
 			amp.gain.exponentialRampToValueAtTime(1e-3, t2)
 			amp.connect(this.audioContext.destination)
-			osc2.addEventListener('ended', () => {
+			osc1.addEventListener('ended', () => {
 				resolve()
 			})
 		})
