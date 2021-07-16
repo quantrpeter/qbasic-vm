@@ -57,6 +57,22 @@ const VIDEO_COLORS = [
 	'#afafaf' // Light grey
 ]
 
+const SPECIAL_CHARS = {
+	ArrowLeft: 75,
+	ArrowUp: 72,
+	ArrowRight: 77,
+	ArrowDown: 80,
+	Home: 71,
+	PageUp: 73,
+	End: 79,
+	PageDown: 81,
+	Insert: 82,
+	Delete: 83,
+	Enter: 13,
+	Escape: 27,
+	Backspace: 8
+}
+
 interface IVideoMode {
 	width: number
 	height: number
@@ -184,6 +200,7 @@ export class Console extends EventTarget implements IConsole {
 	private charWidth: number = 8
 	private charHeight: number = 8
 
+	private keyDown: string[] = []
 	private inputMode: boolean = false
 	private onInputDone: ((str: string) => void) | null = null
 	private onTrappedKey: {
@@ -263,6 +280,13 @@ export class Console extends EventTarget implements IConsole {
 			}
 		})
 
+		window.addEventListener('keyup', event => {
+			this.onKeyUp(event)
+			if (this.hasFocus) {
+				event.preventDefault()
+			}
+		})
+
 		this.container.addEventListener('focus', event => {
 			this.hasFocus = true
 			event.stopPropagation()
@@ -282,6 +306,7 @@ export class Console extends EventTarget implements IConsole {
 
 	public animationFrame = () => {
 		this.sprites.forEach(sprite => sprite && sprite.update())
+		this.repeatKeyboard()
 		window.requestAnimationFrame(this.animationFrame)
 	}
 
@@ -800,6 +825,33 @@ export class Console extends EventTarget implements IConsole {
 		}
 	}
 
+	private keyRepeatThrottle: number = 0
+	private repeatKeyboard() {
+		if (this.keyRepeatThrottle % 5 === 0) {
+			for (let i = 0; i < this.keyDown.length; i++) {
+				this.pushKeyToBuffer(this.keyDown[i])
+			}
+		}
+		this.keyRepeatThrottle++
+	}
+
+	private pushKeyToBuffer(key: string) {
+		if (key in SPECIAL_CHARS) {
+			this.keyBuffer.push(0)
+			this.keyBuffer.push(SPECIAL_CHARS[key])
+		} else if (key.length === 1) {
+			const code = key.codePointAt(0)
+			if (code !== undefined) this.keyBuffer.push(code)
+		}
+	}
+
+	public onKeyUp(event: KeyboardEvent) {
+		const idx = this.keyDown.indexOf(event.key)
+		if (idx >= 0) {
+			this.keyDown.splice(idx, 1)
+		}
+	}
+
 	public onKeyDown(event: KeyboardEvent) {
 		if (this.inputMode) {
 			// if input position is at least 1,
@@ -831,28 +883,11 @@ export class Console extends EventTarget implements IConsole {
 				this.print(ch)
 			}
 		} else {
-			const SpecialChars = {
-				ArrowLeft: 75,
-				ArrowUp: 72,
-				ArrowRight: 77,
-				ArrowDown: 80,
-				Home: 71,
-				PageUp: 73,
-				End: 79,
-				PageDown: 81,
-				Insert: 82,
-				Delete: 83,
-				Enter: 13,
-				Escape: 27,
-				Backspace: 8
-			}
-
-			if (event.key in SpecialChars) {
-				this.keyBuffer.push(0)
-				this.keyBuffer.push(SpecialChars[event.key])
-			} else if (event.key.length === 1) {
-				const code = event.key.codePointAt(0)
-				if (code !== undefined) this.keyBuffer.push(code)
+			if (!event.repeat) {
+				if (this.keyDown.indexOf(event.key) < 0) {
+					this.pushKeyToBuffer(event.key)
+					this.keyDown.push(event.key)
+				}
 			}
 
 			this.handleTrappedKey(this.keyBuffer[this.keyBuffer.length - 1])
