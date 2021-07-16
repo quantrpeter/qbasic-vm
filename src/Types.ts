@@ -311,6 +311,7 @@ export function AreTypesCompatible(type1: SomeType, type2: SomeType) {
 		(IsArrayType(type1) &&
 			IsArrayType(type2) &&
 			(type1.elementType.name === 'ANY' || type2.elementType.name === 'ANY')) ||
-		(!IsArrayType(type1) && !IsArrayType(type2) && (type1.name === 'ANY' || type2.name === 'ANY'))
+		(!IsArrayType(type1) && !IsArrayType(type2) && (type1.name === 'ANY' || type2.name === 'ANY')) ||
+		(IsArrayType(type1) && type2.name === 'ANY') // allow casting an array to ANY
 	)
 }

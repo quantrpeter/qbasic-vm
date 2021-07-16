@@ -6,7 +6,7 @@ REM ---
 CONST TRUE = -1
 CONST FALSE = NOT TRUE
 
-DIM Track(0 TO 100)
+DIM Track(0 TO 99)
 
 CONST ArrowLeft = (CHR$(0) + CHR$(75))
 CONST ArrowRight = (CHR$(0) + CHR$(77))

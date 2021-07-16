@@ -40,7 +40,8 @@ export enum RuntimeErrorCodes {
 	STACK_OVERFLOW = 201,
 	STACK_UNDERFLOW = 202,
 	UKNOWN_SYSCALL = 301,
-	IO_ERROR = 401
+	IO_ERROR = 401,
+	INVALID_ARGUMENT = 405,
 }
 
 export class RuntimeError extends Error {
@@ -435,10 +436,19 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 
 	LEN: {
 		type: 'INTEGER',
-		args: ['STRING'],
+		args: ['ANY'],
 		minArgs: 1,
 		action: function(vm) {
-			vm.stack.push(vm.stack.pop().length)
+			const variable = vm.stack.pop()
+			if (variable instanceof ArrayVariable) {
+				vm.stack.push(variable.values.length)
+				return
+			} else if (variable instanceof ScalarVariable && variable.type.name === 'STRING') {
+				vm.stack.push(variable.value.length)
+				return
+			}
+
+			throw new RuntimeError(RuntimeErrorCodes.INVALID_ARGUMENT, 'Invalid argument for LEN')
 		}
 	},
 
@@ -899,7 +909,7 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 	},
 
 	COLOR: {
-		args: ['ANY', 'ANY', 'ANY'],
+		args: ['INTEGER', 'INTEGER', 'INTEGER'],
 		minArgs: 1,
 		action: function(vm) {
 			let argCount = vm.stack.pop()
@@ -1289,13 +1299,13 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 				fill = vm.stack.pop().value === 0 ? false : true
 			}
 			if (argCount > 6) {
-				aspect = vm.stack.pop().value
+				aspect = Number(vm.stack.pop().value)
 			}
 			if (argCount > 4) {
-				startAngle = vm.stack.pop().value
-				endAngle = vm.stack.pop().value
+				startAngle = Number(vm.stack.pop().value)
+				endAngle = Number(vm.stack.pop().value)
 			}
-			radius = vm.stack.pop().value
+			radius = Number(vm.stack.pop().value)
 			y1 = Math.round(vm.stack.pop().value)
 			x1 = Math.round(vm.stack.pop().value)
 

@@ -26,6 +26,9 @@
 						virtualMachine.cwd = baseUrl.toString()
 
 						virtualMachine.run(program, false)
+						virtualMachine.on('error', (error) => {
+							dbg.print('Runtime error: ' + error + ' at ' + error.locus + '\n')
+						})
 					} else {
 						virtualMachine.reset(null)
 						for (let i = 0; i < program.errors.length; i++) {
