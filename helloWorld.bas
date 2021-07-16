@@ -13,6 +13,16 @@ SUB PrintRainbow (text$)
 	COLOR 0, 15
 END SUB
 
+FOR i = 1 TO 1024
+	Color% = RND() * 16
+	LOCATE 1, 1
+	PRINT "C=";
+	PRINT Color%, "     "
+	GFILL RND() * 160, RND() * 300, RND() * 160, RND() * 300, Color%
+NEXT i
+
+LOCATE 1, 1
+
 DIM Sprite AS INTEGER
 Sprite = LOADIMAGE("test.png")
 SPSET 1, Sprite
@@ -28,7 +38,7 @@ FOR i = 1 TO 100
 	IF KeyPressed$ = (CHR$(0) + CHR$(27)) THEN
 		PRINT "ESCAPE"
 	END IF
-	YIELD
+	WAIT
 NEXT i
 SPCLR 1
 PRINT "Enter your name:"

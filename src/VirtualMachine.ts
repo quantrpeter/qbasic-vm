@@ -152,7 +152,7 @@ export class VirtualMachine extends EventEmitter<'error' | 'suspended' | 'resume
 	interval: number | undefined = undefined
 
 	// Number of milliseconds between intervals
-	private readonly INTERVAL_MS = 64
+	private readonly INTERVAL_MS = 66 // ~15 fps
 
 	// Number of instructions to run in an interval
 	instructionsPerInterval = 32 * 1024
@@ -296,7 +296,7 @@ export class VirtualMachine extends EventEmitter<'error' | 'suspended' | 'resume
 
 	public runOneLine() {
 		const currentLocus = this.instructions[this.pc].locus
-		let i = 0;
+		let i = 0
 		do {
 			this.runOneInstruction()
 		} while (this.instructions[this.pc].locus.line === currentLocus.line && i++ < this.instructionsPerInterval) // don't get stuck in infinite loops
@@ -615,6 +615,18 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 		}
 	},
 
+	RGB: {
+		type: 'INTEGER',
+		args: ['INTEGER', 'INTEGER', 'INTEGER'],
+		minArgs: 3,
+		action: function(vm) {
+			const blue = vm.stack.pop()
+			const green = vm.stack.pop()
+			const red = vm.stack.pop()
+			vm.stack.push(-1 * ((((red >> 3) & 31) << 10) + (((green >> 3) & 31) << 5) + (((blue >> 3) & 31))))
+		}
+	},
+
 	BGMCHK: {
 		type: 'INTEGER',
 		args: [],
@@ -737,7 +749,7 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 				// if an argument is provided, wait X seconds
 				const sleep = vm.stack.pop().value
 				let cancelSleep: () => void
-				
+
 				const timeout = setTimeout(() => {
 					vm.off('suspended', cancelSleep)
 					vm.resume()
@@ -895,12 +907,12 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 			let bg: number | null = null
 			let bo: number | null = null
 			if (argCount > 2) {
-				bo = Number(vm.stack.pop().value) || 0
+				bo = Math.round(vm.stack.pop().value) || 0
 			}
 			if (argCount > 1) {
-				bg = Number(vm.stack.pop().value) || 0
+				bg = Math.round(vm.stack.pop().value) || 0
 			}
-			let fg = Number(vm.stack.pop().value) || 0
+			let fg = Math.round(vm.stack.pop().value) || 0
 			vm.cons.color(fg, bg, bo)
 		}
 	},
@@ -1134,15 +1146,15 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 			const argCount = vm.stack.pop()
 			let loop = true
 			let speed = 1
-			if (argCount > 3) {
-				speed = vm.stack.pop().value
-			}
 			if (argCount > 4) {
 				loop = vm.stack.pop().value === 0 ? false : true
 			}
-			const stopFrame = vm.stack.pop().value
-			const startFrame = vm.stack.pop().value
-			const spriteNum = vm.stack.pop().value
+			if (argCount > 3) {
+				speed = Math.round(vm.stack.pop().value)
+			}
+			const stopFrame = Math.round(vm.stack.pop().value)
+			const startFrame = Math.round(vm.stack.pop().value)
+			const spriteNum = Math.round(vm.stack.pop().value)
 			vm.cons.animateSprite(spriteNum - 1, startFrame - 1, stopFrame - 1, speed, loop)
 		}
 	},
@@ -1153,7 +1165,81 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 			const spriteNum = vm.stack.pop().value
 			vm.cons.clearSprite(spriteNum - 1)
 		}
-	}
+	},
+
+	GLINE: {
+		args: ['INTEGER', 'INTEGER', 'INTEGER', 'INTEGER', 'INTEGER'],
+		minArgs: 2,
+		action: function(vm) {
+			const argCount = vm.stack.pop()
+			let x1: number
+			let y1: number
+			let x2: number | undefined = undefined
+			let y2: number | undefined = undefined
+			let color: number | undefined = undefined
+			if (argCount > 2) {
+				color = Math.round(vm.stack.pop().value)
+			}
+			if (argCount > 3) {
+				y2 = Math.round(vm.stack.pop().value)
+				x2 = Math.round(vm.stack.pop().value)
+			}
+			y1 = Math.round(vm.stack.pop().value)
+			x1 = Math.round(vm.stack.pop().value)
+
+			if (x2 !== undefined && y2 !== undefined) {
+				vm.cons.line(x1, y1, x2, y2, color)
+			} else {
+				vm.cons.lineTo(x1, y1, color)
+			}
+		}
+	},
+
+	GBOX: {
+		args: ['INTEGER', 'INTEGER', 'INTEGER', 'INTEGER', 'INTEGER'],
+		minArgs: 4,
+		action: function (vm) {
+			const argCount = vm.stack.pop()
+			let x1: number
+			let y1: number
+			let x2: number
+			let y2: number
+			let color: number | undefined
+
+			if (argCount > 4) {
+				color = Math.round(vm.stack.pop().value)
+			}
+			y2 = Math.round(vm.stack.pop().value)
+			x2 = Math.round(vm.stack.pop().value)
+			y1 = Math.round(vm.stack.pop().value)
+			x1 = Math.round(vm.stack.pop().value)
+
+			vm.cons.box(x1, y1, x2, y2, color)
+		}
+	},
+
+	GFILL: {
+		args: ['INTEGER', 'INTEGER', 'INTEGER', 'INTEGER', 'INTEGER'],
+		minArgs: 4,
+		action: function (vm) {
+			const argCount = vm.stack.pop()
+			let x1: number
+			let y1: number
+			let x2: number
+			let y2: number
+			let color: number | undefined
+
+			if (argCount > 4) {
+				color = Math.round(vm.stack.pop().value)
+			}
+			y2 = Math.round(vm.stack.pop().value)
+			x2 = Math.round(vm.stack.pop().value)
+			y1 = Math.round(vm.stack.pop().value)
+			x1 = Math.round(vm.stack.pop().value)
+
+			vm.cons.fill(x1, y1, x2, y2, color)
+		}
+	},
 }
 
 export interface IInstruction {

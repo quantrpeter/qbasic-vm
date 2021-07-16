@@ -6,6 +6,8 @@ REM ---
 CONST TRUE = -1
 CONST FALSE = NOT TRUE
 
+DIM Track(0 TO 100)
+
 CONST ArrowLeft = (CHR$(0) + CHR$(75))
 CONST ArrowRight = (CHR$(0) + CHR$(77))
 CONST ArrowUp = (CHR$(0) + CHR$(72))
@@ -62,6 +64,8 @@ END SUB
 CONST Song0$ = "t132v127o5a+8.r4r16a+16r16a+16a+16g+16a+8r16a+8.r4r16a+16r16a+16a+16g+16a+8r16a+8.r8.>c16c+8.<a+8r8g+4f+8r8d+8d+8f8f+8d+8,v100o3d+8r4d+8r4d+8r8<b8r4b8r4b8r8f+8r4f+8r4f+8r8a+8r4a+8r4a+8r8,v60o6d+32r32d+32r32d+8d+32r32d+32r32d+8d+32r32d+32r32d+8d+32r32d+32r32d+8f+32r32f+32r32f+8f+32r32f+32r32f+8f+32r32f+32r32f+8f+32r32f+32r32f+8d+32r32d+32r32d+8d+32r32d+32r32d+8d+32r32d+32r32d+8d+32r32d+32r32d+8a+32r32a+32r32a+8a+32r32a+32r32a+8a+32r32a+32r32a+8a+32r32a+32r32a+8"
 CONST Song1$ = "t152o5b2a1a8f+4.b4f+8f+4e4f+1f+2f+8d4.c+4.<b1b2.>b2a1a8f+4.>d4c+4<b8a4f+1f+2<b8>d8d8<b8>d2d8d8d8<b8>d4<b4>d1d1,o3b8b8>f+8<b8>f+8f+8<b8>f+8<b8b8>f+8<b8>>c+8c+8c+8<<d8g8g8>d8<g8g8g8>a8<g8b8b8>f+8<b8b8b8>f+8<b8b8b8>f+8<b8b8b8>f+8<b8d8d8>f+8<d8>f+8f+8<d8>f+8f+8<d8>f+8<d8>f+8f+8f+8<d8b8b8>f+8<b8>f+8f+8<b8>f+8<b8b8>f+8<b8>>c+8c+8c+8<<d8g8g8>d8<g8g8g8>a8<g8b8b8>f+8<b8b8b8>f+8<b8b8b8>f+8<b8b8b8>f+8<b8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8"
 CONST Song2$ = "l8g+c-g+c-g+c-g+c-f+c-f+c-f+c-f+c-e<g+>e<g+>e<g+>e<g+>e<a>e<g+>e<a>e<a>g+<b>g+<b>g+<b>g+<b>f+<b>f+<b>f+<b>f+<b>e<g+>e<g+>e<g+>e<g+>e<a>e<g+>e<a>e<al1.rrrrrrrrrrr1r2l8>c+c+2c+c+e2ee2eeeeb4al4.g+f+4c+c+2c+8c+e4f+8e8f+l8g+e2e>d+r4e2e,o4l1.rrrrrr2r2r4l8>g+ef+f+4g+4.r2r4eeeeb4bg+4f+4.r2rc-g+ef+f+4g+4g+32f+.ee32f+4.g+4.e2.r1r4g+ef+f+4g+4.r2r4eeeeb4bg+4f+4.r2rc-g+ef+f+4g+4g+32f+.ee32f+4g+l4.f+g+8f+g+8g+16f+16e2f+er4f+g+r2r4l8eeeeb4al4.g+g+4f+er4f+g+4f+8e8f+g+8e,o3e2l8ef+g+b2.>c+d+c+2.d+e<a2.>d+e<e2.f+g+b2.>c+d+<g+2.g+g+a2.>d+e4l2bbbb>c+c+c+c+<bg+bbbb>c+c+<bbbb>c+c+c+c+<bg+bbbb>c+c+4c+4"
+CONST Song3$ = "v120t74l8o4<e>g<>b>e<bg<e>gb>gl16<g>e<bg>f+8<d>gd<g>e8d<g<gf+e8>g8b8>g8<g>e<bg>f+8<d>d<ag>d8<g>d<<gf+e8>g8b8>g8<g>e<bg>f+8<d>gd<gl8>gd<g<g>g>gf+<c-16>f+16<b<e>gb>e<bg<e>gb>e<b<g16f+16e>gb>gl16<g>e<bg>f+8<d>gd<g>e8d<g<gf+e8>g8b8>g8<g>e<bg>f+8<d>d<ag>d8<g>d<<gf+e8>g8b8>g8<g>e<bg>f+8<d>gd<gl8>gd<g<g>g>gf+<c-16>f+16<b<e>gb>e<bg<e>gb>e<b<g16f+16e>gb>gl16<g>e<bg>f+8<d>gd<g>e8d<g<gf+e8>g8b8>g8<g>e<bg>f+8<d>d<ag>d8<g>d<<gf+e8>g8b8>g8<g>e<bg>f+8<d>gd<gl8>gd<g<g>g>gf+<c-16>f+16<b<e>gb>e<bg>e4.e4.f+.l16f+rf+gf+8e8f+e4.e4.f+8.f+rf+gf+8e8f+e4.e4.f+8f+f+l8f+e2.,v105l1.o2r2r4e4l16>ere4erd4drc4<gf+e4>ere4erd4drc4<gf+e4>ere4erd4drl4.c<gbe2.e2r8l16gf+e4>ere4erd4drc4<gf+e4>ere4erd4drc4<gf+e4>ere4erd4drl4.c<gbe2.e2r8l16gf+e4>ere4erd4drc4<gf+e4>ere4erd4drc4<gf+e4>ere4erd4drl4.c<gbe2r8g16f+16b+a>d8.l16ddddd8d8dc4.<a4.,v110l4.o4rregf+e4o4g8o3egf+e4o3g8o5egf+g4o3g8>>gf+l2.>er<gl8.abg4.r2r4abb+4.b2.abl4.ggf+e2.r1l8<gg16aa16gf+.e.e4.r4gg16aa16gf+.d.d4.r4gg16aa16gf+.g.e4.dl16c-c<b8r8bb+l8b>e>ef+gf+egf+<e"
+CONST Song4$ = "v120t240l1.rrrrrrrrrrrrrrrrrrrrrl2rrc4d+f<g+.>d+4fd+4c+4c.c+4c<a+g+.a+4b+a+4g+4g.>c4d+f<g+.>d+4fd+4c+4c.c+4c<a+g+.a+4b+l4a+g+gf2g+g2.g+g2.g+g2g+ggf2g+g2.g+g2.g+g2g+ggf2g+g2.g+g2.g+g2g+ggf2g+g2.g+g2.g+g2rl2c+<f4.f8f4l16frfrfrfrl4a+a+gg+.g+8g+l16g+rg+rg+rg+rl4>c+c+c<f.f8fl16frfrfrfrl4a+a+gg+.g+8g+l16g+rg+rg+rg+rl4>c+c+c<f.f8fl16frfrfrfrl4a+a+gg+.g+8g+l16g+rg+rg+rg+rl4>c+c+c<f.f8fl16frfrfrfrl4a+a+gg+.g+8g+l16g+rg+rg+rg+rl4>c+c+c<f.f8fl16frfrfrfrl4a+a+gg+.g+8g+l16g+rg+rg+rg+rl4>c+c+c<f.f8fl16frfrfrfrl4a+a+gg+.g+8g+l16frfrfrfrl4>c+c+c<ff2f8f8f+f+>c+.r8<ff2l8ffa+a+a+a+g+g+f+f+f4f2fff+4f+4>c+4.r<f4f2ffa+a+a+a+g+g+f+f+,l1.rrrrr>c+2<f4.f8f4l16frfrfrfrl4a+a+gg+.g+8g+l16g+rg+rg+rg+rl4>c+c+c<f.f8fl16frfrfrfrl4a+a+gg+.g+8g+l16g+rg+rg+rg+rl4>c+c+c<f.f8fl16frfrfrfrl4a+a+gg+.g+8g+l16g+rg+rg+rg+rl4>c+c+c<f.f8fl16frfrfrfrl4a+a+gg+.g+8g+l16g+rg+rg+rg+r>c+4c+4c4l1.rrrrrrrrrrrrrrrrl2cfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcl4>gg2f1a+a+a+2g+1c+c+c+2c1a+a+a+2g+1g+gg2f1a+a+a+2g+1c+c+c+2c1a+a+a+2g+1g+gg2f1a+a+a+2g+1c+c+c+2c1a+a+a+2l1g+g+g+g+4>c+2rrl1.rc+2,o3l4f.f8ff32rr8r16r32a+a+gg+.g+8g+r2>c+c+c<f.f8fr2a+a+gg+.g+8g+r2>c+c+c<<f.f8fffa+a+gg+.g+8g+g+g+>c+c+c<f.f8fffa+a+gg+.g+8g+g+g+>c+c+c<f.f8fffa+a+gg+.g+8g+g+g+>c+c+c<f.f8fffa+a+gg+.g+8g+g+g+>c+c+c<ffffa+a+a+a+g+g+g+g+>c+c+c+c<ffffa+a+a+a+g+g+g+g+>c+c+c+c<ffffa+a+a+a+g+g+g+g+>c+c+c+c<ffffa+a+a+a+g+g+g+g+>c+c+c+c<ffffa+a+a+a+g+g+g+g+>c+c+c+c<ffffa+a+a+a+g+g+g+g+>c+c+c+c<ffffa+a+a+a+g+g+g+g+>c+c+c+c<ffffa+a+a+a+g+g+g+g+>c+c+c+c<ffffa+a+a+a+g+g+g+g+>c+c+c+c<ffffa+a+a+a+g+g+g+g+>c+ro3l4>c+c<f.f8fffa+a+gg+.g+8g+g+g+>c+c+c<f.f8fffa+a+gg+.g+8g+g+g+>c+c+c<f.f8fffa+a+gg+.g+8g+g+g+>c+c+c<f.f8fffa+a+gg+.g+8g+g+g+>c+c+c<f.f8fffa+a+gg+.g+8g+g+g+>c+c+c<f.f8fffa+a+gg+.g+8g+g+g+>c+c+c<ff2f8f8f+f+c+2ff2f8f8a+a+g+f+ff2f8f8f+f+c+2ff2f8f8a+a+g+f+"
 
 REM DIM SHARED song
 REM song = 0
@@ -75,7 +79,7 @@ REM 		BGMPLAY Song1$
 REM 	END IF
 REM END SUB
 
-REM BGMPLAY Song2$
+REM BGMPLAY Song4$
 
 t = 0
 f = 0
@@ -122,9 +126,6 @@ DO
 		speed = speed + 1
 	ELSE IF KeyPressed$ = KeyD THEN
 		speed = speed - 1
-		IF speed < 0 THEN
-			speed = 0
-		END IF
 	ELSE IF KeyPressed$ = KeyM THEN
 		REM NextSong
 	END IF

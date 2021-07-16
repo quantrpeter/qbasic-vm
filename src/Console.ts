@@ -86,8 +86,8 @@ export interface IConsole {
 	printError(str: string): void
 	setKeyBuffer(str: string): void
 	screen(num: number): boolean
-	line(x1: number, y1: number, x2: number, y2: number): void
-	lineTo(x: number, y: number): void
+	line(x1: number, y1: number, x2: number, y2: number, color?: number): void
+	lineTo(x: number, y: number, color?: number): void
 	circle(
 		x: number,
 		y: number,
@@ -98,8 +98,8 @@ export interface IConsole {
 		aspect: number | undefined,
 		step: number
 	): void
-	box(x1: number, y1: number, x2: number, y2: number): void
-	fill(x1: number, y1: number, x2: number, y2: number): void
+	box(x1: number, y1: number, x2: number, y2: number, color?: number): void
+	fill(x1: number, y1: number, x2: number, y2: number, color?: number): void
 	get(x1: number, y1: number, x2: number, y2: number, step1?: boolean, step2?: boolean): ImageData
 	put(data: ImageData, x: number, y: number): void
 	paint(x: number, y: number, colour: number, borderColor: number, step?: number): void
@@ -377,18 +377,25 @@ export class Console extends EventTarget implements IConsole {
 		return true
 	}
 
-	public line(x1: number, y1: number, x2: number, y2: number) {
-		this.ctx.strokeStyle = this.fgcolor
+	public line(x1: number, y1: number, x2: number, y2: number, color?: number) {
+		const strokeBuf = this.ctx.strokeStyle
+		this.ctx.beginPath()
+		this.ctx.strokeStyle = color === undefined
+			? this.fgcolor
+			: color >= 0
+				? VIDEO_COLORS[color]
+				: Console.colorIntegerToRgb(color)
 		this.ctx.moveTo(x1, y1)
 		this.ctx.lineTo(x2, y2)
 		this.ctx.stroke()
 
 		this.curX = x2
 		this.curY = y2
+		this.ctx.strokeStyle = strokeBuf
 	}
 
-	public lineTo(x: number, y: number) {
-		this.line(this.curX, this.curY, x, y)
+	public lineTo(x: number, y: number, color?: number) {
+		this.line(this.curX, this.curY, x, y, color)
 	}
 
 	public circle(
@@ -441,12 +448,40 @@ export class Console extends EventTarget implements IConsole {
 		this.ctx.restore()
 	}
 
-	public box(x1: number, y1: number, x2: number, y2: number): void {
-		throw new Error('Method not implemented.')
+	public box(x1: number, y1: number, x2: number, y2: number, color?: number): void {
+		const strokeBuf = this.ctx.strokeStyle
+		this.ctx.strokeStyle = color === undefined
+			? this.fgcolor
+			: color >= 0
+				? VIDEO_COLORS[color]
+				: Console.colorIntegerToRgb(color)
+		this.ctx.beginPath()
+		this.ctx.moveTo(x1, y1)
+		this.ctx.lineTo(x2, y1)
+		this.ctx.lineTo(x2, y2)
+		this.ctx.lineTo(x1, y2)
+		this.ctx.lineTo(x1, y1)
+		this.ctx.stroke()
+
+		this.curX = x2
+		this.curY = y2
+		this.ctx.strokeStyle = strokeBuf
 	}
-	
-	public fill(x1: number, y1: number, x2: number, y2: number): void {
-		throw new Error('Method not implemented.')
+
+	public fill(x1: number, y1: number, x2: number, y2: number, color?: number): void {
+		const fillBuf = this.ctx.fillStyle
+		this.ctx.fillStyle = color === undefined
+			? this.fgcolor
+			: color >= 0
+				? VIDEO_COLORS[color]
+				: Console.colorIntegerToRgb(color)
+		this.ctx.beginPath()
+		this.ctx.rect(x1, y1, x2 - x1, y2 - y1)
+		this.ctx.fill()
+
+		this.curX = x2
+		this.curY = y2
+		this.ctx.fillStyle = fillBuf
 	}
 
 	public get(x1, y1, x2, y2, step1?: boolean, step2?: boolean): ImageData {
@@ -622,6 +657,14 @@ export class Console extends EventTarget implements IConsole {
 		this.y = Math.floor(row) - 1
 	}
 
+	private static colorIntegerToRgb(color: number): string {
+		const source = Math.abs(color) & 32767 // using 15-bit color
+		const red = ((source >> 10) & 31) << 3
+		const green = ((source >> 5) & 31) << 3
+		const blue = ((source) & 31) << 3
+		return `rgb(${red}, ${green}, ${blue})`;
+	}
+
 	public color(fg: number | null, bg: number | null, bo: number | null) {
 		if (fg === null) {
 			fg = this.fgcolorNum
@@ -638,11 +681,11 @@ export class Console extends EventTarget implements IConsole {
 		this.record(']\n')
 
 		this.fgcolorNum = fg
-		this.fgcolor = VIDEO_COLORS[fg]
+		this.fgcolor = fg < 0 ? Console.colorIntegerToRgb(fg) : VIDEO_COLORS[fg]
 		this.bgcolorNum = bg
-		this.bgcolor = VIDEO_COLORS[bg]
+		this.bgcolor = bg < 0 ? Console.colorIntegerToRgb(bg) : VIDEO_COLORS[bg]
 		this.bocolorNum = bo
-		this.bocolor = VIDEO_COLORS[bo]
+		this.bocolor = bo < 0 ? Console.colorIntegerToRgb(bo) : VIDEO_COLORS[bo]
 
 		document.body.style.setProperty(SCREEN_BORDER_VARIABLE, this.bocolor)
 	}

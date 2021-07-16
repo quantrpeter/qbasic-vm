@@ -12,7 +12,7 @@
 			const audio = new qb.AudioDevice()
 			const virtualMachine = new qb.VirtualMachine(cons, audio)
 			const dbg = new qb.DebugConsole(document.getElementById('debug'))
-			const fileName = 'demo/driveBy/driveBy.bas'
+			const fileName = 'helloWorld.bas' // 'demo/driveBy/driveBy.bas'
 			fetch(fileName)
 				.then(resp => {
 					if (resp.status === 200) return resp.text()
