@@ -103,7 +103,7 @@ DO
 		PRINT INT((f - lastF) / (TIMER - lastPeriod#)), "      "
 	END IF
 	moveFactor% = INT(ABS(speed) / 5.0)
-	IF ((speed > 0) OR (speed < 0)) AND (f MOD (5 - (ABS(speed) MOD 5)) = 0) THEN
+	IF (speed <> 0) AND (f MOD (5 - (ABS(speed) MOD 5)) = 0) THEN
 		moveFactor% = moveFactor% + 1
 	END IF
 	PRINT "L=";
