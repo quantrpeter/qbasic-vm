@@ -608,6 +608,58 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 		}
 	},
 
+	MIN: {
+		type: 'DOUBLE',
+		args: ['ANY', 'ANY'],
+		minArgs: 1,
+		action: function(vm) {
+			const numArgs = vm.stack.pop()
+
+			const variable = vm.stack.pop()
+			if (numArgs === 1 && variable instanceof ArrayVariable && IsNumericType(variable.type)) {
+				vm.stack.push(Math.min(...(variable.values.map(item => Number(item.value)))))
+				return
+			} else if (typeof variable === 'number') {
+				const values = [ Number(variable) ]
+				for (let i = 1; i < numArgs; i++) {
+					const nextVariable = vm.stack.pop()
+					if (typeof nextVariable !== 'number') throw new RuntimeError(RuntimeErrorCodes.INVALID_ARGUMENT, 'Invalid argument for MAX')
+					values.push(Number(nextVariable))
+				}
+				vm.stack.push(Math.min(...values))
+				return
+			}
+
+			throw new RuntimeError(RuntimeErrorCodes.INVALID_ARGUMENT, 'Invalid argument for MIN')
+		}
+	},
+
+	MAX: {
+		type: 'DOUBLE',
+		args: ['ANY', 'ANY'],
+		minArgs: 1,
+		action: function(vm) {
+			const numArgs = vm.stack.pop()
+
+			const variable = vm.stack.pop()
+			if (numArgs === 1 && variable instanceof ArrayVariable && IsNumericType(variable.type)) {
+				vm.stack.push(Math.max(...(variable.values.map(item => Number(item.value)))))
+				return
+			} else if (typeof variable === 'number') {
+				const values = [ Number(variable) ]
+				for (let i = 1; i < numArgs; i++) {
+					const nextVariable = vm.stack.pop()
+					if (typeof nextVariable !== 'number') throw new RuntimeError(RuntimeErrorCodes.INVALID_ARGUMENT, 'Invalid argument for MAX')
+					values.push(Number(nextVariable))
+				}
+				vm.stack.push(Math.max(...values))
+				return
+			}
+
+			throw new RuntimeError(RuntimeErrorCodes.INVALID_ARGUMENT, 'Invalid argument for MAX')
+		}
+	},
+
 	LOADIMAGE: {
 		type: 'INTEGER',
 		args: ['STRING'],
@@ -745,6 +797,24 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 		action: function(vm) {
 			if (vm.audio) {
 				vm.audio.stopMusic()
+			}
+		}
+	},
+
+	SOUND: {
+		args: ['INTEGER', 'INTEGER'],
+		minArgs: 2,
+		action: function(vm) {
+			const argCount = vm.stack.pop()
+			let volume = 255
+			if (argCount > 2) {
+				volume = vm.stack.pop().value / 255
+			}
+			const length = Math.max(1, Math.min(5000, Math.round(vm.stack.pop().value)))
+			const frequency = Math.round((Math.round(vm.stack.pop().value) / 255 * (4000 - 12)) + 12)
+
+			if (vm.audio) {
+				vm.audio.makeSound(frequency, length, volume).catch(e => console.error(e))
 			}
 		}
 	},

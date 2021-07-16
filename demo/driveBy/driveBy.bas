@@ -82,7 +82,7 @@ REM END SUB
 
 RESTORE SongPtr
 READ Title$, Song$
-REM BGMPLAY Song$
+' BGMPLAY Song$
 
 t = 0
 f = 0
@@ -142,6 +142,13 @@ DO
 		t = t + moveFactor%
 	ELSE
 		t = t - moveFactor%
+	END IF
+
+	IF f MOD (5 - INT(MIN(4, ABS(speed) / 5.0))) = 0 THEN
+		frequency% = MIN(50, 10 + MAX(0, ABS(speed - 4) / 10) * 10)
+		length% = 10.0 / MAX(1, ABS(speed))
+		volume% = MIN(50, MAX(12, speed))
+		SOUND frequency%, length%, volume%
 	END IF
 
 	WAIT
