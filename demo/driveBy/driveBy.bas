@@ -1,6 +1,5 @@
 REM DriveBy v0.1
-REM A RunOut clone in QBasic for Meritum Basic
-REM Doesn't work great at the moment
+REM A RunOut clone in QBasic for Lamus Basic
 REM ---
 
 CONST TRUE = -1
@@ -82,9 +81,8 @@ REM 	END IF
 REM END SUB
 
 RESTORE SongPtr
-READ Title$
-READ Song$
-' BGMPLAY Song$
+READ Title$, Song$
+REM BGMPLAY Song$
 
 t = 0
 f = 0
