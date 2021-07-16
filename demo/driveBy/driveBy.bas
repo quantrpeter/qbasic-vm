@@ -145,9 +145,7 @@ DO
 	END IF
 
 	IF f MOD (10 - MIN(5, INT(speed / 10))) = 0 THEN
-		frequency% = 5 + INT(speed / 10)
-		volume% = MIN(128, MAX(100, INT(128 * (speed / 10))))
-		SOUND frequency%, 75, volume%
+		SOUND 5 + INT(speed / 10), 75, MIN(128, MAX(100, INT(128 * (speed / 10))))
 	END IF
 
 	WAIT

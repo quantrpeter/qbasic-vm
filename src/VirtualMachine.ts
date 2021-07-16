@@ -295,6 +295,9 @@ export class VirtualMachine extends EventEmitter<'error' | 'suspended' | 'resume
 		}
 	}
 
+	/**
+	 * Run all instructions on the current line of the program
+	 */
 	public runOneLine() {
 		const currentLocus = this.instructions[this.pc].locus
 		let i = 0
@@ -353,6 +356,10 @@ export class VirtualMachine extends EventEmitter<'error' | 'suspended' | 'resume
 	public pushScalar(value, typeName) {
 		this.stack.push(new ScalarVariable<any>(this.types[typeName] as SomeScalarType, value))
 	}
+}
+
+function fetchValue<T>(variable: (ScalarVariable<T> | T)) {
+	return variable instanceof ScalarVariable ? variable.value : variable
 }
 
 interface ISystemFunction {
@@ -756,10 +763,10 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 		action: function(vm) {
 			const argCount = vm.stack.pop()
 			let repeat: number | undefined = undefined
-			const music = vm.stack.pop().value
+			const music = fetchValue(vm.stack.pop())
 
 			if (argCount > 1) {
-				repeat = vm.stack.pop().value
+				repeat = fetchValue(vm.stack.pop())
 			}
 
 			if (vm.audio) {
@@ -781,10 +788,10 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 			// BGMPLAY is the same as PLAY, it just doesn't suspend the VM
 			const argCount = vm.stack.pop()
 			let repeat: number | undefined = undefined
-			const music = vm.stack.pop().value
+			const music = fetchValue(vm.stack.pop())
 
 			if (argCount > 1) {
-				repeat = vm.stack.pop().value
+				repeat = fetchValue(vm.stack.pop())
 			}
 
 			if (vm.audio) {
@@ -808,10 +815,10 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 			const argCount = vm.stack.pop()
 			let volume = 1
 			if (argCount > 2) {
-				volume = vm.stack.pop().value / 255
+				volume = fetchValue(vm.stack.pop()) / 255
 			}
-			const length = Math.max(1, Math.min(5000, Math.round(vm.stack.pop().value)))
-			const frequency = Math.round((Math.round(vm.stack.pop().value) / 255 * (4000 - 12)) + 12)
+			const length = Math.max(1, Math.min(5000, Math.round(fetchValue(vm.stack.pop()))))
+			const frequency = Math.round((Math.round(fetchValue(vm.stack.pop())) / 255 * (4000 - 12)) + 12)
 
 			if (vm.audio) {
 				vm.audio.makeSound(frequency, length, volume).catch(e => console.error(e))
@@ -827,7 +834,7 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 			vm.suspend()
 			if (argCount === 1) {
 				// if an argument is provided, wait X seconds
-				const sleep = vm.stack.pop().value
+				const sleep = fetchValue(vm.stack.pop())
 				let cancelSleep: () => void
 
 				const timeout = setTimeout(() => {
@@ -972,8 +979,8 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 	LOCATE: {
 		args: ['INTEGER', 'INTEGER'],
 		action: function(vm) {
-			let col = vm.stack.pop().value
-			let row = vm.stack.pop().value
+			let col = fetchValue(vm.stack.pop())
+			let row = fetchValue(vm.stack.pop())
 			vm.cons.locate(row, col)
 		}
 	},
@@ -987,12 +994,12 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 			let bg: number | null = null
 			let bo: number | null = null
 			if (argCount > 2) {
-				bo = Math.round(vm.stack.pop().value) || 0
+				bo = Math.round(fetchValue(vm.stack.pop())) || 0
 			}
 			if (argCount > 1) {
-				bg = Math.round(vm.stack.pop().value) || 0
+				bg = Math.round(fetchValue(vm.stack.pop())) || 0
 			}
-			let fg = Math.round(vm.stack.pop().value) || 0
+			let fg = Math.round(fetchValue(vm.stack.pop())) || 0
 			vm.cons.color(fg, bg, bo)
 		}
 	},
@@ -1025,7 +1032,7 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 
 	SCREEN: {
 		action: function(vm) {
-			const mode = vm.stack.pop().value
+			const mode = fetchValue(vm.stack.pop())
 			vm.cons.screen(mode)
 		}
 	},
@@ -1084,7 +1091,7 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 			let frames = 1
 			if (argCount === 1) {
 				// if an argument is provided, wait X frames
-				frames = vm.stack.pop().value
+				frames = fetchValue(vm.stack.pop())
 			}
 
 			let cancelWait: () => void
@@ -1126,18 +1133,18 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 			let sw = undefined
 			let sh = undefined
 			if (argCount >= 9) {
-				sh = vm.stack.pop().value
-				sw = vm.stack.pop().value
-				sy = vm.stack.pop().value
-				sx = vm.stack.pop().value
+				sh = fetchValue(vm.stack.pop())
+				sw = fetchValue(vm.stack.pop())
+				sy = fetchValue(vm.stack.pop())
+				sx = fetchValue(vm.stack.pop())
 			}
 			if (argCount >= 5) {
-				dh = vm.stack.pop().value
-				dw = vm.stack.pop().value
+				dh = fetchValue(vm.stack.pop())
+				dw = fetchValue(vm.stack.pop())
 			}
-			const dy = vm.stack.pop().value
-			const dx = vm.stack.pop().value
-			const imageHandle = vm.stack.pop().value
+			const dy = fetchValue(vm.stack.pop())
+			const dx = fetchValue(vm.stack.pop())
+			const imageHandle = fetchValue(vm.stack.pop())
 			vm.cons.putImage(vm.cons.getImage(imageHandle), dx, dy, dw, dh, sx, sy, sw, sh)
 		}
 	},
@@ -1150,10 +1157,10 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 			let argCount = vm.stack.pop()
 			let frames = 1
 			if (argCount > 2) {
-				frames = vm.stack.pop().value
+				frames = fetchValue(vm.stack.pop())
 			}
-			const imageHandle = vm.stack.pop().value
-			const spriteNum = vm.stack.pop().value
+			const imageHandle = fetchValue(vm.stack.pop())
+			const spriteNum = fetchValue(vm.stack.pop())
 
 			vm.cons
 				.createSprite(spriteNum - 1, vm.cons.getImage(imageHandle), frames)
@@ -1167,9 +1174,9 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 	SPOFS: {
 		args: ['INTEGER', 'INTEGER', 'INTEGER'],
 		action: function(vm) {
-			const y = vm.stack.pop().value
-			const x = vm.stack.pop().value
-			const spriteNum = vm.stack.pop().value
+			const y = fetchValue(vm.stack.pop())
+			const x = fetchValue(vm.stack.pop())
+			const spriteNum = fetchValue(vm.stack.pop())
 			vm.cons.offsetSprite(spriteNum - 1, x, y)
 		}
 	},
@@ -1177,9 +1184,9 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 	SPSCALE: {
 		args: ['INTEGER', 'INTEGER', 'INTEGER'],
 		action: function(vm) {
-			const scaleY = vm.stack.pop().value
-			const scaleX = vm.stack.pop().value
-			const spriteNum = vm.stack.pop().value
+			const scaleY = fetchValue(vm.stack.pop())
+			const scaleX = fetchValue(vm.stack.pop())
+			const spriteNum = fetchValue(vm.stack.pop())
 			vm.cons.scaleSprite(spriteNum - 1, scaleX, scaleY)
 		}
 	},
@@ -1187,8 +1194,8 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 	SPROT: {
 		args: ['INTEGER', 'INTEGER'],
 		action: function(vm) {
-			const angle = vm.stack.pop().value
-			const spriteNum = vm.stack.pop().value
+			const angle = fetchValue(vm.stack.pop())
+			const spriteNum = fetchValue(vm.stack.pop())
 			vm.cons.rotateSprite(spriteNum - 1, angle)
 		}
 	},
@@ -1196,9 +1203,9 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 	SPHOME: {
 		args: ['INTEGER', 'INTEGER', 'INTEGER'],
 		action: function(vm) {
-			const homeY = vm.stack.pop().value
-			const homeX = vm.stack.pop().value
-			const spriteNum = vm.stack.pop().value
+			const homeY = fetchValue(vm.stack.pop())
+			const homeX = fetchValue(vm.stack.pop())
+			const spriteNum = fetchValue(vm.stack.pop())
 			vm.cons.homeSprite(spriteNum - 1, homeX, homeY)
 		}
 	},
@@ -1206,7 +1213,7 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 	SPHIDE: {
 		args: ['INTEGER'],
 		action: function(vm) {
-			const spriteNum = vm.stack.pop().value
+			const spriteNum = fetchValue(vm.stack.pop())
 			vm.cons.displaySprite(spriteNum - 1, false)
 		}
 	},
@@ -1214,7 +1221,7 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 	SPSHOW: {
 		args: ['INTEGER'],
 		action: function(vm) {
-			const spriteNum = vm.stack.pop().value
+			const spriteNum = fetchValue(vm.stack.pop())
 			vm.cons.displaySprite(spriteNum - 1, true)
 		}
 	},
@@ -1227,14 +1234,14 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 			let loop = true
 			let speed = 1
 			if (argCount > 4) {
-				loop = vm.stack.pop().value === 0 ? false : true
+				loop = fetchValue(vm.stack.pop()) === 0 ? false : true
 			}
 			if (argCount > 3) {
-				speed = Math.round(vm.stack.pop().value)
+				speed = Math.round(fetchValue(vm.stack.pop()))
 			}
-			const stopFrame = Math.round(vm.stack.pop().value)
-			const startFrame = Math.round(vm.stack.pop().value)
-			const spriteNum = Math.round(vm.stack.pop().value)
+			const stopFrame = Math.round(fetchValue(vm.stack.pop()))
+			const startFrame = Math.round(fetchValue(vm.stack.pop()))
+			const spriteNum = Math.round(fetchValue(vm.stack.pop()))
 			vm.cons.animateSprite(spriteNum - 1, startFrame - 1, stopFrame - 1, speed, loop)
 		}
 	},
@@ -1242,7 +1249,7 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 	SPCLR: {
 		args: ['INTEGER'],
 		action: function(vm) {
-			const spriteNum = vm.stack.pop().value
+			const spriteNum = fetchValue(vm.stack.pop())
 			vm.cons.clearSprite(spriteNum - 1)
 		}
 	},
@@ -1258,14 +1265,14 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 			let y2: number | undefined = undefined
 			let color: number | undefined = undefined
 			if (argCount > 2) {
-				color = Math.round(vm.stack.pop().value)
+				color = Math.round(fetchValue(vm.stack.pop()))
 			}
 			if (argCount > 3) {
-				y2 = Math.round(vm.stack.pop().value)
-				x2 = Math.round(vm.stack.pop().value)
+				y2 = Math.round(fetchValue(vm.stack.pop()))
+				x2 = Math.round(fetchValue(vm.stack.pop()))
 			}
-			y1 = Math.round(vm.stack.pop().value)
-			x1 = Math.round(vm.stack.pop().value)
+			y1 = Math.round(fetchValue(vm.stack.pop()))
+			x1 = Math.round(fetchValue(vm.stack.pop()))
 
 			if (x2 !== undefined && y2 !== undefined) {
 				vm.cons.line(x1, y1, x2, y2, color)
@@ -1287,12 +1294,12 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 			let color: number | undefined
 
 			if (argCount > 4) {
-				color = Math.round(vm.stack.pop().value)
+				color = Math.round(fetchValue(vm.stack.pop()))
 			}
-			y2 = Math.round(vm.stack.pop().value)
-			x2 = Math.round(vm.stack.pop().value)
-			y1 = Math.round(vm.stack.pop().value)
-			x1 = Math.round(vm.stack.pop().value)
+			y2 = Math.round(fetchValue(vm.stack.pop()))
+			x2 = Math.round(fetchValue(vm.stack.pop()))
+			y1 = Math.round(fetchValue(vm.stack.pop()))
+			x1 = Math.round(fetchValue(vm.stack.pop()))
 
 			vm.cons.box(x1, y1, x2, y2, color)
 		}
@@ -1310,12 +1317,12 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 			let color: number | undefined
 
 			if (argCount > 4) {
-				color = Math.round(vm.stack.pop().value)
+				color = Math.round(fetchValue(vm.stack.pop()))
 			}
-			y2 = Math.round(vm.stack.pop().value)
-			x2 = Math.round(vm.stack.pop().value)
-			y1 = Math.round(vm.stack.pop().value)
-			x1 = Math.round(vm.stack.pop().value)
+			y2 = Math.round(fetchValue(vm.stack.pop()))
+			x2 = Math.round(fetchValue(vm.stack.pop()))
+			y1 = Math.round(fetchValue(vm.stack.pop()))
+			x1 = Math.round(fetchValue(vm.stack.pop()))
 
 			vm.cons.fill(x1, y1, x2, y2, color)
 		}
@@ -1335,14 +1342,14 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 			let color: number | undefined
 
 			if (argCount > 6) {
-				color = Math.round(vm.stack.pop().value)
+				color = Math.round(fetchValue(vm.stack.pop()))
 			}
-			y3 = Math.round(vm.stack.pop().value)
-			x3 = Math.round(vm.stack.pop().value)
-			y2 = Math.round(vm.stack.pop().value)
-			x2 = Math.round(vm.stack.pop().value)
-			y1 = Math.round(vm.stack.pop().value)
-			x1 = Math.round(vm.stack.pop().value)
+			y3 = Math.round(fetchValue(vm.stack.pop()))
+			x3 = Math.round(fetchValue(vm.stack.pop()))
+			y2 = Math.round(fetchValue(vm.stack.pop()))
+			x2 = Math.round(fetchValue(vm.stack.pop()))
+			y1 = Math.round(fetchValue(vm.stack.pop()))
+			x1 = Math.round(fetchValue(vm.stack.pop()))
 
 			vm.cons.triangleFill(x1, y1, x2, y2, x3, y3, color)
 		}
@@ -1363,21 +1370,21 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 			let fill = false
 
 			if (argCount > 3) {
-				color = Math.round(vm.stack.pop().value)
+				color = Math.round(fetchValue(vm.stack.pop()))
 			}
 			if (argCount > 7) {
-				fill = vm.stack.pop().value === 0 ? false : true
+				fill = fetchValue(vm.stack.pop()) === 0 ? false : true
 			}
 			if (argCount > 6) {
-				aspect = Number(vm.stack.pop().value)
+				aspect = Number(fetchValue(vm.stack.pop()))
 			}
 			if (argCount > 4) {
-				startAngle = Number(vm.stack.pop().value)
-				endAngle = Number(vm.stack.pop().value)
+				startAngle = Number(fetchValue(vm.stack.pop()))
+				endAngle = Number(fetchValue(vm.stack.pop()))
 			}
-			radius = Number(vm.stack.pop().value)
-			y1 = Math.round(vm.stack.pop().value)
-			x1 = Math.round(vm.stack.pop().value)
+			radius = Number(fetchValue(vm.stack.pop()))
+			y1 = Math.round(fetchValue(vm.stack.pop()))
+			x1 = Math.round(fetchValue(vm.stack.pop()))
 
 			vm.cons.circle(x1, y1, radius, color, startAngle, endAngle, aspect, fill, false)
 		}
@@ -1392,11 +1399,11 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 			let green: number
 			let blue: number
 
-			blue = Math.round(vm.stack.pop().value) & 255
-			green = Math.round(vm.stack.pop().value) & 255
-			red = Math.round(vm.stack.pop().value) & 255
-			y1 = Math.round(vm.stack.pop().value)
-			x1 = Math.round(vm.stack.pop().value)
+			blue = Math.round(fetchValue(vm.stack.pop())) & 255
+			green = Math.round(fetchValue(vm.stack.pop())) & 255
+			red = Math.round(fetchValue(vm.stack.pop())) & 255
+			y1 = Math.round(fetchValue(vm.stack.pop()))
+			x1 = Math.round(fetchValue(vm.stack.pop()))
 
 			vm.cons.putPixel(x1, y1, [red, green, blue])
 		}
@@ -1411,8 +1418,8 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 			const blueVar = vm.stack.pop() as ScalarVariable<number>
 			const greenVar = vm.stack.pop() as ScalarVariable<number>
 			const redVar = vm.stack.pop() as ScalarVariable<number>
-			y1 = Math.round(vm.stack.pop().value)
-			x1 = Math.round(vm.stack.pop().value)
+			y1 = Math.round(fetchValue(vm.stack.pop()))
+			x1 = Math.round(fetchValue(vm.stack.pop()))
 
 			const [red, green, blue] = vm.cons.getPixel(x1, y1)
 
