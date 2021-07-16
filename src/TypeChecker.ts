@@ -745,11 +745,11 @@ export class TypeChecker implements IVisitor {
 
 	public visitLabel(label) {
 		// label must not already be defined.
-		if (this.labelsDefined[label.label]) {
-			this.error(label, "Label '%s' is already defined", label.label)
+		if (this.labelsDefined[label.name]) {
+			this.error(label, "Label '%s' is already defined", label.name)
 		}
 		// add to labels declared.
-		this.labelsDefined[label.label] = new CheckedLabel(label.label, label)
+		this.labelsDefined[label.name] = new CheckedLabel(label.name, label)
 	}
 
 	public visitAssignStatement(assign) {
