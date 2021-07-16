@@ -18,7 +18,7 @@ FOR i = 1 TO 1024
 	LOCATE 1, 1
 	PRINT "C=";
 	PRINT Color%, "     "
-	GFILL RND() * 160, RND() * 300, RND() * 160, RND() * 300, Color%
+	GTRI RND() * 160, RND() * 300, RND() * 160, RND() * 300, RND() * 160, RND() * 300, Color%
 NEXT i
 
 LOCATE 1, 1

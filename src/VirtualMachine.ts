@@ -1240,6 +1240,107 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 			vm.cons.fill(x1, y1, x2, y2, color)
 		}
 	},
+
+	GTRI: {
+		args: ['INTEGER', 'INTEGER', 'INTEGER', 'INTEGER', 'INTEGER', 'INTEGER', 'INTEGER'],
+		minArgs: 6,
+		action: function (vm) {
+			const argCount = vm.stack.pop()
+			let x1: number
+			let y1: number
+			let x2: number
+			let y2: number
+			let x3: number
+			let y3: number
+			let color: number | undefined
+
+			if (argCount > 6) {
+				color = Math.round(vm.stack.pop().value)
+			}
+			y3 = Math.round(vm.stack.pop().value)
+			x3 = Math.round(vm.stack.pop().value)
+			y2 = Math.round(vm.stack.pop().value)
+			x2 = Math.round(vm.stack.pop().value)
+			y1 = Math.round(vm.stack.pop().value)
+			x1 = Math.round(vm.stack.pop().value)
+
+			vm.cons.triangleFill(x1, y1, x2, y2, x3, y3, color)
+		}
+	},
+
+	GCIRCLE: {
+		args: ['INTEGER', 'INTEGER', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY'],
+		minArgs: 3,
+		action: function (vm) {
+			const argCount = vm.stack.pop()
+			let x1: number
+			let y1: number
+			let radius: number
+			let startAngle: number | undefined
+			let endAngle: number | undefined
+			let color: number | undefined
+			let aspect: number | undefined
+			let fill = false
+
+			if (argCount > 3) {
+				color = Math.round(vm.stack.pop().value)
+			}
+			if (argCount > 7) {
+				fill = vm.stack.pop().value === 0 ? false : true
+			}
+			if (argCount > 6) {
+				aspect = vm.stack.pop().value
+			}
+			if (argCount > 4) {
+				startAngle = vm.stack.pop().value
+				endAngle = vm.stack.pop().value
+			}
+			radius = vm.stack.pop().value
+			y1 = Math.round(vm.stack.pop().value)
+			x1 = Math.round(vm.stack.pop().value)
+
+			vm.cons.circle(x1, y1, radius, color, startAngle, endAngle, aspect, fill, false)
+		}
+	},
+
+	GPSET: {
+		args: ['INTEGER', 'INTEGER', 'INTEGER', 'INTEGER', 'INTEGER'],
+		action: function (vm) {
+			let x1: number
+			let y1: number
+			let red: number
+			let green: number
+			let blue: number
+
+			blue = Math.round(vm.stack.pop().value) & 255
+			green = Math.round(vm.stack.pop().value) & 255
+			red = Math.round(vm.stack.pop().value) & 255
+			y1 = Math.round(vm.stack.pop().value)
+			x1 = Math.round(vm.stack.pop().value)
+
+			vm.cons.putPixel(x1, y1, [red, green, blue])
+		}
+	},
+
+	GPGET: {
+		args: ['INTEGER', 'INTEGER', 'INTEGER', 'INTEGER', 'INTEGER'],
+		action: function (vm) {
+			let x1: number
+			let y1: number
+
+			const blueVar = vm.stack.pop() as ScalarVariable<number>
+			const greenVar = vm.stack.pop() as ScalarVariable<number>
+			const redVar = vm.stack.pop() as ScalarVariable<number>
+			y1 = Math.round(vm.stack.pop().value)
+			x1 = Math.round(vm.stack.pop().value)
+
+			const [red, green, blue] = vm.cons.getPixel(x1, y1)
+
+			redVar.value = red
+			greenVar.value = green
+			blueVar.value = blue
+		}
+	},
 }
 
 export interface IInstruction {

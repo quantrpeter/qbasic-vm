@@ -92,14 +92,18 @@ export interface IConsole {
 		x: number,
 		y: number,
 		radius: number,
-		colour: number | undefined,
-		start: number | undefined,
-		end: number | undefined,
-		aspect: number | undefined,
-		step: number
+		colour?: number,
+		start?: number,
+		end?: number,
+		aspect?: number,
+		fill?: boolean,
+		step?: boolean,
 	): void
 	box(x1: number, y1: number, x2: number, y2: number, color?: number): void
 	fill(x1: number, y1: number, x2: number, y2: number, color?: number): void
+	triangleFill(x1: number, y1: number, x2: number, y2: number, x3: number, y3: number, color?: number): void
+	getPixel(x: number, y: number): [number, number, number]
+	putPixel(x: number, y: number, color: [number, number, number])
 	get(x1: number, y1: number, x2: number, y2: number, step1?: boolean, step2?: boolean): ImageData
 	put(data: ImageData, x: number, y: number): void
 	paint(x: number, y: number, colour: number, borderColor: number, step?: number): void
@@ -402,20 +406,21 @@ export class Console extends EventTarget implements IConsole {
 		x: number,
 		y: number,
 		radius: number,
-		colour: number | undefined,
-		start: number | undefined,
-		end: number | undefined,
-		aspect: number | undefined,
-		step: number
+		color?: number,
+		start?: number,
+		end?: number,
+		aspect?: number,
+		fill?: boolean,
+		step?: boolean
 	) {
-		// all parameters are optional except for x, y, radius, and step.
+		// all parameters are optional except for x, y, radius.
 		if (step) {
 			x = this.curX + x
 			y = this.curY + y
 		}
 
 		if (aspect === undefined) {
-			aspect = (4 * (this._height / this._width)) / 3
+			aspect = 1.0
 		}
 
 		this.ctx.save()
@@ -426,9 +431,12 @@ export class Console extends EventTarget implements IConsole {
 			this.ctx.scale(aspect, 1.0)
 		}
 
-		if (colour) {
-			this.ctx.strokeStyle = VIDEO_COLORS[colour]
-		}
+		const strokeBuf = this.ctx.strokeStyle
+		this.ctx.strokeStyle = color === undefined
+			? this.fgcolor
+			: color >= 0
+				? VIDEO_COLORS[color]
+				: Console.colorIntegerToRgb(color)
 
 		if (start === undefined) {
 			start = 0.0
@@ -441,11 +449,21 @@ export class Console extends EventTarget implements IConsole {
 		start = 2 * Math.PI - start
 		end = 2 * Math.PI - end
 
+		if (fill) {
+			this.ctx.beginPath()
+			this.ctx.arc(0, 0, radius, start, end, true)
+			this.ctx.fillStyle = this.fgcolor
+			this.ctx.lineTo(0, 0)
+			this.ctx.closePath()
+			this.ctx.fill()
+		}
 		this.ctx.beginPath()
 		this.ctx.arc(0, 0, radius, start, end, true)
 		this.ctx.stroke()
 
+
 		this.ctx.restore()
+		this.ctx.strokeStyle = strokeBuf
 	}
 
 	public box(x1: number, y1: number, x2: number, y2: number, color?: number): void {
@@ -476,11 +494,44 @@ export class Console extends EventTarget implements IConsole {
 				? VIDEO_COLORS[color]
 				: Console.colorIntegerToRgb(color)
 		this.ctx.beginPath()
-		this.ctx.rect(x1, y1, x2 - x1, y2 - y1)
+		this.ctx.rect(x1, y1, x2 - x1 + 1, y2 - y1 + 1)
 		this.ctx.fill()
 
 		this.curX = x2
 		this.curY = y2
+		this.ctx.fillStyle = fillBuf
+	}
+
+	public triangleFill(x1: number, y1: number, x2: number, y2: number, x3: number, y3: number, color?: number): void {
+		const fillBuf = this.ctx.fillStyle
+		this.ctx.fillStyle = color === undefined
+			? this.fgcolor
+			: color >= 0
+				? VIDEO_COLORS[color]
+				: Console.colorIntegerToRgb(color)
+		this.ctx.beginPath()
+		this.ctx.moveTo(x1, y1)
+		this.ctx.lineTo(x2, y2)
+		this.ctx.lineTo(x3, y3)
+		this.ctx.lineTo(x1, y1)
+		this.ctx.fill()
+
+		this.curX = x3
+		this.curY = y3
+		this.ctx.fillStyle = fillBuf
+	}
+
+	public getPixel(x: number, y: number): [number, number, number] {
+		const image = this.ctx.getImageData(x, y, 1, 1)
+		return [image.data[0], image.data[1], image.data[2]]
+	}
+
+	public putPixel(x: number, y: number, color: [number, number, number]) {
+		const fillBuf = this.ctx.fillStyle
+		this.ctx.fillStyle = `rgb(${color[0]}, ${color[1]}, ${color[2]})`
+		this.ctx.beginPath()
+		this.ctx.rect(x, y, 1, 1)
+		this.ctx.fill()
 		this.ctx.fillStyle = fillBuf
 	}
 

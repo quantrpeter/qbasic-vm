@@ -68,6 +68,8 @@ export class Sprite {
 		return this._loaded
 	}
 
+	private _spriteData: number[] = []
+
 	/**
 	 *
 	 * @param image Image to be used for the sprite
@@ -182,5 +184,13 @@ export class Sprite {
 		this._animating = true
 		this._animDirection = this._beginFrame <= this._endFrame ? 1 : -1
 		this._speed = speed
+	}
+
+	getData(index: number) {
+		return this._spriteData[index] || 0
+	}
+
+	setData(index: number, value: number) {
+		this._spriteData[index] = value
 	}
 }
