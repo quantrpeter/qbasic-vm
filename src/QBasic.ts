@@ -1055,6 +1055,8 @@ export class QBasicProgram {
 			rules.addRule("expr4: expr4 '<>' expr5", this.onBinaryOp)
 			rules.addRule("expr4: expr4 '>' expr5", this.onBinaryOp)
 			rules.addRule("expr4: expr4 '<' expr5", this.onBinaryOp)
+			rules.addRule("expr4: expr4 '<<' expr5", this.onBinaryOp)
+			rules.addRule("expr4: expr4 '>>' expr5", this.onBinaryOp)
 			rules.addRule("expr4: expr4 '<=' expr5", this.onBinaryOp)
 			rules.addRule("expr4: expr4 '>=' expr5", this.onBinaryOp)
 			rules.addRule('expr4: expr5')

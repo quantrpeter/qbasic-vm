@@ -56,7 +56,7 @@ SUB DrawRoad (time)
 		IF delta < 1 THEN
 			delta = 1
 		END IF
-		j = j + delta
+		INC j, delta
 	NEXT i
 END SUB
 
@@ -137,7 +137,7 @@ DO
 		REM NextSong
 	END IF
 
-	f = f + 1
+	INC f
 	IF speed >= 0 THEN
 		t = t + moveFactor%
 	ELSE

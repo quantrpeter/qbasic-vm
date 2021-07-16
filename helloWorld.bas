@@ -23,6 +23,12 @@ NEXT i
 
 LOCATE 1, 1
 
+PRINT TIME$
+SLEEP
+
+PRINT DATE$
+SLEEP
+
 DIM Sprite AS INTEGER
 Sprite = LOADIMAGE("test.png")
 SPSET 1, Sprite

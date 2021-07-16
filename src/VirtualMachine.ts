@@ -453,6 +453,9 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 			} else if (variable instanceof ScalarVariable && variable.type.name === 'STRING') {
 				vm.stack.push(variable.value.length)
 				return
+			} else if (typeof variable === 'string') {
+				vm.stack.push(variable.length)
+				return
 			}
 
 			throw new RuntimeError(RuntimeErrorCodes.INVALID_ARGUMENT, 'Invalid argument for LEN')
@@ -497,6 +500,22 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 		}
 	},
 
+	INSTR: {
+		type: 'INTEGER',
+		args: ['ANY', 'STRING', 'STRING'],
+		minArgs: 2,
+		action: function(vm) {
+			let numArgs = vm.stack.pop()
+			let needle: string = vm.stack.pop()
+			let haystack: string = vm.stack.pop()
+			let start = 0
+			if (numArgs > 2) {
+				start = vm.stack.pop()
+			}
+			vm.stack.push(haystack.indexOf(needle, start))
+		}
+	},
+
 	TIMER: {
 		type: 'INTEGER',
 		args: [],
@@ -512,6 +531,24 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 				date.getMilliseconds() / 1000 + date.getSeconds() + date.getMinutes() * 60 + date.getHours() * 60 * 60
 
 			vm.stack.push(result)
+		}
+	},
+
+	TIME$: {
+		type: 'STRING',
+		args: [],
+		minArgs: 0,
+		action: function(vm) {
+			vm.stack.push((new Date()).toISOString().substr(11, 8))
+		}
+	},
+
+	DATE$: {
+		type: 'STRING',
+		args: [],
+		minArgs: 0,
+		action: function(vm) {
+			vm.stack.push((new Date()).toISOString().substr(0, 10))
 		}
 	},
 
@@ -547,11 +584,35 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 
 	STR$: {
 		type: 'STRING',
-		args: ['SINGLE'],
+		args: ['SINGLE', 'INTEGER'],
 		minArgs: 1,
 		action: function(vm) {
-			let num = vm.stack.pop()
-			vm.stack.push('' + num)
+			const numArgs = vm.stack.pop()
+			let pad = 0
+			if (numArgs > 1) {
+				pad = vm.stack.pop()
+			}
+
+			const num = vm.stack.pop()
+			const result = Number(num).toString(10)
+			vm.stack.push('0000000000000000000000000000000000000000000000000000'.substr(0, pad - result.length) + result)
+		}
+	},
+
+	HEX$: {
+		type: 'STRING',
+		args: ['SINGLE', 'INTEGER'],
+		minArgs: 1,
+		action: function(vm) {
+			const numArgs = vm.stack.pop()
+			let pad = 0
+			if (numArgs > 1) {
+				pad = vm.stack.pop()
+			}
+
+			const num = vm.stack.pop()
+			const result = Number(num).toString(16)
+			vm.stack.push('0000000000000000000000000000000000000000000000000000'.substr(0, pad - result.length) + result)
 		}
 	},
 
@@ -587,6 +648,33 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 		}
 	},
 
+	FLOOR: {
+		type: 'INTEGER',
+		args: ['SINGLE'],
+		minArgs: 1,
+		action: function(vm) {
+			vm.stack.push(Math.floor(vm.stack.pop()))
+		}
+	},
+
+	CEIL: {
+		type: 'INTEGER',
+		args: ['SINGLE'],
+		minArgs: 1,
+		action: function(vm) {
+			vm.stack.push(Math.ceil(vm.stack.pop()))
+		}
+	},
+
+	ROUND: {
+		type: 'INTEGER',
+		args: ['SINGLE'],
+		minArgs: 1,
+		action: function(vm) {
+			vm.stack.push(Math.round(vm.stack.pop()))
+		}
+	},
+
 	SQR: {
 		type: 'DOUBLE',
 		args: ['ANY'],
@@ -603,6 +691,153 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 		action: function(vm) {
 			const val = Number(vm.stack.pop())
 			vm.stack.push(val === 0 ? 0 : val < 0 ? -1 : 1)
+		}
+	},
+
+	EXP: {
+		type: 'DOUBLE',
+		args: ['DOUBLE'],
+		minArgs: 1,
+		action: function(vm) {
+			vm.stack.push(Math.exp(vm.stack.pop()))
+		}
+	},
+
+	LOG: {
+		type: 'DOUBLE',
+		args: ['DOUBLE'],
+		minArgs: 1,
+		action: function(vm) {
+			vm.stack.push(Math.log(vm.stack.pop()))
+		}
+	},
+
+	POW: {
+		type: 'DOUBLE',
+		args: ['DOUBLE', 'DOUBLE'],
+		minArgs: 2,
+		action: function(vm) {
+			const multiplier = vm.stack.pop()
+			const value = vm.stack.pop()
+			vm.stack.push(Math.pow(value, multiplier))
+		}
+	},
+
+	PI: {
+		type: 'DOUBLE',
+		args: [],
+		minArgs: 0,
+		action: function(vm) {
+			vm.stack.push(Math.PI)
+		}
+	},
+
+	RAD: {
+		type: 'DOUBLE',
+		args: ['DOUBLE'],
+		minArgs: 1,
+		action: function(vm) {
+			vm.stack.push(vm.stack.pop() / 360 * 2 * Math.PI)
+		}
+	},
+
+	DEG: {
+		type: 'DOUBLE',
+		args: ['DOUBLE'],
+		minArgs: 1,
+		action: function(vm) {
+			vm.stack.push(vm.stack.pop() / 2 / Math.PI * 360)
+		}
+	},
+
+	SIN: {
+		type: 'DOUBLE',
+		args: ['DOUBLE'],
+		minArgs: 1,
+		action: function(vm) {
+			vm.stack.push(Math.sin(vm.stack.pop()))
+		}
+	},
+
+	COS: {
+		type: 'DOUBLE',
+		args: ['DOUBLE'],
+		minArgs: 1,
+		action: function(vm) {
+			vm.stack.push(Math.cos(vm.stack.pop()))
+		}
+	},
+
+	TAN: {
+		type: 'DOUBLE',
+		args: ['DOUBLE'],
+		minArgs: 1,
+		action: function(vm) {
+			vm.stack.push(Math.tan(vm.stack.pop()))
+		}
+	},
+
+	ASIN: {
+		type: 'DOUBLE',
+		args: ['DOUBLE'],
+		minArgs: 1,
+		action: function(vm) {
+			vm.stack.push(Math.asin(vm.stack.pop()))
+		}
+	},
+
+	ACOS: {
+		type: 'DOUBLE',
+		args: ['DOUBLE'],
+		minArgs: 1,
+		action: function(vm) {
+			vm.stack.push(Math.acos(vm.stack.pop()))
+		}
+	},
+
+	ATAN: {
+		type: 'DOUBLE',
+		args: ['DOUBLE'],
+		minArgs: 1,
+		action: function(vm) {
+			vm.stack.push(Math.atan(vm.stack.pop()))
+		}
+	},
+
+	SINH: {
+		type: 'DOUBLE',
+		args: ['DOUBLE'],
+		minArgs: 1,
+		action: function(vm) {
+			vm.stack.push(Math.sinh(vm.stack.pop()))
+		}
+	},
+
+	COSH: {
+		type: 'DOUBLE',
+		args: ['DOUBLE'],
+		minArgs: 1,
+		action: function(vm) {
+			vm.stack.push(Math.cosh(vm.stack.pop()))
+		}
+	},
+
+	TANH: {
+		type: 'DOUBLE',
+		args: ['DOUBLE'],
+		minArgs: 1,
+		action: function(vm) {
+			vm.stack.push(Math.tanh(vm.stack.pop()))
+		}
+	},
+
+	CLASSIFY: {
+		type: 'DOUBLE',
+		args: ['DOUBLE'],
+		minArgs: 1,
+		action: function(vm) {
+			const value = vm.stack.pop()
+			vm.stack.push(Number.isNaN(value) ? 2 : Number.isFinite(value) ? 0 : 1)
 		}
 	},
 
@@ -1070,6 +1305,38 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 			lhs.value = rhs.value
 			rhs.value = temp
 			// TODO: Type checking.
+		}
+	},
+
+	INC: {
+		args: ['INTEGER', 'INTEGER'],
+		minArgs: 1,
+		action: function(vm) {
+			const argCount = vm.stack.pop()
+			let step = 1
+
+			if (argCount > 1) {
+				step = fetchValue(vm.stack.pop())
+			}
+
+			const variable = vm.stack.pop()
+			variable.value = variable.value + step
+		}
+	},
+
+	DEC: {
+		args: ['INTEGER', 'INTEGER'],
+		minArgs: 1,
+		action: function(vm) {
+			const argCount = vm.stack.pop()
+			let step = 1
+
+			if (argCount > 1) {
+				step = fetchValue(vm.stack.pop())
+			}
+
+			const variable = vm.stack.pop()
+			variable.value = variable.value - step
 		}
 	},
 
@@ -1732,6 +1999,26 @@ export const Instructions: InstructionDefinition = {
 		numArgs: 0,
 		execute: function(vm) {
 			vm.stack.push(vm.stack.pop() * vm.stack.pop())
+		}
+	},
+
+	'>>': {
+		name: '>>',
+		numArgs: 0,
+		execute: function(vm) {
+			let rhs = vm.stack.pop()
+			let lhs = vm.stack.pop()
+			vm.stack.push(lhs >> rhs)
+		}
+	},
+
+	'<<': {
+		name: '<<',
+		numArgs: 0,
+		execute: function(vm) {
+			let rhs = vm.stack.pop()
+			let lhs = vm.stack.pop()
+			vm.stack.push(lhs << rhs)
 		}
 	},
 
