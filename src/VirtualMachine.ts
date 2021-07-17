@@ -1950,6 +1950,7 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 				vm.resume()
 			})
 			.catch((reason) => {
+				vm.trace.printf('Error while fetching data: %s\n', reason)
 				outResCode.value = -1
 				vm.resume()
 			})
