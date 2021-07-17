@@ -39,22 +39,22 @@ export class ImageManipulator {
 }
 
 const VIDEO_COLORS = [
-	'#000000', // Black
-	'#ffffff', // White
-	'#c13322', // Red
-	'#49dce8', // Cyan
-	'#ba3cc0', // Purple
-	'#40c945', // Green
-	'#3826ba', // Blue
-	'#ddf06e', // Yellow
-	'#c76316', // Orange
-	'#794700', // Brown
-	'#e96758', // Light Red
-	'#636363', // Dark grey
-	'#8b8b8b', // Grey
-	'#82fb85', // Light green
-	'#7764e8', // Light blue
-	'#afafaf' // Light grey
+	'#000000', // 0: Black
+	'#ffffff', // 1: White
+	'#c13322', // 2: Red
+	'#49dce8', // 3: Cyan
+	'#ba3cc0', // 4: Purple
+	'#40c945', // 5: Green
+	'#3826ba', // 6: Blue
+	'#ddf06e', // 7: Yellow
+	'#c76316', // 8: Orange
+	'#794700', // 9: Brown
+	'#e96758', // 10: Light Red
+	'#636363', // 11: Dark grey
+	'#8b8b8b', // 12: Grey
+	'#82fb85', // 13: Light green
+	'#7764e8', // 14: Light blue
+	'#afafaf' // 15: Light grey
 ]
 
 const SPECIAL_CHARS = {
@@ -602,6 +602,9 @@ export class Console extends EventTarget implements IConsole {
 	public loadImage(file: string): Promise<number> {
 		return new Promise((resolve, reject) => {
 			const img = document.createElement('img')
+			img.addEventListener('error', (e) => {
+				reject(e)
+			})
 			img.src = file
 			img.decode()
 				.then(() => {
@@ -624,7 +627,7 @@ export class Console extends EventTarget implements IConsole {
 	}
 
 	public clearImage(handle: number) {
-		delete this.images[handle]
+		this.images[handle] = undefined
 	}
 
 	private static drawImageWithWrap(

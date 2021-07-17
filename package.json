@@ -30,6 +30,7 @@
     "docs:publish": "yarn docs:html && gh-pages -d docs"
   },
   "devDependencies": {
+    "@types/jsonpath": "^0.2.0",
     "@types/node": "^12.12.7",
     "prettier": "^1.18.2",
     "ts-loader": "^6.2.1",
@@ -37,11 +38,13 @@
     "tslint-config-standard": "^8.0.1",
     "typedoc": "^0.15.0",
     "typescript": "^3.6.4",
-    "webpack": "^4.41.2",
+    "webpack": "^5.45.1",
     "webpack-cli": "^3.3.10"
   },
   "dependencies": {
     "eventemitter3": "^4.0.0",
+    "fetch-ponyfill": "^7.1.0",
+    "jsonpath": "^1.1.1",
     "mml-iterator": "^1.1.0",
     "seq-emitter": "^1.2.0"
   }

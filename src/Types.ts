@@ -185,10 +185,11 @@ export type SomeArrayType =
 	| ArrayType<SingleType>
 	| ArrayType<DoubleType>
 	| ArrayType<StringType>
+	| ArrayType<JSONType>
 	| ArrayType<AnyType>
 	| ArrayType<UserType>
-export type SomeScalarType = NullType | IntegerType | SingleType | DoubleType | StringType | AnyType
-export type SomeType = SomeScalarType | SomeArrayType | JSONType | UserType
+export type SomeScalarType = NullType | IntegerType | SingleType | DoubleType | StringType | JSONType | AnyType
+export type SomeType = SomeScalarType | SomeArrayType | UserType
 
 export interface IUserTypeMembers {
 	[key: string]: SomeScalarType
@@ -271,7 +272,7 @@ export class ArrayVariable<T extends SomeScalarType> {
 		return index
 	}
 
-	public assign(indexes: number[], value: ScalarVariable<T>) {
+	public assign(indexes: number[], value: ScalarVariable<any>) {
 		let index = this.getIndex(indexes)
 		// dbg.printf("Assign %s to array index %d\n", value, index);
 		this.values[index] = value
@@ -281,6 +282,24 @@ export class ArrayVariable<T extends SomeScalarType> {
 		let index = this.getIndex(indexes)
 		// dbg.printf("access array index %d\n", index);
 		return this.values[index]
+	}
+
+	public resize(dimensions: Dimension[]) {
+		this.dimensions = dimensions
+		const oldValues = this.values
+		this.values = []
+		let totalSize = 1
+		let i
+
+		for (i = 0; i < this.dimensions.length; i++) {
+			totalSize *= this.dimensions[i].upper - this.dimensions[i].lower + 1
+		}
+
+		for (i = 0; i < totalSize; i++) {
+			this.values.push(
+				oldValues[i] || new ScalarVariable<any>(this.type, this.type.createInstance())
+			)
+		}
 	}
 }
 
