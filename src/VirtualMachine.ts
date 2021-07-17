@@ -902,7 +902,7 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 		}
 	},
 
-	LOADIMAGE: {
+	IMGLOAD: {
 		type: 'INTEGER',
 		args: ['STRING'],
 		minArgs: 1,
@@ -936,9 +936,34 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 		args: [],
 		minArgs: 0,
 		action: function(vm) {
-			if (vm.audio) {
-				vm.stack.push(vm.audio.isPlayingMusic() ? -1 : 0)
-			}
+			vm.stack.push((vm.audio && vm.audio.isPlayingMusic()) ? -1 : 0)
+		}
+	},
+
+	'JSONPATH#': {
+		type: 'DOUBLE',
+		args: ['JSON', 'STRING', 'DOUBLE'],
+		minArgs: 2,
+		action: function(vm) {
+			throw new RuntimeError(RuntimeErrorCodes.UKNOWN_SYSCALL, 'Not implemented')
+		}
+	},
+
+	'JSONPATH$': {
+		type: 'STRING',
+		args: ['JSON', 'STRING', 'STRING'],
+		minArgs: 2,
+		action: function(vm) {
+			throw new RuntimeError(RuntimeErrorCodes.UKNOWN_SYSCALL, 'Not implemented')
+		}
+	},
+
+	'JSONPATH': {
+		type: 'JSON',
+		args: ['JSON', 'STRING'],
+		minArgs: 2,
+		action: function(vm) {
+			throw new RuntimeError(RuntimeErrorCodes.UKNOWN_SYSCALL, 'Not implemented')
 		}
 	},
 }
@@ -1388,7 +1413,7 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 		}
 	},
 
-	PUTIMAGE: {
+	IMGPUT: {
 		args: ['INTEGER', 'INTEGER', 'INTEGER', 'INTEGER', 'INTEGER', 'INTEGER', 'INTEGER', 'INTEGER', 'INTEGER'],
 		minArgs: 3,
 		action: function(vm) {
@@ -1413,6 +1438,30 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 			const dx = fetchValue(vm.stack.pop())
 			const imageHandle = fetchValue(vm.stack.pop())
 			vm.cons.putImage(vm.cons.getImage(imageHandle), dx, dy, dw, dh, sx, sy, sw, sh)
+		}
+	},
+
+	IMGSIZE: {
+		args: ['INTEGER', 'INTEGER', 'INTEGER'],
+		minArgs: 3,
+		action: function(vm) {
+			const height = vm.stack.pop()
+			const width = vm.stack.pop()
+			const imageHandle = fetchValue(vm.stack.pop())
+			const image = vm.cons.getImage(imageHandle)
+
+			width.value = Math.round(image.naturalWidth)
+			height.value = Math.round(image.naturalHeight)
+		}
+	},
+
+	IMGCLEAR: {
+		args: ['INTEGER', 'INTEGER', 'INTEGER'],
+		minArgs: 3,
+		action: function(vm) {
+			const imageHandle = fetchValue(vm.stack.pop())
+
+			vm.cons.clearImage(imageHandle)
 		}
 	},
 

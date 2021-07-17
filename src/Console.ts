@@ -151,6 +151,7 @@ export interface IConsole {
 
 	loadImage(file: String): Promise<number>
 	getImage(handle: number): HTMLImageElement
+	clearImage(handle: number): void
 
 	createSprite(spriteNumber: number, image: HTMLImageElement, frames: number): Promise<void>
 	clearSprite(spriteNumber: number)
@@ -620,6 +621,10 @@ export class Console extends EventTarget implements IConsole {
 		const image = this.images[handle]
 		if (image === undefined) throw new Error('Floating image handle')
 		return image
+	}
+
+	public clearImage(handle: number) {
+		delete this.images[handle]
 	}
 
 	private static drawImageWithWrap(

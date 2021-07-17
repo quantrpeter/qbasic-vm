@@ -23,9 +23,9 @@ CLS
 DECLARE SUB DrawRoad (t)
 
 DIM SHARED imgRoad, imgCar, imgSky
-imgRoad = LOADIMAGE("road.png")
-imgCar = LOADIMAGE("car.png")
-imgSky = LOADIMAGE("sky.png")
+imgRoad = IMGLOAD("road.png")
+imgCar = IMGLOAD("car.png")
+imgSky = IMGLOAD("sky.png")
 
 DIM SHARED turn, level, slide, speed
 lastPeriod# = TIMER
@@ -40,7 +40,7 @@ SPSET 1, imgCar
 SPOFS 1, 45, 240
 
 SUB DrawRoad (time)
-	PUTIMAGE imgSky, -160 - (turn / 10) - (slide / 20), 20 - level
+	IMGPUT imgSky, -160 - (turn / 10) - (slide / 20), 20 - level
 
 	Horizon = 180 - level
 	imgWidth = 400
@@ -51,7 +51,7 @@ SUB DrawRoad (time)
 		DIM Perspective AS SINGLE
 		REM INT(240 - ((i / roadMaxValue) * 280))
 		Perspective = INT(100 - 20 * SQR(i))
-		PUTIMAGE imgRoad, 0, (Horizon + i - level), 160, 1, (120 - (Perspective / 2)) + (turn - (turn * (i / roadMaxValue))) + slide, ABS(j - time) MOD 200, (160 + Perspective), 1
+		IMGPUT imgRoad, 0, (Horizon + i - level), 160, 1, (120 - (Perspective / 2)) + (turn - (turn * (i / roadMaxValue))) + slide, ABS(j - time) MOD 200, (160 + Perspective), 1
 		delta = INT(((1 - (i / roadMaxValue)) ^ 2) * 10)
 		IF delta < 1 THEN
 			delta = 1

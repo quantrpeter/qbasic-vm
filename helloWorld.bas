@@ -30,7 +30,7 @@ PRINT DATE$
 SLEEP
 
 DIM Sprite AS INTEGER
-Sprite = LOADIMAGE("test.png")
+Sprite = IMGLOAD("test.png")
 SPSET 1, Sprite
 SPOFS 1, 0, 50
 PrintRainbow "HELLO WORLD!"
@@ -51,6 +51,6 @@ PRINT "Enter your name:"
 INPUT Name$
 PRINT "HELLO " + Name$
 SLEEP
-PUTIMAGE Sprite, 0, 0
+IMGPUT Sprite, 0, 0
 LOCATE 1, 1
 PrintRainbow "GOOD BYE!       "
