@@ -149,7 +149,7 @@ export interface IConsole {
 	newline(): void
 	print(str: string): void
 
-	loadImage(file: String): Promise<number>
+	loadImage(url: String): Promise<number>
 	getImage(handle: number): HTMLImageElement
 	clearImage(handle: number): void
 
@@ -599,13 +599,13 @@ export class Console extends EventTarget implements IConsole {
 		dbg().printf('%s\n', image.get(10, 10))
 	}
 
-	public loadImage(file: string): Promise<number> {
+	public loadImage(url: string): Promise<number> {
 		return new Promise((resolve, reject) => {
 			const img = document.createElement('img')
 			img.addEventListener('error', (e) => {
 				reject(e)
 			})
-			img.src = file
+			img.src = url
 			img.decode()
 				.then(() => {
 					const idx = this.images.findIndex(i => i === undefined)

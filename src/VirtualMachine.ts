@@ -928,9 +928,14 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 		minArgs: 1,
 		action: function(vm) {
 			vm.suspend()
-			const fileName = vm.stack.pop()
+			let fileName = vm.stack.pop()
+
+			if (!fileName.match(/^https?:\/\//)) {
+				fileName = vm.cwd + fileName
+			}
+
 			vm.cons
-				.loadImage(vm.cwd + fileName)
+				.loadImage(fileName)
 				.then(idx => {
 					vm.stack.push(idx)
 					vm.resume()
