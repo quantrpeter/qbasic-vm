@@ -1045,14 +1045,17 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 		}
 	},
 
-	JSONPARSE: {
+	JSON: {
 		type: 'JSON',
 		args: ['STRING'],
-		minArgs: 1,
+		minArgs: 0,
 		action: function(vm) {
 			let obj = {}
+			const numArgs = vm.stack.pop()
 			try {
-				obj = JSON.parse(vm.stack.pop())
+				if (numArgs > 0) {
+					obj = JSON.parse(vm.stack.pop())
+				}
 			} catch (e) {
 
 			}
@@ -1234,8 +1237,8 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 
 				vm.cons.onKey(-1, () => {
 					vm.off('suspended', cancelSleep)
-					vm.cons.onKey(-1, undefined)
 					vm.resume()
+					vm.cons.onKey(-1, undefined)
 				})
 				cancelSleep = () => {
 					vm.cons.onKey(-1, undefined)

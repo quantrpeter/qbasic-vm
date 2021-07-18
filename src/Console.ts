@@ -835,12 +835,15 @@ export class Console extends EventTarget implements IConsole {
 
 	private keyRepeatThrottle: number = 0
 	private repeatKeyboard() {
-		if (this.keyRepeatThrottle % 5 === 0) {
-			for (let i = 0; i < this.keyDown.length; i++) {
-				this.pushKeyToBuffer(this.keyDown[i])
+		// do not repeat keys if a global key trap is set
+		if (!this.onTrappedKey[-1]) {
+			if (this.keyRepeatThrottle % 5 === 0) {
+				for (let i = 0; i < this.keyDown.length; i++) {
+					this.pushKeyToBuffer(this.keyDown[i])
+				}
 			}
+			this.keyRepeatThrottle++
 		}
-		this.keyRepeatThrottle++
 	}
 
 	private pushKeyToBuffer(key: string) {
@@ -858,6 +861,8 @@ export class Console extends EventTarget implements IConsole {
 		if (idx >= 0) {
 			this.keyDown.splice(idx, 1)
 		}
+
+		this.handleTrappedKey(this.keyBuffer[this.keyBuffer.length - 1])
 	}
 
 	public onKeyDown(event: KeyboardEvent) {
@@ -897,17 +902,15 @@ export class Console extends EventTarget implements IConsole {
 					this.keyDown.push(event.key)
 				}
 			}
-
-			this.handleTrappedKey(this.keyBuffer[this.keyBuffer.length - 1])
 		}
 	}
 
 	private handleTrappedKey(num: number) {
 		if (this.onTrappedKey[num]) {
-			const key = this.getKeyFromBuffer()
+			const key = this.keyBuffer[this.keyBuffer.length - 1]
 			this.onTrappedKey[num](key)
 		} else if (this.onTrappedKey[-1]) {
-			const key = this.getKeyFromBuffer()
+			const key = this.keyBuffer[this.keyBuffer.length - 1]
 			this.onTrappedKey[-1](key)
 		}
 	}
