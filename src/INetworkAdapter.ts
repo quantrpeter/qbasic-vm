@@ -9,4 +9,5 @@ export interface INetworkAdapter {
 	wsSend(handle: number, data: string): Promise<void>
 	wsGetMessageFromBuffer(handle: number): Promise<string | undefined>
 	wsClose(handle: number)
+	reset()
 }

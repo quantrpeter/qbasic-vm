@@ -36,4 +36,7 @@ export class NetworkAdapter implements INetworkAdapter {
 	wsClose(handle: number) {
 		throw new Error('Method not implemented.')
 	}
+	reset() {
+
+	}
 }
