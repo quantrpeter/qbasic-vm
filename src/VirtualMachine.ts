@@ -37,10 +37,7 @@ import { INetworkAdapter } from './INetworkAdapter'
 import { QBasicProgram } from './QBasic'
 import { Locus } from './Tokenizer'
 import * as EventEmitter from 'eventemitter3'
-import * as fetchPonyfill from 'fetch-ponyfill'
 import { query as jsonPathQuery } from 'jsonpath'
-
-const { fetch, Headers } = fetchPonyfill()
 
 export enum RuntimeErrorCodes {
 	DIVISION_BY_ZERO = 101,
@@ -1985,7 +1982,7 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 		action: function (vm) {
 			const argCount = vm.stack.pop()
 
-			const headers = new Headers()
+			const headers = {}
 			let method = 'GET'
 			let body: string | undefined = undefined
 
@@ -1997,7 +1994,7 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 				const pairs = headersArray.values.length / 2
 				let i = 0
 				while (i < pairs) {
-					headers.set(headersArray.values[i++].value, headersArray.values[i++].value)
+					headers[headersArray.values[i++].value] = headersArray.values[i++].value
 				}
 			}
 			if (argCount > 3) {

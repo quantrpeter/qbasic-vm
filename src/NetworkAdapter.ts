@@ -1,11 +1,21 @@
+import * as fetchPonyfill from 'fetch-ponyfill'
 import { IFetchResponse, INetworkAdapter } from './INetworkAdapter'
+const { fetch, Headers } = fetchPonyfill()
 
 export class NetworkAdapter implements INetworkAdapter {
-	fetch(url: string, options: { method?: string | undefined; headers?: Headers | undefined; body?: string | Blob | Uint8Array | undefined; }): Promise<IFetchResponse> {
+	fetch(url: string, options: { method?: string | undefined; headers?: Record<string, string> | undefined; body?: string | Blob | Uint8Array | undefined; }): Promise<IFetchResponse> {
 		const { method, headers, body } = options
+
+		const fetchHeaders = new Headers()
+		if (headers) {
+			Object.keys(headers).forEach((header) => {
+				fetchHeaders.set(header, headers[header])
+			})
+		}
+
 		return fetch(url, {
 			method,
-			headers,
+			headers: fetchHeaders,
 			body
 		})
 		.then((response) => Promise.all([response.status, response.text()]))
