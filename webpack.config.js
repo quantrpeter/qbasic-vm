@@ -1,9 +1,11 @@
+const path = require('path')
+
 module.exports = {
 	mode: 'development',
 	entry: './src/index.ts',
 	output: {
 		path: __dirname,
-		filename: 'qb.js'
+		filename: './dist/qb.js'
 	},
 	devtool: 'source-map',
 	resolve: {
@@ -22,5 +24,18 @@ module.exports = {
 				}
 			}
 		]
-	}
+	},
+	devServer: {
+		contentBase: [
+			path.join(__dirname, 'demo'),
+			path.join(__dirname, 'assets'),
+			path.join(__dirname, 'dist')
+		],
+		compress: true,
+		port: 9000,
+		open: true,
+		openPage: 'index.html',
+		watchContentBase: true,
+		filename: 'qb.js'
+	},
 }

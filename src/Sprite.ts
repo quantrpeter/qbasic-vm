@@ -55,6 +55,8 @@ export class Sprite {
 	private _animDirection: number = 1
 	private _animating: boolean = false
 	private _loop: boolean = false
+	private _pingPong: boolean = false
+	private _pingPongFlip: number = 0
 	private _speed: number = 1
 	private _skip: number = 0
 
@@ -101,6 +103,16 @@ export class Sprite {
 		})
 	}
 
+	private doPingPong() {
+		this._animDirection = -1 * this._animDirection
+		if (this._pingPongFlip & 1) {
+			this._scaleX = this._scaleX * -1
+		}
+		if (this._pingPongFlip & 2) {
+			this._scaleY = this._scaleY * -1
+		}
+	}
+
 	update() {
 		if (this._animating) {
 			this._skip++
@@ -115,14 +127,24 @@ export class Sprite {
 			this._curFrame = Math.max(Math.min(this._curFrame + this._animDirection, this._totalFrames - 1), 0)
 			if (this._curFrame > this._endFrame) {
 				if (this._loop) {
-					this._curFrame = this._beginFrame
+					if (this._pingPong) {
+						this._curFrame = Math.max(this._endFrame - 1, this._beginFrame)
+						this.doPingPong()
+					} else {
+						this._curFrame = this._beginFrame
+					}
 				} else {
 					this._curFrame = this._endFrame
 					this._animating = false
 				}
 			} else if (this._curFrame < this._beginFrame) {
 				if (this._loop) {
-					this._curFrame = this._endFrame
+					if (this._pingPong) {
+						this._curFrame = Math.min(this._beginFrame + 1, Math.min(this._endFrame, this._totalFrames - 1))
+						this.doPingPong()
+					} else {
+						this._curFrame = this._endFrame
+					}
 				} else {
 					this._curFrame = this._beginFrame
 					this._animating = false
@@ -178,13 +200,15 @@ export class Sprite {
 		return this._el
 	}
 
-	setAnimate(startFrame: number, endFrame: number, speed: number, loop: boolean) {
+	setAnimate(startFrame: number, endFrame: number, speed: number, loop: boolean, pingPong: boolean, pingPongFlip: number) {
 		this._beginFrame = startFrame
 		this._endFrame = endFrame
 		this._loop = loop
 		this._animating = true
 		this._animDirection = this._beginFrame <= this._endFrame ? 1 : -1
 		this._speed = speed
+		this._pingPong = pingPong || false
+		this._pingPongFlip = pingPongFlip || 0
 	}
 
 	getData(index: number) {

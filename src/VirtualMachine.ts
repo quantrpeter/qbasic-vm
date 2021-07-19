@@ -1708,23 +1708,31 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 	},
 
 	SPANIM: {
+		// SPRITE%, START_FRAME%, END_FRAME% [, LOOP]
 		// SPRITE%, START_FRAME%, END_FRAME% [[, SPEED], LOOP]
-		args: ['INTEGER', 'INTEGER', 'INTEGER', 'INTEGER', 'INTEGER'],
+		// SPRITE%, START_FRAME%, END_FRAME%, SPEED, LOOP, PING_PONG, PING_PONG_FLIP
+		args: ['INTEGER', 'INTEGER', 'INTEGER', 'INTEGER', 'INTEGER', 'INTEGER', 'INTEGER'],
 		minArgs: 3,
 		action: function(vm) {
 			const argCount = vm.stack.pop()
 			let loop = true
 			let speed = 1
-			if (argCount > 4) {
-				loop = getArgValue(vm.stack.pop()) === 0 ? false : true
+			let pingPong = false
+			let pingPongFlip = 0
+			if (argCount > 5) {
+				pingPongFlip = getArgValue(vm.stack.pop()) & 3
+				pingPong = getArgValue(vm.stack.pop()) === 0 ? false : true
 			}
 			if (argCount > 3) {
+				loop = getArgValue(vm.stack.pop()) === 0 ? false : true
+			}
+			if (argCount > 4) {
 				speed = Math.round(getArgValue(vm.stack.pop()))
 			}
 			const stopFrame = Math.round(getArgValue(vm.stack.pop()))
 			const startFrame = Math.round(getArgValue(vm.stack.pop()))
 			const spriteNum = Math.round(getArgValue(vm.stack.pop()))
-			vm.cons.animateSprite(spriteNum - 1, startFrame - 1, stopFrame - 1, speed, loop)
+			vm.cons.animateSprite(spriteNum - 1, startFrame - 1, stopFrame - 1, speed, loop, pingPong, pingPongFlip)
 		}
 	},
 

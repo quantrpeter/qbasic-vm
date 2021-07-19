@@ -65,5 +65,5 @@ export interface IConsole {
 	homeSprite(spriteNumber: number, homeX: number, homeY: number)
 	displaySprite(spriteNumber: number, display: boolean)
 	rotateSprite(spriteNumber: number, angle: number)
-	animateSprite(spriteNumber: number, startFrame: number, endFrame: number, speed?: number, loop?: boolean)
+	animateSprite(spriteNumber: number, startFrame: number, endFrame: number, speed?: number, loop?: boolean, pingPong?: boolean, pingPongFlip?: number)
 }

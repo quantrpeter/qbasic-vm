@@ -152,7 +152,7 @@ export class Console extends EventTarget implements IConsole {
 	private containerWidth: number
 	private containerHeight: number
 
-	constructor(parentElement: HTMLElement, className?: string, width?: number, height?: number) {
+	constructor(parentElement: HTMLElement, className?: string, width?: number, height?: number, assetPath = 'assets/') {
 		super()
 
 		this.canvas = document.createElement('canvas')
@@ -193,7 +193,7 @@ export class Console extends EventTarget implements IConsole {
 		this.ctx.setTransform(1, 0, 0, 1, 0, 0)
 		this.ctx.imageSmoothingEnabled = false
 		this.charImg = document.createElement('img')
-		this.charImg.src = 'assets/charmap.png'
+		this.charImg.src = assetPath + 'charmap.png'
 
 		this._width = width || this.canvas.width
 		this._height = height || this.canvas.height
@@ -1017,10 +1017,10 @@ export class Console extends EventTarget implements IConsole {
 		}
 	}
 
-	public animateSprite(spriteNumber: number, startFrame: number, endFrame: number, speed = 1, loop?: boolean) {
+	public animateSprite(spriteNumber: number, startFrame: number, endFrame: number, speed = 1, loop?: boolean, pingPong?: boolean, pingPongFlip?: number) {
 		const sprite = this.sprites[spriteNumber]
 		if (sprite) {
-			sprite.setAnimate(startFrame, endFrame, speed, loop || true)
+			sprite.setAnimate(startFrame, endFrame, speed, loop || true, pingPong || false, pingPongFlip || 0)
 		}
 	}
 }

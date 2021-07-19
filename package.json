@@ -20,10 +20,11 @@
   ],
   "license": "GPL-3.0-only",
   "scripts": {
+    "start": "webpack serve",
     "build": "tsc -p tsconfig.json",
     "lint": "tslint --project tsconfig.json --config tslint.json",
     "lint-fix": "",
-    "bundle": "webpack --config webpack.config.js",
+    "bundle": "webpack",
     "docs": "yarn docs:html && opn docs/index.html",
     "docs:html": "typedoc src/index.ts --excludePrivate --mode file --theme minimal --out docs",
     "docs:json": "typedoc --mode file --json docs/typedoc.json src/index.ts",
@@ -32,6 +33,7 @@
   "devDependencies": {
     "@types/jsonpath": "^0.2.0",
     "@types/node": "^12.12.7",
+    "@webpack-cli/serve": "^1.5.1",
     "prettier": "^1.18.2",
     "ts-loader": "^6.2.1",
     "tslint": "^5.20.0",
@@ -39,7 +41,8 @@
     "typedoc": "^0.15.0",
     "typescript": "^3.6.4",
     "webpack": "^5.45.1",
-    "webpack-cli": "^3.3.10"
+    "webpack-cli": "^4.5.0",
+    "webpack-dev-server": "^3.11.2"
   },
   "dependencies": {
     "eventemitter3": "^4.0.0",

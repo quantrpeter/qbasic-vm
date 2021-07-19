@@ -1,24 +1,24 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<script src="qb.js" type="text/javascript"></script>
+		<script src="dist/qb.js" type="text/javascript"></script>
 	</head>
 	<body>
 		<div id="main"></div>
 		<div id="debug"></div>
 
 		<script type="text/javascript">
-			const cons = new qb.Console(document.getElementById('main'), undefined, 320, 600)
+			const cons = new qb.Console(document.getElementById('main'), undefined, 320, 600, '')
 			const audio = new qb.AudioDevice()
 			const network = new qb.NetworkAdapter()
 			const virtualMachine = new qb.VirtualMachine(cons, audio, network)
 			const dbg = new qb.DebugConsole(document.getElementById('debug'))
 			const demoPrgs = [
 				'helloWorld.bas',
-				'demo/driveBy/driveBy.bas',
-				'demo/artic/artic.bas'
+				'driveBy/driveBy.bas',
+				'artic/artic.bas'
 			]
-			const fileName = demoPrgs[2]
+			const fileName = demoPrgs[1]
 			fetch(fileName)
 				.then(resp => {
 					if (resp.status === 200) return resp.text()
