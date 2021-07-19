@@ -35,9 +35,7 @@ SUB FullLine (text$, lines%)
 	PRINT out$;
 	remain = 20 - (LEN(out$) MOD 20)
 	IF remain < 20 THEN
-		FOR i = 1 TO remain
-			PRINT " ";
-		NEXT i
+		PRINT STRING$(remain, " ");
 	END IF
 END SUB
 

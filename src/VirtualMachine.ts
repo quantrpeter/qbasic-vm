@@ -652,6 +652,25 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 		}
 	},
 
+	STRING$: {
+		type: 'STRING',
+		args: ['INTEGER', 'ANY'],
+		minArgs: 2,
+		action: function(vm) {
+			let input = vm.stack.pop()
+			let numChars = vm.stack.pop()
+			let pattern = String(input)
+			if (typeof input === 'number') {
+				pattern = String.fromCodePoint(input)
+			}
+			let str = ''
+			for (let i = 0; i < numChars; i++) {
+				str += pattern
+			}
+			vm.stack.push(str)
+		}
+	},
+
 	VAL: {
 		type: 'SINGLE',
 		args: ['STRING'],
