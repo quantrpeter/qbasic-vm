@@ -106,12 +106,15 @@ DO
 	END IF
 	
 	LOCATE 1, 1
+
+	fps = 0
 	
 	PRINT "FPS=";
 	IF f - lastF = 0 THEN
 		PRINT "0     "
 	ELSE
-		PRINT INT((f - lastF) / (TIMER - lastPeriod#)), "      "
+		fps = INT((f - lastF) / (TIMER - lastPeriod#))
+		PRINT fps, "      "
 	END IF
 	moveFactor% = INT(ABS(speed) / 5.0)
 	IF (speed <> 0) AND (f MOD (5 - (ABS(speed) MOD 5)) = 0) THEN
@@ -212,5 +215,5 @@ DO
 		SOUND 5 + MAX(0, INT(speed / 10)), 75, 64
 	END IF
 
-	WAIT
+	WAIT 2
 LOOP WHILE 1 = 1

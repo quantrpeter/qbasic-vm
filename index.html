@@ -16,9 +16,9 @@
 			const demoPrgs = [
 				'helloWorld.bas',
 				'demo/driveBy/driveBy.bas',
-				'demo/btwitt/btwitt.bas'
+				'demo/artic/artic.bas'
 			]
-			const fileName = demoPrgs[1]
+			const fileName = demoPrgs[2]
 			fetch(fileName)
 				.then(resp => {
 					if (resp.status === 200) return resp.text()
