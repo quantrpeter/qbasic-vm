@@ -34,10 +34,16 @@ lastF = 0
 turn = 0
 level = 0
 slide = 22
-speed = 4
+speed = 0
 
-SPSET 1, imgCar
-SPOFS 1, 45, 240
+CONST carSprite = 1
+' Set imgCar as Sprite carSprite (1)
+SPSET carSprite, imgCar, 13
+' Set home position for the sprite to be 46,44 - i.e. this pixel of the sprite will be given it's position as specified
+' by SPOFS
+SPHOME carSprite, 46, 44
+' Place sprite at 80, 280 of the screen
+SPOFS carSprite, 80, 280
 
 SUB DrawRoad (time)
 	IMGPUT imgSky, -160 - (turn / 10) - (slide / 20), 20 - level
@@ -84,6 +90,11 @@ RESTORE SongPtr
 READ Title$, Song$
 ' BGMPLAY Song$
 
+' Flag to indicate the player is breaking
+brake = 0
+' Flag to indicate the player is turning (sliding)
+sliding = 0
+
 t = 0
 f = 0
 DO
@@ -122,19 +133,72 @@ DO
 	ELSE IF KeyPressed$ = ArrowRight THEN
 		turn = turn + moveFactor%
 	ELSE IF KeyPressed$ = ArrowUp THEN
-		level = level + moveFactor%
+		level = MIN(21, level + moveFactor% / 3.0)
 	ELSE IF KeyPressed$ = ArrowDown THEN
-		level = level - moveFactor%
+		level = MAX(-21, level - moveFactor% / 3.0)
 	ELSE IF KeyPressed$ = KeyA THEN
 		slide = slide - moveFactor%
+		sliding = 20
 	ELSE IF KeyPressed$ = KeyS THEN
 		slide = slide + moveFactor%
+		sliding = -20
 	ELSE IF KeyPressed$ = KeyE THEN
 		speed = speed + 1
+		brake = 0
 	ELSE IF KeyPressed$ = KeyD THEN
 		speed = speed - 1
+		brake = 10
 	ELSE IF KeyPressed$ = KeyM THEN
 		REM NextSong
+	END IF
+
+	brake = MAX(0, brake - 1)
+
+	' Decide if we are going up a hill. If we are, then use the next five cells of the sprite
+	spriteBase = 1
+	IF level > 7 THEN
+		spriteBase = 5
+	END IF
+
+	' If we are braking, show the break sprite
+	IF brake > 0 THEN
+		SPANIM carSprite, 13, 13, 0
+	ELSE IF brake = 0 THEN
+		SPANIM carSprite, spriteBase, spriteBase, 0
+	END IF
+
+	' Decide which sprite cell to choose from for turning (how big the turn should be)
+	spriteStep = MIN(3, ABS(speed / 7))
+
+	IF sliding > 0 THEN
+		' Decrease the turn amount
+		sliding = MAX(0, sliding - 1)
+		' If halfway in the turn, change the turn sprite cell
+		IF sliding < 10 THEN
+			spriteStep = spriteStep / 2
+		END IF
+		IF speed > 0 THEN
+			' Set sprite scaling to 1,1 for regular drawing
+			SPSCALE carSprite, 1, 1
+		ELSE
+			' Driving in reverse, we should flip the sprite horizontally
+			SPSCALE carSprite, -1, 1
+		END IF
+		' Set the sprite cell, give start and end as the same cell
+		SPANIM carSprite, spriteBase + spriteStep, spriteBase + spriteStep, 0
+	ELSE IF sliding < 0 THEN
+		sliding = MIN(0, sliding + 1)
+		IF sliding > -10 THEN
+			spriteStep = spriteStep / 2
+		END IF
+		IF speed > 0 THEN
+			SPSCALE carSprite, -1, 1
+		ELSE
+			SPSCALE carSprite, 1, 1
+		END IF
+		SPANIM carSprite, spriteBase + spriteStep, spriteBase + spriteStep, 0
+	ELSE IF sliding = 0 THEN
+		SPSCALE carSprite, 1, 1
 	END IF
 
 	INC f
@@ -145,7 +209,7 @@ DO
 	END IF
 
 	IF f MOD (10 - MIN(5, INT(speed / 10))) = 0 THEN
-		SOUND 5 + INT(speed / 10), 75, MIN(128, MAX(100, INT(128 * (speed / 10))))
+		SOUND 5 + MAX(0, INT(speed / 10)), 75, 64
 	END IF
 
 	WAIT

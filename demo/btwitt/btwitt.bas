@@ -35,7 +35,7 @@ SUB FullLine (text$, lines%)
 	PRINT out$;
 	remain = 20 - (LEN(out$) MOD 20)
 	IF remain < 20 THEN
-		PRINT STRING$(remain, " ");
+		PRINT SPACE$(remain);
 	END IF
 END SUB
 

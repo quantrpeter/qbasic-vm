@@ -767,7 +767,7 @@ export class Console extends EventTarget implements IConsole {
 	private repeatKeyboard() {
 		// do not repeat keys if a global key trap is set
 		if (!this.onTrappedKey[-1]) {
-			if (this.keyRepeatThrottle % 15 === 0) {
+			if (this.keyRepeatThrottle % 5 === 0) {
 				for (let i = 0; i < this.keyDown.length; i++) {
 					this.pushKeyToBuffer(this.keyDown[i])
 				}

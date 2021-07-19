@@ -134,7 +134,8 @@ export class Sprite {
 	}
 
 	private bkgReposition() {
-		this._el.style.backgroundPosition = `-${this._curFrame * this._frameWidth}px 0`
+		this._el.style.backgroundPosition = `-${this._curFrame * this._frameWidth * this._pAspectX}px 0`
+		this.reposition()
 	}
 
 	private reposition() {

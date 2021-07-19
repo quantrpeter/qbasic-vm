@@ -1627,7 +1627,7 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 	},
 
 	SPSET: {
-		args: ['INTEGER', 'INTEGER'],
+		args: ['INTEGER', 'INTEGER', 'INTEGER'],
 		minArgs: 2,
 		action: function(vm) {
 			vm.suspend()
