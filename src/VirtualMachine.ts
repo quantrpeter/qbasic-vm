@@ -31,8 +31,8 @@ import {
 	StringType,
 	JSONType
 } from './Types'
-import { IConsole } from './Console'
-import { IAudioDevice } from './AudioDevice'
+import { IConsole } from './IConsole'
+import { IAudioDevice } from './IAudioDevice'
 import { QBasicProgram } from './QBasic'
 import { Locus } from './Tokenizer'
 import * as EventEmitter from 'eventemitter3'
@@ -1236,9 +1236,9 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 				let cancelSleep: () => void
 
 				vm.cons.onKey(-1, () => {
+					vm.cons.onKey(-1, undefined)
 					vm.off('suspended', cancelSleep)
 					vm.resume()
-					vm.cons.onKey(-1, undefined)
 				})
 				cancelSleep = () => {
 					vm.cons.onKey(-1, undefined)
@@ -1567,7 +1567,12 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 			const dy = getArgValue(vm.stack.pop())
 			const dx = getArgValue(vm.stack.pop())
 			const imageHandle = getArgValue(vm.stack.pop())
-			vm.cons.putImage(vm.cons.getImage(imageHandle), dx, dy, dw, dh, sx, sy, sw, sh)
+			try {
+				const image = vm.cons.getImage(imageHandle)
+				vm.cons.putImage(image, dx, dy, dw, dh, sx, sy, sw, sh)
+			} catch (e) {
+				throw new RuntimeError(RuntimeErrorCodes.INVALID_ARGUMENT, e)
+			}
 		}
 	},
 
@@ -1575,13 +1580,18 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 		args: ['INTEGER', 'INTEGER', 'INTEGER'],
 		minArgs: 3,
 		action: function(vm) {
+			const _argCount = vm.stack.pop()
 			const height = vm.stack.pop()
 			const width = vm.stack.pop()
 			const imageHandle = getArgValue(vm.stack.pop())
-			const image = vm.cons.getImage(imageHandle)
+			try {
+				const image = vm.cons.getImage(imageHandle)
 
-			width.value = Math.round(image.naturalWidth)
-			height.value = Math.round(image.naturalHeight)
+				width.value = Math.round(image.naturalWidth)
+				height.value = Math.round(image.naturalHeight)
+			} catch (e) {
+				throw new RuntimeError(RuntimeErrorCodes.INVALID_ARGUMENT, e)
+			}
 		}
 	},
 
@@ -1613,7 +1623,9 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 				.then(() => {
 					vm.resume()
 				})
-				.catch(console.error)
+				.catch((e) => {
+					throw new RuntimeError(RuntimeErrorCodes.INVALID_ARGUMENT, e)
+				})
 		}
 	},
 
@@ -1911,8 +1923,53 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 		args: ['JSON', 'STRING', 'ANY', 'INTEGER'],
 		minArgs: 3,
 		action: function(vm) {
-			// optional fourth argument specifies if written INTEGER value should be converted to JSON boolean (<>0: TRUE, =0: FALSE)
-			throw new RuntimeError(RuntimeErrorCodes.UKNOWN_SYSCALL, 'Not implemented')
+			const numArgs = vm.stack.pop()
+			let convertToBool = false
+
+			if (numArgs > 3) {
+				convertToBool = vm.stack.pop() === 0 ? false : true
+			}
+
+			const value = getArgValue(vm.stack.pop())
+			const path = getArgValue(vm.stack.pop()) as string
+			const obj = vm.stack.pop() as ScalarVariable<object>
+
+			const explodedPath = path.split(/[\.\[\]]/).filter(element => element !== '')
+			if (explodedPath.shift() !== '$') {
+				throw new RuntimeError(RuntimeErrorCodes.INVALID_ARGUMENT, `Only root-anchored paths are supported. Path provided was: '${path}`)
+			} else if (explodedPath.length < 1) {
+				throw new RuntimeError(RuntimeErrorCodes.INVALID_ARGUMENT, `Path needs to have at least a single node. Path provided was: ${path}`)
+			}
+
+			let target = obj.value
+			while (explodedPath.length > 1) {
+				let section: number | string = explodedPath.shift()!
+				if (section !== '*') {
+					if (section.match(/^\d+$/)) {
+						section = Number(section)
+					}
+					if (target[section] === undefined) {
+						if (explodedPath[0] === '*') {
+							target[section] = []
+						} else {
+							target[section] = {}
+						}
+					}
+					target = target[section]
+				} else if (section === '*' && Array.isArray(target)) {
+					const tempObj = {}
+					target.push(tempObj)
+					target = tempObj
+				} else {
+					throw new RuntimeError(RuntimeErrorCodes.INVALID_ARGUMENT, `Node '${section}' is not an array. Path provided was: ${path}`)
+				}
+			}
+
+			target[explodedPath.shift()!] = (typeof value === 'number' && convertToBool)
+				? value === 0
+					? false
+					: true
+				: value
 		}
 	},
 

@@ -1,5 +1,6 @@
 import * as MMLIterator from 'mml-iterator'
 import SeqEmitter = require('seq-emitter')
+import { IAudioDevice } from './IAudioDevice'
 
 interface IMMLEmitterConfig {
 	MMLIterator?: MMLIterator
@@ -45,17 +46,6 @@ class MMLEmitter extends SeqEmitter {
 	private static reverseOctave(source) {
 		return source.replace(/[<>]/g, str => (str === '<' ? '>' : '<'))
 	}
-}
-
-export interface IAudioDevice {
-	beep(num: number): Promise<void>
-	setBeep(num: number, data: string | Blob): Promise<void>
-	clearBeep(num: number): void
-
-	playMusic(str: string, repeat?: number): Promise<void>
-	stopMusic(): void
-	isPlayingMusic(): boolean
-	makeSound(frequency: number, duration: number, volume?: number): Promise<void>
 }
 
 export class AudioDevice implements IAudioDevice {
