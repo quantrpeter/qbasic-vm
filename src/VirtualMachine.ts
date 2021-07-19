@@ -33,6 +33,7 @@ import {
 } from './Types'
 import { IConsole } from './IConsole'
 import { IAudioDevice } from './IAudioDevice'
+import { INetworkAdapter } from './INetworkAdapter'
 import { QBasicProgram } from './QBasic'
 import { Locus } from './Tokenizer'
 import * as EventEmitter from 'eventemitter3'
@@ -130,6 +131,9 @@ export class VirtualMachine extends EventEmitter<'error' | 'suspended' | 'resume
 	// The audio device
 	audio: IAudioDevice | undefined
 
+	// The network adapter
+	networkAdapter: INetworkAdapter | undefined
+
 	// The bytecode (array of Instruction objects)
 	instructions: Instruction[] = []
 
@@ -177,10 +181,11 @@ export class VirtualMachine extends EventEmitter<'error' | 'suspended' | 'resume
 	/**
 	 * @param console A Console object that will be used as the screen.
 	 */
-	constructor(console: IConsole, audio?: IAudioDevice) {
+	constructor(console: IConsole, audio?: IAudioDevice, networkAdapter?: INetworkAdapter) {
 		super()
 		this.cons = console
 		this.audio = audio
+		this.networkAdapter = networkAdapter
 
 		if (!DEBUG) {
 			this.trace = { printf: function() {} } as TraceBuffer
@@ -2002,23 +2007,26 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 			const outResCode = vm.stack.pop()
 			const url = getArgValue(vm.stack.pop())
 
-			vm.suspend()
-			fetch(url, {
-				method,
-				headers,
-				body
-			})
-			.then((response) => Promise.all([response.status, response.text()]))
-			.then((value) => {
-				outResCode.value = value[0]
-				outData.value = value[1]
-				vm.resume()
-			})
-			.catch((reason) => {
-				vm.trace.printf('Error while fetching data: %s\n', reason)
+			if (vm.networkAdapter) {
+				vm.suspend()
+				vm.networkAdapter.fetch(url, {
+					method,
+					headers,
+					body
+				}).then((value) => {
+					outResCode.value = value.code
+					outData.value = value.body
+					vm.resume()
+				})
+				.catch((reason) => {
+					vm.trace.printf('Error while fetching data: %s\n', reason)
+					outResCode.value = -1
+					vm.resume()
+				})
+			} else {
+				vm.trace.printf('Network adapter not available')
 				outResCode.value = -1
-				vm.resume()
-			})
+			}
 		}
 	}
 }

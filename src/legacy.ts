@@ -3,6 +3,7 @@ import { DebugConsole } from './DebugConsole'
 import { VirtualMachine } from './VirtualMachine'
 import { QBasicProgram } from './QBasic'
 import { AudioDevice } from './AudioDevice'
+import { NetworkAdapter } from './NetworkAdapter'
 
 export function legacyAPI() {
 	if (window) {
@@ -12,7 +13,8 @@ export function legacyAPI() {
 			DebugConsole,
 			VirtualMachine,
 			QBasicProgram,
-			AudioDevice
+			AudioDevice,
+			NetworkAdapter
 		}
 	}
 }

@@ -10,7 +10,8 @@
 		<script type="text/javascript">
 			const cons = new qb.Console(document.getElementById('main'), undefined, 320, 600)
 			const audio = new qb.AudioDevice()
-			const virtualMachine = new qb.VirtualMachine(cons, audio)
+			const network = new qb.NetworkAdapter()
+			const virtualMachine = new qb.VirtualMachine(cons, audio, network)
 			const dbg = new qb.DebugConsole(document.getElementById('debug'))
 			const fileName = 'demo/btwitt/btwitt.bas' // 'demo/driveBy/driveBy.bas'
 			fetch(fileName)

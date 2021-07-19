@@ -140,7 +140,7 @@ export class Sprite {
 	private reposition() {
 		this._el.style.transformOrigin = `${this._anchorX * this._pAspectX}px ${this._anchorY * this._pAspectY}px`
 		this._el.style.transform = `translate(-${this._anchorX * this._pAspectX}px, -${this._anchorY *
-			this._pAspectY}px) translate(${this._x * this._pAspectX}px, ${this._y * this._pAspectY}px) rotate(${
+			this._pAspectY}px) translate(${this._x * this._pAspectX}px, ${this._y * this._pAspectY}px) scale(${this._scaleX}, ${this._scaleY}) rotate(${
 			this._rotation
 		}deg)`
 	}

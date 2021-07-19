@@ -71,13 +71,13 @@ export class AudioDevice implements IAudioDevice {
 			this.beeps[num].play().catch(e => reject(e))
 		})
 	}
-	setBeep(num: number, data: string | Blob): Promise<void> {
+	setBeep(num: number, urlOrData: string | Blob): Promise<void> {
 		return new Promise((resolve, reject) => {
 			let beepAudio: HTMLAudioElement
-			if (typeof data === 'string') {
-				beepAudio = new Audio(data)
+			if (typeof urlOrData === 'string') {
+				beepAudio = new Audio(urlOrData)
 			} else {
-				beepAudio = new Audio(URL.createObjectURL(data))
+				beepAudio = new Audio(URL.createObjectURL(urlOrData))
 			}
 			this.beeps[num] = beepAudio
 			beepAudio.addEventListener('canplaythrough', () => {
