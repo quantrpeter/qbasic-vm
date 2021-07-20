@@ -188,7 +188,14 @@ export type SomeArrayType =
 	| ArrayType<JSONType>
 	| ArrayType<AnyType>
 	| ArrayType<UserType>
-export type SomeScalarType = NullType | IntegerType | SingleType | DoubleType | StringType | JSONType | AnyType
+export type SomeScalarType =
+	| NullType
+	| IntegerType
+	| SingleType
+	| DoubleType
+	| StringType
+	| JSONType
+	| AnyType
 export type SomeType = SomeScalarType | SomeArrayType | UserType
 
 export interface IUserTypeMembers {
@@ -209,7 +216,10 @@ export class UserType extends Type<object> {
 		let user = {}
 
 		for (let name in this.members) {
-			user[name] = new ScalarVariable<any>(this.members[name], this.members[name].createInstance())
+			user[name] = new ScalarVariable<any>(
+				this.members[name],
+				this.members[name].createInstance()
+			)
 		}
 
 		return user
@@ -252,7 +262,9 @@ export class ArrayVariable<T extends SomeScalarType> {
 		}
 
 		for (i = 0; i < totalSize; i++) {
-			this.values.push(new ScalarVariable<any>(this.type, this.type.createInstance()))
+			this.values.push(
+				new ScalarVariable<any>(this.type, this.type.createInstance())
+			)
 		}
 	}
 
@@ -297,14 +309,24 @@ export class ArrayVariable<T extends SomeScalarType> {
 
 		for (i = 0; i < totalSize; i++) {
 			this.values.push(
-				oldValues[i] || new ScalarVariable<any>(this.type, this.type.createInstance())
+				oldValues[i] ||
+					new ScalarVariable<any>(
+						this.type,
+						this.type.createInstance()
+					)
 			)
 		}
 	}
 }
 
-export function IsNumericType(type: SomeType): type is IntegerType | SingleType | DoubleType {
-	return type.name === 'INTEGER' || type.name === 'SINGLE' || type.name === 'DOUBLE'
+export function IsNumericType(
+	type: SomeType
+): type is IntegerType | SingleType | DoubleType {
+	return (
+		type.name === 'INTEGER' ||
+		type.name === 'SINGLE' ||
+		type.name === 'DOUBLE'
+	)
 }
 
 export function IsStringType(type: SomeType): type is StringType {
@@ -329,8 +351,11 @@ export function AreTypesCompatible(type1: SomeType, type2: SomeType) {
 		(IsNumericType(type1) && IsNumericType(type2)) ||
 		(IsArrayType(type1) &&
 			IsArrayType(type2) &&
-			(type1.elementType.name === 'ANY' || type2.elementType.name === 'ANY')) ||
-		(!IsArrayType(type1) && !IsArrayType(type2) && (type1.name === 'ANY' || type2.name === 'ANY')) ||
+			(type1.elementType.name === 'ANY' ||
+				type2.elementType.name === 'ANY')) ||
+		(!IsArrayType(type1) &&
+			!IsArrayType(type2) &&
+			(type1.name === 'ANY' || type2.name === 'ANY')) ||
 		(IsArrayType(type1) && type2.name === 'ANY') // allow casting an array to ANY
 	)
 }

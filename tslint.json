@@ -15,6 +15,10 @@
 		"no-empty": false,
 		"space-before-function-paren": false,
 		"quotemark": [true, "single", "avoid-escape"],
-		"jsdoc-format": false
+		"jsdoc-format": false,
+		"max-line-length": {
+			"options": [ 80 ]
+		},
+		"curly": false
 	}
 }

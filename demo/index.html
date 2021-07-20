@@ -22,7 +22,7 @@
 			fetch(fileName)
 				.then(resp => {
 					if (resp.status === 200) return resp.text()
-					throw new Error(404, 'Program not found.')
+					throw new Error(resp.status, resp.statusText)
 				})
 				.then(code => {
 					const program = new qb.QBasicProgram(code)

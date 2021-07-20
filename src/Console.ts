@@ -83,12 +83,18 @@ interface IVideoMode {
 }
 
 const VIDEO_MODES: { [key: number]: IVideoMode } = {
-	1: { width: 160, height: 300, rows: 37, cols: 20 }, // Portrait low-res mode
-	2: { width: 320, height: 600, rows: 75, cols: 40 }, // Portrait high-res mode
-	3: { width: 300, height: 160, rows: 20, cols: 37, landscape: true }, // Landscape low-res mode
-	4: { width: 600, height: 320, rows: 40, cols: 75, landscape: true }, // Landscape high-res mode
-	7: { width: 160, height: 300, rows: 37, cols: 20 }, // Portrait MODE7
-	8: { width: 300, height: 160, rows: 20, cols: 37, landscape: true } // Landscape MODE7
+	// Portrait low-res mode
+	1: { width: 160, height: 300, rows: 37, cols: 20 },
+	// Portrait high-res mode
+	2: { width: 320, height: 600, rows: 75, cols: 40 },
+	// Landscape low-res mode
+	3: { width: 300, height: 160, rows: 20, cols: 37, landscape: true },
+	// Landscape high-res mode
+	4: { width: 600, height: 320, rows: 40, cols: 75, landscape: true },
+	// Portrait MODE7
+	7: { width: 160, height: 300, rows: 37, cols: 20 },
+	// Landscape MODE7
+	8: { width: 300, height: 160, rows: 20, cols: 37, landscape: true }
 }
 
 const DEFAULT_VIDEO_MODE = 1
@@ -152,7 +158,13 @@ export class Console extends EventTarget implements IConsole {
 	private containerWidth: number
 	private containerHeight: number
 
-	constructor(parentElement: HTMLElement, className?: string, width?: number, height?: number, assetPath = 'assets/') {
+	constructor(
+		parentElement: HTMLElement,
+		className?: string,
+		width?: number,
+		height?: number,
+		assetPath = 'assets/'
+	) {
 		super()
 
 		this.canvas = document.createElement('canvas')
@@ -188,7 +200,8 @@ export class Console extends EventTarget implements IConsole {
 		this.canvas.className = className || ''
 		this.container.tabIndex = 0
 		const context = this.canvas.getContext('2d')
-		if (context === null) throw new Error('Could not get 2D context for Console')
+		if (context === null)
+			throw new Error('Could not get 2D context for Console')
 		this.ctx = context
 		this.ctx.setTransform(1, 0, 0, 1, 0, 0)
 		this.ctx.imageSmoothingEnabled = false
@@ -312,11 +325,13 @@ export class Console extends EventTarget implements IConsole {
 
 		if (this._landscape !== (dimensions.landscape || false)) {
 			this._landscape = dimensions.landscape || false
-			this.dispatchEvent(new CustomEvent('orientationchange', {
-				detail: {
-					landscape: this._landscape
-				}
-			}))
+			this.dispatchEvent(
+				new CustomEvent('orientationchange', {
+					detail: {
+						landscape: this._landscape
+					}
+				})
+			)
 		}
 
 		this._width = dimensions.width
@@ -325,24 +340,33 @@ export class Console extends EventTarget implements IConsole {
 		this.cls()
 		this.clearAllSprites()
 
-		this.dispatchEvent(new CustomEvent('resize', {
-			detail: {
-				width: this._width,
-				height: this._height,
-				rows: this.rows,
-				cols: this.cols
-			}
-		}))
+		this.dispatchEvent(
+			new CustomEvent('resize', {
+				detail: {
+					width: this._width,
+					height: this._height,
+					rows: this.rows,
+					cols: this.cols
+				}
+			})
+		)
 
 		return true
 	}
 
-	public line(x1: number, y1: number, x2: number, y2: number, color?: number) {
+	public line(
+		x1: number,
+		y1: number,
+		x2: number,
+		y2: number,
+		color?: number
+	) {
 		const strokeBuf = this.ctx.strokeStyle
 		this.ctx.beginPath()
-		this.ctx.strokeStyle = color === undefined
-			? this.fgcolor
-			: color >= 0
+		this.ctx.strokeStyle =
+			color === undefined
+				? this.fgcolor
+				: color >= 0
 				? VIDEO_COLORS[color]
 				: Console.colorIntegerToRgb(color)
 		this.ctx.moveTo(x1, y1)
@@ -388,9 +412,10 @@ export class Console extends EventTarget implements IConsole {
 		}
 
 		const strokeBuf = this.ctx.strokeStyle
-		this.ctx.strokeStyle = color === undefined
-			? this.fgcolor
-			: color >= 0
+		this.ctx.strokeStyle =
+			color === undefined
+				? this.fgcolor
+				: color >= 0
 				? VIDEO_COLORS[color]
 				: Console.colorIntegerToRgb(color)
 
@@ -417,16 +442,22 @@ export class Console extends EventTarget implements IConsole {
 		this.ctx.arc(0, 0, radius, start, end, true)
 		this.ctx.stroke()
 
-
 		this.ctx.restore()
 		this.ctx.strokeStyle = strokeBuf
 	}
 
-	public box(x1: number, y1: number, x2: number, y2: number, color?: number): void {
+	public box(
+		x1: number,
+		y1: number,
+		x2: number,
+		y2: number,
+		color?: number
+	): void {
 		const strokeBuf = this.ctx.strokeStyle
-		this.ctx.strokeStyle = color === undefined
-			? this.fgcolor
-			: color >= 0
+		this.ctx.strokeStyle =
+			color === undefined
+				? this.fgcolor
+				: color >= 0
 				? VIDEO_COLORS[color]
 				: Console.colorIntegerToRgb(color)
 		this.ctx.beginPath()
@@ -442,11 +473,18 @@ export class Console extends EventTarget implements IConsole {
 		this.ctx.strokeStyle = strokeBuf
 	}
 
-	public fill(x1: number, y1: number, x2: number, y2: number, color?: number): void {
+	public fill(
+		x1: number,
+		y1: number,
+		x2: number,
+		y2: number,
+		color?: number
+	): void {
 		const fillBuf = this.ctx.fillStyle
-		this.ctx.fillStyle = color === undefined
-			? this.fgcolor
-			: color >= 0
+		this.ctx.fillStyle =
+			color === undefined
+				? this.fgcolor
+				: color >= 0
 				? VIDEO_COLORS[color]
 				: Console.colorIntegerToRgb(color)
 		this.ctx.beginPath()
@@ -458,11 +496,20 @@ export class Console extends EventTarget implements IConsole {
 		this.ctx.fillStyle = fillBuf
 	}
 
-	public triangleFill(x1: number, y1: number, x2: number, y2: number, x3: number, y3: number, color?: number): void {
+	public triangleFill(
+		x1: number,
+		y1: number,
+		x2: number,
+		y2: number,
+		x3: number,
+		y3: number,
+		color?: number
+	): void {
 		const fillBuf = this.ctx.fillStyle
-		this.ctx.fillStyle = color === undefined
-			? this.fgcolor
-			: color >= 0
+		this.ctx.fillStyle =
+			color === undefined
+				? this.fgcolor
+				: color >= 0
 				? VIDEO_COLORS[color]
 				: Console.colorIntegerToRgb(color)
 		this.ctx.beginPath()
@@ -523,8 +570,16 @@ export class Console extends EventTarget implements IConsole {
 		this.ctx.putImageData(data, x, y)
 	}
 
-	public paint(x: number, y: number, colour: number, borderColour: number, _step?: number) {
-		let image = new ImageManipulator(this.ctx.getImageData(0, 0, this._width, this._height))
+	public paint(
+		_x: number,
+		_y: number,
+		_colour: number,
+		_borderColour: number,
+		_step?: number
+	) {
+		let image = new ImageManipulator(
+			this.ctx.getImageData(0, 0, this._width, this._height)
+		)
 
 		dbg().printf('%s\n', image.get(10, 10))
 	}
@@ -532,7 +587,7 @@ export class Console extends EventTarget implements IConsole {
 	public loadImage(url: string): Promise<number> {
 		return new Promise((resolve, reject) => {
 			const img = document.createElement('img')
-			img.addEventListener('error', (e) => {
+			img.addEventListener('error', e => {
 				reject(e)
 			})
 			img.src = url
@@ -596,15 +651,27 @@ export class Console extends EventTarget implements IConsole {
 			// skip drawing if outside of the canvas
 			if (curDY + curDH > 0 && curDY < screenHeight) {
 				while (curDX < dx + dw) {
-					let clampedSW = Math.min(image.naturalWidth, curSX + curSW) - curSX
+					let clampedSW =
+						Math.min(image.naturalWidth, curSX + curSW) - curSX
 					if (clampedSW === 0) {
 						curSW = sw
-						clampedSW = Math.min(image.naturalWidth, curSX + curSW) - curSX
+						clampedSW =
+							Math.min(image.naturalWidth, curSX + curSW) - curSX
 					}
 					let curDW = (clampedSW / sw) * dw
 					// skip drawing if outside of the canvas
 					if (curDX + curDW > 0 && curDX < screenWidth) {
-						ctx.drawImage(image, curSX, curSY, clampedSW, clampedSH, curDX, curDY, curDW, curDH)
+						ctx.drawImage(
+							image,
+							curSX,
+							curSY,
+							clampedSW,
+							clampedSH,
+							curDX,
+							curDY,
+							curDW,
+							curDH
+						)
 					}
 					curSW = curSW - clampedSW
 					curSX = 0
@@ -633,7 +700,12 @@ export class Console extends EventTarget implements IConsole {
 		sw?: number,
 		sh?: number
 	): void {
-		if (sx !== undefined && sy !== undefined && dh !== undefined && dw !== undefined) {
+		if (
+			sx !== undefined &&
+			sy !== undefined &&
+			dh !== undefined &&
+			dw !== undefined
+		) {
 			Console.drawImageWithWrap(
 				this.ctx,
 				image,
@@ -675,8 +747,8 @@ export class Console extends EventTarget implements IConsole {
 		const source = Math.abs(color) & 32767 // using 15-bit color
 		const red = ((source >> 10) & 31) << 3
 		const green = ((source >> 5) & 31) << 3
-		const blue = ((source) & 31) << 3
-		return `rgb(${red}, ${green}, ${blue})`;
+		const blue = (source & 31) << 3
+		return `rgb(${red}, ${green}, ${blue})`
 	}
 
 	public color(fg: number | null, bg: number | null, bo: number | null) {
@@ -718,7 +790,12 @@ export class Console extends EventTarget implements IConsole {
 			this._height - this.charHeight
 		)
 		this.ctx.fillStyle = this.bgcolor
-		this.ctx.fillRect(0, this._height - this.charHeight, this._width, this.charHeight)
+		this.ctx.fillRect(
+			0,
+			this._height - this.charHeight,
+			this._width,
+			this.charHeight
+		)
 		this.y -= 1
 	}
 
@@ -801,7 +878,10 @@ export class Console extends EventTarget implements IConsole {
 			if (this.inputStr.length > 0) {
 				// if it's backspace,
 				if (event.key === 'Backspace') {
-					this.inputStr = this.inputStr.substr(0, this.inputStr.length - 1)
+					this.inputStr = this.inputStr.substr(
+						0,
+						this.inputStr.length - 1
+					)
 					this.backup(1)
 					this.print(' ')
 					this.backup(1)
@@ -919,9 +999,19 @@ export class Console extends EventTarget implements IConsole {
 				// clear cell
 				this.ctx.save()
 				const charRegion = new Path2D()
-				charRegion.rect(this.x * this.charWidth, this.y * this.charHeight, this.charWidth, this.charHeight)
+				charRegion.rect(
+					this.x * this.charWidth,
+					this.y * this.charHeight,
+					this.charWidth,
+					this.charHeight
+				)
 				this.ctx.clip(charRegion)
-				this.ctx.clearRect(this.x * this.charWidth, this.y * this.charHeight, this.charWidth, this.charHeight)
+				this.ctx.clearRect(
+					this.x * this.charWidth,
+					this.y * this.charHeight,
+					this.charWidth,
+					this.charHeight
+				)
 				// paint black-on-transparent character
 				this.ctx.globalCompositeOperation = 'source-over'
 				this.ctx.drawImage(
@@ -938,11 +1028,21 @@ export class Console extends EventTarget implements IConsole {
 				// paint foreground color
 				this.ctx.globalCompositeOperation = 'source-in'
 				this.ctx.fillStyle = this.fgcolor
-				this.ctx.fillRect(this.x * this.charWidth, this.y * this.charHeight, this.charWidth, this.charHeight)
+				this.ctx.fillRect(
+					this.x * this.charWidth,
+					this.y * this.charHeight,
+					this.charWidth,
+					this.charHeight
+				)
 				// paint background color
 				this.ctx.globalCompositeOperation = 'destination-over'
 				this.ctx.fillStyle = this.bgcolor
-				this.ctx.fillRect(this.x * this.charWidth, this.y * this.charHeight, this.charWidth, this.charHeight)
+				this.ctx.fillRect(
+					this.x * this.charWidth,
+					this.y * this.charHeight,
+					this.charWidth,
+					this.charHeight
+				)
 				this.ctx.globalCompositeOperation = 'source-over'
 				this.ctx.restore()
 
@@ -954,12 +1054,21 @@ export class Console extends EventTarget implements IConsole {
 		}
 	}
 
-	public createSprite(spriteNumber: number, image: HTMLImageElement, frames: number = 1): Promise<void> {
+	public createSprite(
+		spriteNumber: number,
+		image: HTMLImageElement,
+		frames: number = 1
+	): Promise<void> {
 		if (this.sprites[spriteNumber]) {
 			this.clearSprite(spriteNumber)
 		}
 
-		const sprite = new Sprite(image, frames, this.containerWidth / this._width, this.containerHeight / this._height)
+		const sprite = new Sprite(
+			image,
+			frames,
+			this.containerWidth / this._width,
+			this.containerHeight / this._height
+		)
 		this.container.appendChild(sprite.getElement())
 		this.sprites[spriteNumber] = sprite
 		return sprite.loaded
@@ -1017,10 +1126,25 @@ export class Console extends EventTarget implements IConsole {
 		}
 	}
 
-	public animateSprite(spriteNumber: number, startFrame: number, endFrame: number, speed = 1, loop?: boolean, pingPong?: boolean, pingPongFlip?: number) {
+	public animateSprite(
+		spriteNumber: number,
+		startFrame: number,
+		endFrame: number,
+		speed = 1,
+		loop?: boolean,
+		pingPong?: boolean,
+		pingPongFlip?: number
+	) {
 		const sprite = this.sprites[spriteNumber]
 		if (sprite) {
-			sprite.setAnimate(startFrame, endFrame, speed, loop || true, pingPong || false, pingPongFlip || 0)
+			sprite.setAnimate(
+				startFrame,
+				endFrame,
+				speed,
+				loop || true,
+				pingPong || false,
+				pingPongFlip || 0
+			)
 		}
 	}
 }

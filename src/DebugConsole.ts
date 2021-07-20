@@ -85,7 +85,9 @@ export class DebugConsole {
 		}
 
 		const formatString = args[0]
-		const exp = new RegExp(/(%([%]|(\-)?(\+|\x20)?(0)?(\d+)?(\.(\d)?)?([bcdfosxX])))/g)
+		const exp = new RegExp(
+			/(%([%]|(\-)?(\+|\x20)?(0)?(\d+)?(\.(\d)?)?([bcdfosxX])))/g
+		)
 		const matches: IMatch[] = []
 		const strings: string[] = []
 		let convCount = 0
@@ -107,7 +109,10 @@ export class DebugConsole {
 
 			stringPosStart = matchPosEnd
 			stringPosEnd = exp.lastIndex - match[0].length
-			strings[strings.length] = formatString.substring(stringPosStart, stringPosEnd)
+			strings[strings.length] = formatString.substring(
+				stringPosStart,
+				stringPosEnd
+			)
 
 			matchPosEnd = exp.lastIndex
 			matches[matches.length] = {
@@ -134,33 +139,51 @@ export class DebugConsole {
 			if (matches[i].code === '%') {
 				substitution = '%'
 			} else if (matches[i].code === 'b') {
-				matches[i].argument = String(Math.abs(parseInt(matches[i].argument, 10)).toString(2))
+				matches[i].argument = String(
+					Math.abs(parseInt(matches[i].argument, 10)).toString(2)
+				)
 				substitution = convert(matches[i], true)
 			} else if (matches[i].code === 'c') {
-				matches[i].argument = String(String.fromCharCode(Math.abs(parseInt(matches[i].argument, 10))))
+				matches[i].argument = String(
+					String.fromCharCode(
+						Math.abs(parseInt(matches[i].argument, 10))
+					)
+				)
 				substitution = convert(matches[i], true)
 			} else if (matches[i].code === 'd') {
-				matches[i].argument = String(Math.abs(parseInt(matches[i].argument, 10)))
+				matches[i].argument = String(
+					Math.abs(parseInt(matches[i].argument, 10))
+				)
 				substitution = convert(matches[i])
 			} else if (matches[i].code === 'f') {
 				matches[i].argument = String(
-					Math.abs(parseFloat(matches[i].argument)).toFixed(matches[i].precision ? matches[i].precision : 6)
+					Math.abs(parseFloat(matches[i].argument)).toFixed(
+						matches[i].precision ? matches[i].precision : 6
+					)
 				)
 				substitution = convert(matches[i])
 			} else if (matches[i].code === 'o') {
-				matches[i].argument = String(Math.abs(parseInt(matches[i].argument, 10)).toString(8))
+				matches[i].argument = String(
+					Math.abs(parseInt(matches[i].argument, 10)).toString(8)
+				)
 				substitution = convert(matches[i])
 			} else if (matches[i].code === 's') {
 				matches[i].argument = matches[i].argument.substring(
 					0,
-					matches[i].precision ? matches[i].precision : matches[i].argument.length
+					matches[i].precision
+						? matches[i].precision
+						: matches[i].argument.length
 				)
 				substitution = convert(matches[i], true)
 			} else if (matches[i].code === 'x') {
-				matches[i].argument = String(Math.abs(parseInt(matches[i].argument, 10)).toString(16))
+				matches[i].argument = String(
+					Math.abs(parseInt(matches[i].argument, 10)).toString(16)
+				)
 				substitution = convert(matches[i])
 			} else if (matches[i].code === 'X') {
-				matches[i].argument = String(Math.abs(parseInt(matches[i].argument, 10)).toString(16))
+				matches[i].argument = String(
+					Math.abs(parseInt(matches[i].argument, 10)).toString(16)
+				)
 				substitution = convert(matches[i]).toUpperCase()
 			} else {
 				substitution = matches[i].match

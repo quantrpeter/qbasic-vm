@@ -45,7 +45,7 @@ export enum RuntimeErrorCodes {
 	STACK_UNDERFLOW = 202,
 	UKNOWN_SYSCALL = 301,
 	IO_ERROR = 401,
-	INVALID_ARGUMENT = 405,
+	INVALID_ARGUMENT = 405
 }
 
 export class RuntimeError extends Error {
@@ -110,7 +110,9 @@ const DEBUG = false
  some instructions and then stop. That way, the program appears to run while
  letting the user use the browser window.
  */
-export class VirtualMachine extends EventEmitter<'error' | 'suspended' | 'resumed'> {
+export class VirtualMachine extends EventEmitter<
+	'error' | 'suspended' | 'resumed'
+> {
 	// Stack
 	stack: any[] = []
 
@@ -178,7 +180,11 @@ export class VirtualMachine extends EventEmitter<'error' | 'suspended' | 'resume
 	/**
 	 * @param console A Console object that will be used as the screen.
 	 */
-	constructor(console: IConsole, audio?: IAudioDevice, networkAdapter?: INetworkAdapter) {
+	constructor(
+		console: IConsole,
+		audio?: IAudioDevice,
+		networkAdapter?: INetworkAdapter
+	) {
 		super()
 		this.cons = console
 		this.audio = audio
@@ -274,7 +280,9 @@ export class VirtualMachine extends EventEmitter<'error' | 'suspended' | 'resume
 		try {
 			for (
 				let i = 0;
-				i < this.instructionsPerInterval && this.pc < this.instructions.length && !this.suspended;
+				i < this.instructionsPerInterval &&
+				this.pc < this.instructions.length &&
+				!this.suspended;
 				i++
 			) {
 				this.runOneInstruction()
@@ -317,7 +325,10 @@ export class VirtualMachine extends EventEmitter<'error' | 'suspended' | 'resume
 		let i = 0
 		do {
 			this.runOneInstruction()
-		} while (this.instructions[this.pc].locus.line === currentLocus.line && i++ < this.instructionsPerInterval) // don't get stuck in infinite loops
+		} while (
+			this.instructions[this.pc].locus.line === currentLocus.line &&
+			i++ < this.instructionsPerInterval
+		) // don't get stuck in infinite loops
 	}
 
 	public setVariable(name: string, value: any) {
@@ -368,11 +379,16 @@ export class VirtualMachine extends EventEmitter<'error' | 'suspended' | 'resume
 	}
 
 	public pushScalar(value, typeName) {
-		this.stack.push(new ScalarVariable<any>(this.types[typeName] as SomeScalarType, value))
+		this.stack.push(
+			new ScalarVariable<any>(
+				this.types[typeName] as SomeScalarType,
+				value
+			)
+		)
 	}
 }
 
-function getArgValue<T>(variable: (ScalarVariable<T> | T)) {
+function getArgValue<T>(variable: ScalarVariable<T> | T) {
 	return variable instanceof ScalarVariable ? variable.value : variable
 }
 
@@ -464,7 +480,10 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 			if (variable instanceof ArrayVariable) {
 				vm.stack.push(variable.values.length)
 				return
-			} else if (variable instanceof ScalarVariable && variable.type.name === 'STRING') {
+			} else if (
+				variable instanceof ScalarVariable &&
+				variable.type.name === 'STRING'
+			) {
 				vm.stack.push(variable.value.length)
 				return
 			} else if (typeof variable === 'string') {
@@ -472,7 +491,10 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 				return
 			}
 
-			throw new RuntimeError(RuntimeErrorCodes.INVALID_ARGUMENT, 'Invalid argument for LEN')
+			throw new RuntimeError(
+				RuntimeErrorCodes.INVALID_ARGUMENT,
+				'Invalid argument for LEN'
+			)
 		}
 	},
 
@@ -542,7 +564,10 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 			let date = new Date()
 
 			let result =
-				date.getMilliseconds() / 1000 + date.getSeconds() + date.getMinutes() * 60 + date.getHours() * 60 * 60
+				date.getMilliseconds() / 1000 +
+				date.getSeconds() +
+				date.getMinutes() * 60 +
+				date.getHours() * 60 * 60
 
 			vm.stack.push(result)
 		}
@@ -553,7 +578,7 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 		args: [],
 		minArgs: 0,
 		action: function(vm) {
-			vm.stack.push((new Date()).toISOString().substr(11, 8))
+			vm.stack.push(new Date().toISOString().substr(11, 8))
 		}
 	},
 
@@ -562,7 +587,7 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 		args: [],
 		minArgs: 0,
 		action: function(vm) {
-			vm.stack.push((new Date()).toISOString().substr(0, 10))
+			vm.stack.push(new Date().toISOString().substr(0, 10))
 		}
 	},
 
@@ -599,7 +624,7 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 		type: 'STRING',
 		args: ['STRING'],
 		minArgs: 1,
-		action: function (vm) {
+		action: function(vm) {
 			vm.stack.push(vm.stack.pop().trim())
 		}
 	},
@@ -617,7 +642,12 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 
 			const num = vm.stack.pop()
 			const result = Number(num).toString(10)
-			vm.stack.push('0000000000000000000000000000000000000000000000000000'.substr(0, pad - result.length) + result)
+			vm.stack.push(
+				'0000000000000000000000000000000000000000000000000000'.substr(
+					0,
+					pad - result.length
+				) + result
+			)
 		}
 	},
 
@@ -634,7 +664,12 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 
 			const num = vm.stack.pop()
 			const result = Number(num).toString(16)
-			vm.stack.push('0000000000000000000000000000000000000000000000000000'.substr(0, pad - result.length) + result)
+			vm.stack.push(
+				'0000000000000000000000000000000000000000000000000000'.substr(
+					0,
+					pad - result.length
+				) + result
+			)
 		}
 	},
 
@@ -778,7 +813,7 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 		args: ['DOUBLE'],
 		minArgs: 1,
 		action: function(vm) {
-			vm.stack.push(vm.stack.pop() / 360 * 2 * Math.PI)
+			vm.stack.push((vm.stack.pop() / 360) * 2 * Math.PI)
 		}
 	},
 
@@ -787,7 +822,7 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 		args: ['DOUBLE'],
 		minArgs: 1,
 		action: function(vm) {
-			vm.stack.push(vm.stack.pop() / 2 / Math.PI * 360)
+			vm.stack.push((vm.stack.pop() / 2 / Math.PI) * 360)
 		}
 	},
 
@@ -878,7 +913,9 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 		minArgs: 1,
 		action: function(vm) {
 			const value = vm.stack.pop()
-			vm.stack.push(Number.isNaN(value) ? 2 : Number.isFinite(value) ? 0 : 1)
+			vm.stack.push(
+				Number.isNaN(value) ? 2 : Number.isFinite(value) ? 0 : 1
+			)
 		}
 	},
 
@@ -899,21 +936,34 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 			const numArgs = vm.stack.pop()
 
 			const variable = vm.stack.pop()
-			if (numArgs === 1 && variable instanceof ArrayVariable && IsNumericType(variable.type)) {
-				vm.stack.push(Math.min(...(variable.values.map(item => Number(item.value)))))
+			if (
+				numArgs === 1 &&
+				variable instanceof ArrayVariable &&
+				IsNumericType(variable.type)
+			) {
+				vm.stack.push(
+					Math.min(...variable.values.map(item => Number(item.value)))
+				)
 				return
 			} else if (typeof variable === 'number') {
-				const values = [ Number(variable) ]
+				const values = [Number(variable)]
 				for (let i = 1; i < numArgs; i++) {
 					const nextVariable = vm.stack.pop()
-					if (typeof nextVariable !== 'number') throw new RuntimeError(RuntimeErrorCodes.INVALID_ARGUMENT, 'Invalid argument for MAX')
+					if (typeof nextVariable !== 'number')
+						throw new RuntimeError(
+							RuntimeErrorCodes.INVALID_ARGUMENT,
+							'Invalid argument for MAX'
+						)
 					values.push(Number(nextVariable))
 				}
 				vm.stack.push(Math.min(...values))
 				return
 			}
 
-			throw new RuntimeError(RuntimeErrorCodes.INVALID_ARGUMENT, 'Invalid argument for MIN')
+			throw new RuntimeError(
+				RuntimeErrorCodes.INVALID_ARGUMENT,
+				'Invalid argument for MIN'
+			)
 		}
 	},
 
@@ -925,21 +975,34 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 			const numArgs = vm.stack.pop()
 
 			const variable = vm.stack.pop()
-			if (numArgs === 1 && variable instanceof ArrayVariable && IsNumericType(variable.type)) {
-				vm.stack.push(Math.max(...(variable.values.map(item => Number(item.value)))))
+			if (
+				numArgs === 1 &&
+				variable instanceof ArrayVariable &&
+				IsNumericType(variable.type)
+			) {
+				vm.stack.push(
+					Math.max(...variable.values.map(item => Number(item.value)))
+				)
 				return
 			} else if (typeof variable === 'number') {
-				const values = [ Number(variable) ]
+				const values = [Number(variable)]
 				for (let i = 1; i < numArgs; i++) {
 					const nextVariable = vm.stack.pop()
-					if (typeof nextVariable !== 'number') throw new RuntimeError(RuntimeErrorCodes.INVALID_ARGUMENT, 'Invalid argument for MAX')
+					if (typeof nextVariable !== 'number')
+						throw new RuntimeError(
+							RuntimeErrorCodes.INVALID_ARGUMENT,
+							'Invalid argument for MAX'
+						)
 					values.push(Number(nextVariable))
 				}
 				vm.stack.push(Math.max(...values))
 				return
 			}
 
-			throw new RuntimeError(RuntimeErrorCodes.INVALID_ARGUMENT, 'Invalid argument for MAX')
+			throw new RuntimeError(
+				RuntimeErrorCodes.INVALID_ARGUMENT,
+				'Invalid argument for MAX'
+			)
 		}
 	},
 
@@ -976,7 +1039,12 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 			const blue = vm.stack.pop()
 			const green = vm.stack.pop()
 			const red = vm.stack.pop()
-			vm.stack.push(-1 * ((((red >> 3) & 31) << 10) + (((green >> 3) & 31) << 5) + (((blue >> 3) & 31))))
+			vm.stack.push(
+				-1 *
+					((((red >> 3) & 31) << 10) +
+						(((green >> 3) & 31) << 5) +
+						((blue >> 3) & 31))
+			)
 		}
 	},
 
@@ -985,7 +1053,7 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 		args: [],
 		minArgs: 0,
 		action: function(vm) {
-			vm.stack.push((vm.audio && vm.audio.isPlayingMusic()) ? -1 : 0)
+			vm.stack.push(vm.audio && vm.audio.isPlayingMusic() ? -1 : 0)
 		}
 	},
 
@@ -1011,9 +1079,10 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 				const result = resultArr[0]
 				vm.stack.push(
 					typeof result === 'boolean'
-					? result === true
-						? -1 : 0
-					: Math.round(result)
+						? result === true
+							? -1
+							: 0
+						: Math.round(result)
 				)
 			}
 		}
@@ -1043,7 +1112,7 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 		}
 	},
 
-	'JSONREAD$': {
+	JSONREAD$: {
 		type: 'STRING',
 		args: ['JSON', 'STRING', 'STRING'],
 		minArgs: 2,
@@ -1077,14 +1146,12 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 				if (numArgs > 0) {
 					obj = JSON.parse(vm.stack.pop())
 				}
-			} catch (e) {
-
-			}
+			} catch (e) {}
 			vm.stack.push(obj)
 		}
 	},
 
-	'JSONSTR$': {
+	JSONSTR$: {
 		type: 'STRING',
 		args: ['JSON'],
 		minArgs: 1,
@@ -1092,12 +1159,15 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 			let obj = vm.stack.pop()
 
 			if (typeof obj !== 'object') {
-				throw new RuntimeError(RuntimeErrorCodes.INVALID_ARGUMENT, 'Invalid argument for JSONSTR$')
+				throw new RuntimeError(
+					RuntimeErrorCodes.INVALID_ARGUMENT,
+					'Invalid argument for JSONSTR$'
+				)
 			}
 
 			vm.stack.push(JSON.stringify(obj, undefined, 1))
 		}
-	},
+	}
 }
 
 interface ISystemSubroutine {
@@ -1223,11 +1293,19 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 			if (argCount > 2) {
 				volume = getArgValue(vm.stack.pop()) / 255
 			}
-			const length = Math.max(1, Math.min(5000, Math.round(getArgValue(vm.stack.pop()))))
-			const frequency = Math.round((Math.round(getArgValue(vm.stack.pop())) / 255 * (4000 - 12)) + 12)
+			const length = Math.max(
+				1,
+				Math.min(5000, Math.round(getArgValue(vm.stack.pop())))
+			)
+			const frequency = Math.round(
+				(Math.round(getArgValue(vm.stack.pop())) / 255) * (4000 - 12) +
+					12
+			)
 
 			if (vm.audio) {
-				vm.audio.makeSound(frequency, length, volume).catch(e => console.error(e))
+				vm.audio
+					.makeSound(frequency, length, volume)
+					.catch(e => console.error(e))
 			}
 		}
 	},
@@ -1302,7 +1380,10 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 				// if the character is '#',
 				if (ch === '#') {
 					// if out of arguments, then type mismatch error.
-					if (curArg === args.length || !IsNumericType(args[curArg].type)) {
+					if (
+						curArg === args.length ||
+						!IsNumericType(args[curArg].type)
+					) {
 						// TODO: errors.
 						dbg().printf('Type mismatch error.\n')
 						break
@@ -1332,7 +1413,9 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 					// appropriate number of digits.
 					let argAsString = '' + args[curArg].value
 					if (argAsString.length > digitCount) {
-						argAsString = argAsString.substr(argAsString.length - digitCount)
+						argAsString = argAsString.substr(
+							argAsString.length - digitCount
+						)
 					} else {
 						while (argAsString.length < digitCount) {
 							argAsString = ' ' + argAsString
@@ -1565,7 +1648,17 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 	},
 
 	IMGPUT: {
-		args: ['INTEGER', 'INTEGER', 'INTEGER', 'INTEGER', 'INTEGER', 'INTEGER', 'INTEGER', 'INTEGER', 'INTEGER'],
+		args: [
+			'INTEGER',
+			'INTEGER',
+			'INTEGER',
+			'INTEGER',
+			'INTEGER',
+			'INTEGER',
+			'INTEGER',
+			'INTEGER',
+			'INTEGER'
+		],
 		minArgs: 3,
 		action: function(vm) {
 			let argCount = vm.stack.pop()
@@ -1601,7 +1694,8 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 		args: ['INTEGER', 'INTEGER', 'INTEGER'],
 		minArgs: 3,
 		action: function(vm) {
-			const _argCount = vm.stack.pop()
+			// const _argCount =
+			vm.stack.pop()
 			const height = vm.stack.pop()
 			const width = vm.stack.pop()
 			const imageHandle = getArgValue(vm.stack.pop())
@@ -1640,12 +1734,19 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 			const spriteNum = getArgValue(vm.stack.pop())
 
 			vm.cons
-				.createSprite(spriteNum - 1, vm.cons.getImage(imageHandle), frames)
+				.createSprite(
+					spriteNum - 1,
+					vm.cons.getImage(imageHandle),
+					frames
+				)
 				.then(() => {
 					vm.resume()
 				})
-				.catch((e) => {
-					throw new RuntimeError(RuntimeErrorCodes.INVALID_ARGUMENT, e)
+				.catch(e => {
+					throw new RuntimeError(
+						RuntimeErrorCodes.INVALID_ARGUMENT,
+						e
+					)
 				})
 		}
 	},
@@ -1711,7 +1812,15 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 		// SPRITE%, START_FRAME%, END_FRAME% [, LOOP]
 		// SPRITE%, START_FRAME%, END_FRAME% [[, SPEED], LOOP]
 		// SPRITE%, START_FRAME%, END_FRAME%, SPEED, LOOP, PING_PONG, PING_PONG_FLIP
-		args: ['INTEGER', 'INTEGER', 'INTEGER', 'INTEGER', 'INTEGER', 'INTEGER', 'INTEGER'],
+		args: [
+			'INTEGER',
+			'INTEGER',
+			'INTEGER',
+			'INTEGER',
+			'INTEGER',
+			'INTEGER',
+			'INTEGER'
+		],
 		minArgs: 3,
 		action: function(vm) {
 			const argCount = vm.stack.pop()
@@ -1732,7 +1841,15 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 			const stopFrame = Math.round(getArgValue(vm.stack.pop()))
 			const startFrame = Math.round(getArgValue(vm.stack.pop()))
 			const spriteNum = Math.round(getArgValue(vm.stack.pop()))
-			vm.cons.animateSprite(spriteNum - 1, startFrame - 1, stopFrame - 1, speed, loop, pingPong, pingPongFlip)
+			vm.cons.animateSprite(
+				spriteNum - 1,
+				startFrame - 1,
+				stopFrame - 1,
+				speed,
+				loop,
+				pingPong,
+				pingPongFlip
+			)
 		}
 	},
 
@@ -1778,7 +1895,7 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 		// X1%, Y1%, X2%, Y2% [, COLOR%]
 		args: ['INTEGER', 'INTEGER', 'INTEGER', 'INTEGER', 'INTEGER'],
 		minArgs: 4,
-		action: function (vm) {
+		action: function(vm) {
 			const argCount = vm.stack.pop()
 			let x1: number
 			let y1: number
@@ -1802,7 +1919,7 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 		// X1%, Y1%, X2%, Y2% [, COLOR%]
 		args: ['INTEGER', 'INTEGER', 'INTEGER', 'INTEGER', 'INTEGER'],
 		minArgs: 4,
-		action: function (vm) {
+		action: function(vm) {
 			const argCount = vm.stack.pop()
 			let x1: number
 			let y1: number
@@ -1824,9 +1941,17 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 
 	GTRI: {
 		// X1%, Y1%, X2%, Y2%, X3%, Y3% [, COLOR%]
-		args: ['INTEGER', 'INTEGER', 'INTEGER', 'INTEGER', 'INTEGER', 'INTEGER', 'INTEGER'],
+		args: [
+			'INTEGER',
+			'INTEGER',
+			'INTEGER',
+			'INTEGER',
+			'INTEGER',
+			'INTEGER',
+			'INTEGER'
+		],
 		minArgs: 6,
-		action: function (vm) {
+		action: function(vm) {
 			const argCount = vm.stack.pop()
 			let x1: number
 			let y1: number
@@ -1854,7 +1979,7 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 		// X%, Y% [[[[,FILL% ], ASPECT#], START_ANGLE#, END_ANGLE#], COLOR%]
 		args: ['INTEGER', 'INTEGER', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY'],
 		minArgs: 3,
-		action: function (vm) {
+		action: function(vm) {
 			const argCount = vm.stack.pop()
 			let x1: number
 			let y1: number
@@ -1882,14 +2007,24 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 			y1 = Math.round(getArgValue(vm.stack.pop()))
 			x1 = Math.round(getArgValue(vm.stack.pop()))
 
-			vm.cons.circle(x1, y1, radius, color, startAngle, endAngle, aspect, fill, false)
+			vm.cons.circle(
+				x1,
+				y1,
+				radius,
+				color,
+				startAngle,
+				endAngle,
+				aspect,
+				fill,
+				false
+			)
 		}
 	},
 
 	GPSET: {
 		// X%, Y%, RED, GREEN, BLUE
 		args: ['INTEGER', 'INTEGER', 'INTEGER', 'INTEGER', 'INTEGER'],
-		action: function (vm) {
+		action: function(vm) {
 			let x1: number
 			let y1: number
 			let red: number
@@ -1909,7 +2044,7 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 	GPGET: {
 		// X%, Y%, OUT RED%, OUT GREEN, OUT BLUE
 		args: ['INTEGER', 'INTEGER', 'INTEGER', 'INTEGER', 'INTEGER'],
-		action: function (vm) {
+		action: function(vm) {
 			let x1: number
 			let y1: number
 
@@ -1940,9 +2075,15 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 			const obj = getArgValue(vm.stack.pop())
 
 			const resultArr = jsonPathQuery(obj, path)
-			target.resize([ new Dimension(1, resultArr.length) ])
+			target.resize([new Dimension(1, resultArr.length)])
 			for (let i = 0; i < resultArr.length; i++) {
-				target.assign([ i + 1 ], new ScalarVariable<object>(vm.types['JSON'] as JSONType, resultArr[i]))
+				target.assign(
+					[i + 1],
+					new ScalarVariable<object>(
+						vm.types['JSON'] as JSONType,
+						resultArr[i]
+					)
+				)
 			}
 		}
 	},
@@ -1963,11 +2104,19 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 			const path = getArgValue(vm.stack.pop()) as string
 			const obj = vm.stack.pop() as ScalarVariable<object>
 
-			const explodedPath = path.split(/[\.\[\]]/).filter(element => element !== '')
+			const explodedPath = path
+				.split(/[\.\[\]]/)
+				.filter(element => element !== '')
 			if (explodedPath.shift() !== '$') {
-				throw new RuntimeError(RuntimeErrorCodes.INVALID_ARGUMENT, `Only root-anchored paths are supported. Path provided was: '${path}`)
+				throw new RuntimeError(
+					RuntimeErrorCodes.INVALID_ARGUMENT,
+					`Only root-anchored paths are supported. Path provided was: '${path}`
+				)
 			} else if (explodedPath.length < 1) {
-				throw new RuntimeError(RuntimeErrorCodes.INVALID_ARGUMENT, `Path needs to have at least a single node. Path provided was: ${path}`)
+				throw new RuntimeError(
+					RuntimeErrorCodes.INVALID_ARGUMENT,
+					`Path needs to have at least a single node. Path provided was: ${path}`
+				)
 			}
 
 			let target = obj.value
@@ -1990,23 +2139,34 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 					target.push(tempObj)
 					target = tempObj
 				} else {
-					throw new RuntimeError(RuntimeErrorCodes.INVALID_ARGUMENT, `Node '${section}' is not an array. Path provided was: ${path}`)
+					throw new RuntimeError(
+						RuntimeErrorCodes.INVALID_ARGUMENT,
+						`Node '${section}' is not an array. Path provided was: ${path}`
+					)
 				}
 			}
 
-			target[explodedPath.shift()!] = (typeof value === 'number' && convertToBool)
-				? value === 0
-					? false
-					: true
-				: value
+			target[explodedPath.shift()!] =
+				typeof value === 'number' && convertToBool
+					? value === 0
+						? false
+						: true
+					: value
 		}
 	},
 
 	FETCH: {
 		// URL$, OUT RESPONSE_CODE%, OUT DATA$ [, METHOD$ [, HEADERS$() [, BODY$]]]
-		args: ['STRING', 'INTEGER', 'STRING', 'STRING', 'ARRAY OF STRING', 'STRING'],
+		args: [
+			'STRING',
+			'INTEGER',
+			'STRING',
+			'STRING',
+			'ARRAY OF STRING',
+			'STRING'
+		],
 		minArgs: 3,
-		action: function (vm) {
+		action: function(vm) {
 			const argCount = vm.stack.pop()
 
 			const headers = {}
@@ -2021,7 +2181,8 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 				const pairs = headersArray.values.length / 2
 				let i = 0
 				while (i < pairs) {
-					headers[headersArray.values[i++].value] = headersArray.values[i++].value
+					headers[headersArray.values[i++].value] =
+						headersArray.values[i++].value
 				}
 			}
 			if (argCount > 3) {
@@ -2033,20 +2194,25 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 
 			if (vm.networkAdapter) {
 				vm.suspend()
-				vm.networkAdapter.fetch(url, {
-					method,
-					headers,
-					body
-				}).then((value) => {
-					outResCode.value = value.code
-					outData.value = value.body
-					vm.resume()
-				})
-				.catch((reason) => {
-					vm.trace.printf('Error while fetching data: %s\n', reason)
-					outResCode.value = -1
-					vm.resume()
-				})
+				vm.networkAdapter
+					.fetch(url, {
+						method,
+						headers,
+						body
+					})
+					.then(value => {
+						outResCode.value = value.code
+						outData.value = value.body
+						vm.resume()
+					})
+					.catch(reason => {
+						vm.trace.printf(
+							'Error while fetching data: %s\n',
+							reason
+						)
+						outResCode.value = -1
+						vm.resume()
+					})
 			} else {
 				vm.trace.printf('Network adapter not available')
 				outResCode.value = -1
@@ -2083,7 +2249,10 @@ interface INoArgInstruction extends IInstruction {
 }
 
 type InstructionDefinition = {
-	[key: string]: IDataLabelInstruction | IAddrLabelInstruction | INoArgInstruction
+	[key: string]:
+		| IDataLabelInstruction
+		| IAddrLabelInstruction
+		| INoArgInstruction
 }
 
 /**
@@ -2386,7 +2555,11 @@ export const Instructions: InstructionDefinition = {
 		execute: function(vm) {
 			// TODO: \ operator.
 			let rhs = vm.stack.pop()
-			if (rhs === 0) throw new RuntimeError(RuntimeErrorCodes.DIVISION_BY_ZERO, 'Division by zero')
+			if (rhs === 0)
+				throw new RuntimeError(
+					RuntimeErrorCodes.DIVISION_BY_ZERO,
+					'Division by zero'
+				)
 			let lhs = vm.stack.pop()
 			vm.stack.push(lhs / rhs)
 		}
@@ -2397,7 +2570,11 @@ export const Instructions: InstructionDefinition = {
 		numArgs: 0,
 		execute: function(vm) {
 			let rhs = vm.stack.pop()
-			if (rhs === 0) throw new RuntimeError(RuntimeErrorCodes.DIVISION_BY_ZERO, 'Division by zero')
+			if (rhs === 0)
+				throw new RuntimeError(
+					RuntimeErrorCodes.DIVISION_BY_ZERO,
+					'Division by zero'
+				)
 			let lhs = vm.stack.pop()
 			vm.stack.push(lhs % rhs)
 		}
@@ -2470,7 +2647,11 @@ export const Instructions: InstructionDefinition = {
 		execute: function(vm) {
 			// Return from a gosub, function, or subroutine call.
 			const returnAddr = vm.callstack.pop()
-			if (returnAddr === undefined) throw new RuntimeError(RuntimeErrorCodes.STACK_UNDERFLOW, 'Stack underflow')
+			if (returnAddr === undefined)
+				throw new RuntimeError(
+					RuntimeErrorCodes.STACK_UNDERFLOW,
+					'Stack underflow'
+				)
 			vm.pc = returnAddr.pc
 			vm.frame = vm.callstack[vm.callstack.length - 1]
 		}
@@ -2504,7 +2685,11 @@ export const Instructions: InstructionDefinition = {
 			for (let i = 0; i < variable.dimensions.length; i++) {
 				// pop it off the stack in reverse order.
 				const index = vm.stack.pop()
-				if (index === undefined) throw new RuntimeError(RuntimeErrorCodes.STACK_UNDERFLOW, 'Stack underflow')
+				if (index === undefined)
+					throw new RuntimeError(
+						RuntimeErrorCodes.STACK_UNDERFLOW,
+						'Stack underflow'
+					)
 				indexes.unshift(index)
 			}
 
@@ -2620,7 +2805,10 @@ export const Instructions: InstructionDefinition = {
 			} else if (SystemSubroutines[arg]) {
 				SystemSubroutines[arg].action(vm)
 			} else {
-				throw new RuntimeError(RuntimeErrorCodes.UKNOWN_SYSCALL, 'Unknown syscall: ' + arg)
+				throw new RuntimeError(
+					RuntimeErrorCodes.UKNOWN_SYSCALL,
+					'Unknown syscall: ' + arg
+				)
 			}
 		}
 	}

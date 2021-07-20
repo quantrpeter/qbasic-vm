@@ -23,11 +23,11 @@ class MMLEmitter extends SeqEmitter {
 		let lastTempo: number | undefined = undefined
 		const tracks = source
 			.split(/[;,]/)
-			.filter((source) => !!source.trim())
+			.filter(source => !!source.trim())
 			// strip out MML header
-			.map((source) => source.replace(/^MML@/, ''))
+			.map(source => source.replace(/^MML@/, ''))
 			// MML songs available on the internet often assume the player is going to use the same tempo as in the previous track
-			.map((track) => {
+			.map(track => {
 				const tempo = track.match(/t(\d+)/i)
 				if (!tempo && lastTempo) {
 					return `t${lastTempo}` + track
@@ -36,7 +36,7 @@ class MMLEmitter extends SeqEmitter {
 				}
 				return track
 			})
-			.map((track) => new MMLIteratorClass(track, config))
+			.map(track => new MMLIteratorClass(track, config))
 
 		super(tracks, config)
 
@@ -109,7 +109,12 @@ export class AudioDevice implements IAudioDevice {
 				// console.log('END : ' + JSON.stringify(e))
 				// loop forever
 				if (repeat === undefined || repeat > 1) {
-					resolve(this.playMusic(mml, repeat === undefined ? undefined : repeat - 1))
+					resolve(
+						this.playMusic(
+							mml,
+							repeat === undefined ? undefined : repeat - 1
+						)
+					)
 				} else {
 					resolve()
 				}
@@ -138,7 +143,8 @@ export class AudioDevice implements IAudioDevice {
 		const osc1 = this.audioContext.createOscillator()
 		const osc2 = this.audioContext.createOscillator()
 		const amp = this.audioContext.createGain()
-		const volume = (1 / this.currentMMLEmitter!.tracksNum / 3) * (e.velocity / 128)
+		const volume =
+			(1 / this.currentMMLEmitter!.tracksNum / 3) * (e.velocity / 128)
 
 		osc1.frequency.value = this.mtof(e.noteNumber)
 		osc1.detune.setValueAtTime(+12, t0)
@@ -159,13 +165,17 @@ export class AudioDevice implements IAudioDevice {
 		amp.gain.exponentialRampToValueAtTime(1e-3, t2)
 		amp.connect(this.audioContext.destination)
 	}
-	makeSound(frequency: number, duration: number, volume = 0.05): Promise<void> {
+	makeSound(
+		frequency: number,
+		duration: number,
+		volume = 0.05
+	): Promise<void> {
 		frequency = Math.min(Math.max(12, frequency), 4000)
-		return new Promise<void>((resolve) => {
+		return new Promise<void>(resolve => {
 			const baseTime = this.audioContext.currentTime
 			const t0 = baseTime
-			const t1 = t0 + (duration / 1000)
-			const t2 = t1 + (duration / 1000)
+			const t1 = t0 + duration / 1000
+			const t2 = t1 + duration / 1000
 			const osc1 = this.audioContext.createOscillator()
 			const amp = this.audioContext.createGain()
 

@@ -34,7 +34,14 @@ class EarleyItem {
 	prev: EarleyItem | undefined
 	locus: Locus | undefined
 
-	constructor(rule: Rule, position: number, base: number, token?: Token, prev?: EarleyItem, locus?: Locus) {
+	constructor(
+		rule: Rule,
+		position: number,
+		base: number,
+		token?: Token,
+		prev?: EarleyItem,
+		locus?: Locus
+	) {
 		this.id = NextId++
 		this.rule = rule
 		this.pos = position
@@ -133,7 +140,9 @@ export class EarleyParser {
 		for (i = 0; ; i++) {
 			let token = this.tokenizer.nextToken(line, position)
 			if (token === null) {
-				this.errors.push(sprintf('Bad token at %d:%d\n', line, position))
+				this.errors.push(
+					sprintf('Bad token at %d:%d\n', line, position)
+				)
 				dbg().printf('Bad token!\n')
 				return null
 			} else if (this.debug) {
@@ -153,7 +162,9 @@ export class EarleyParser {
 			this.scan(states, i, token)
 
 			if (states[i].length === 0) {
-				this.errors.push(sprintf('Syntax error at %s: %s', this.locus, token))
+				this.errors.push(
+					sprintf('Syntax error at %s: %s', this.locus, token)
+				)
 				for (j = 0; j < states[i - 1].length; j++) {
 					this.errors.push(sprintf('    %s\n', states[i - 1][j]))
 				}
@@ -211,7 +222,10 @@ export class EarleyParser {
 		if (item.pos === item.rule.symbols.length) {
 			let baseItems = states[item.base]
 			for (let j = 0; j < baseItems.length; j++) {
-				if (baseItems[j].rule.symbols[baseItems[j].pos] === item.rule.name) {
+				if (
+					baseItems[j].rule.symbols[baseItems[j].pos] ===
+					item.rule.name
+				) {
 					this.addToState(
 						states[i],
 						baseItems[j].rule,
@@ -230,7 +244,14 @@ export class EarleyParser {
 		for (let j = 0; j < items.length; j++) {
 			if (items[j].rule.symbols[items[j].pos] === token.id) {
 				states[i + 1].push(
-					new EarleyItem(items[j].rule, items[j].pos + 1, items[j].base, token, items[j], this.locus)
+					new EarleyItem(
+						items[j].rule,
+						items[j].pos + 1,
+						items[j].base,
+						token,
+						items[j],
+						this.locus
+					)
 				)
 			}
 		}
@@ -238,7 +259,11 @@ export class EarleyParser {
 
 	public addToState(items, rule, pos, base, token, prev) {
 		for (let i = 0; i < items.length; i++) {
-			if (items[i].rule === rule && items[i].pos === pos && items[i].base === base) {
+			if (
+				items[i].rule === rule &&
+				items[i].pos === pos &&
+				items[i].base === base
+			) {
 				return
 			}
 		}

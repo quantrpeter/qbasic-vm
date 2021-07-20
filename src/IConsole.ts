@@ -18,16 +18,37 @@ export interface IConsole {
 		end?: number,
 		aspect?: number,
 		fill?: boolean,
-		step?: boolean,
+		step?: boolean
 	): void
 	box(x1: number, y1: number, x2: number, y2: number, color?: number): void
 	fill(x1: number, y1: number, x2: number, y2: number, color?: number): void
-	triangleFill(x1: number, y1: number, x2: number, y2: number, x3: number, y3: number, color?: number): void
+	triangleFill(
+		x1: number,
+		y1: number,
+		x2: number,
+		y2: number,
+		x3: number,
+		y3: number,
+		color?: number
+	): void
 	getPixel(x: number, y: number): [number, number, number]
 	putPixel(x: number, y: number, color: [number, number, number])
-	get(x1: number, y1: number, x2: number, y2: number, step1?: boolean, step2?: boolean): ImageData
+	get(
+		x1: number,
+		y1: number,
+		x2: number,
+		y2: number,
+		step1?: boolean,
+		step2?: boolean
+	): ImageData
 	put(data: ImageData, x: number, y: number): void
-	paint(x: number, y: number, colour: number, borderColor: number, step?: number): void
+	paint(
+		x: number,
+		y: number,
+		colour: number,
+		borderColor: number,
+		step?: number
+	): void
 	putImage(
 		image: HTMLImageElement,
 		dx: number,
@@ -58,12 +79,24 @@ export interface IConsole {
 	getImage(handle: number): HTMLImageElement
 	clearImage(handle: number): void
 
-	createSprite(spriteNumber: number, image: HTMLImageElement, frames: number): Promise<void>
+	createSprite(
+		spriteNumber: number,
+		image: HTMLImageElement,
+		frames: number
+	): Promise<void>
 	clearSprite(spriteNumber: number)
 	offsetSprite(spriteNumber: number, x: number, y: number)
 	scaleSprite(spriteNumber: number, scaleX: number, scaleY: number)
 	homeSprite(spriteNumber: number, homeX: number, homeY: number)
 	displaySprite(spriteNumber: number, display: boolean)
 	rotateSprite(spriteNumber: number, angle: number)
-	animateSprite(spriteNumber: number, startFrame: number, endFrame: number, speed?: number, loop?: boolean, pingPong?: boolean, pingPongFlip?: number)
+	animateSprite(
+		spriteNumber: number,
+		startFrame: number,
+		endFrame: number,
+		speed?: number,
+		loop?: boolean,
+		pingPong?: boolean,
+		pingPongFlip?: number
+	)
 }

@@ -79,7 +79,12 @@ export class Sprite {
 	 * @param pAspectX Display (BASIC Console) pixel X aspect ratio
 	 * @param pAspectY Display (BASIC COnsole) pixel Y aspect ratio
 	 */
-	constructor(image: HTMLImageElement, frames: number, pAspectX: number, pAspectY: number) {
+	constructor(
+		image: HTMLImageElement,
+		frames: number,
+		pAspectX: number,
+		pAspectY: number
+	) {
 		this._pAspectX = pAspectX
 		this._pAspectY = pAspectY
 		this._totalFrames = frames
@@ -88,7 +93,7 @@ export class Sprite {
 		this._el.style.position = 'absolute'
 		this._el.style.top = '0'
 		this._el.style.left = '0'
-		this._loaded = new Promise<void>((resolve, reject) => {
+		this._loaded = new Promise<void>(resolve => {
 			const url = image.src
 			this._el.style.backgroundImage = `url('${url}')`
 			this._imgHeight = image.naturalHeight
@@ -96,7 +101,8 @@ export class Sprite {
 			this._frameWidth = image.naturalWidth / frames
 			this._el.style.height = `${image.naturalHeight * this._pAspectY}px`
 			this._el.style.width = `${this._frameWidth * this._pAspectX}px`
-			this._el.style.backgroundSize = `${this._imgWidth * pAspectX}px ${this._imgHeight * pAspectY}px`
+			this._el.style.backgroundSize = `${this._imgWidth *
+				pAspectX}px ${this._imgHeight * pAspectY}px`
 			this.reposition()
 			this.bkgReposition()
 			resolve()
@@ -105,11 +111,29 @@ export class Sprite {
 
 	private doPingPong() {
 		this._animDirection = -1 * this._animDirection
-		if (this._pingPongFlip & 1) {
-			this._scaleX = this._scaleX * -1
-		}
-		if (this._pingPongFlip & 2) {
-			this._scaleY = this._scaleY * -1
+		if (this._pingPongFlip & 4) {
+			// signs are the same
+			if (this._scaleX * this._scaleY > 0) {
+				if (this._pingPongFlip & 6) {
+					this._scaleY = this._scaleY * -1
+				} else {
+					this._scaleX = this._scaleX * -1
+				}
+				// signs are different
+			} else if (this._scaleX * this._scaleY < 0) {
+				if (this._pingPongFlip & 6) {
+					this._scaleX = this._scaleX * -1
+				} else {
+					this._scaleY = this._scaleY * -1
+				}
+			}
+		} else {
+			if (this._pingPongFlip & 1) {
+				this._scaleX = this._scaleX * -1
+			}
+			if (this._pingPongFlip & 2) {
+				this._scaleY = this._scaleY * -1
+			}
 		}
 	}
 
@@ -123,12 +147,20 @@ export class Sprite {
 				this._skip = 0
 			}
 
-			const oldFrame = this._curFrame
-			this._curFrame = Math.max(Math.min(this._curFrame + this._animDirection, this._totalFrames - 1), 0)
+			let oldFrame = this._curFrame
+			this._curFrame = Math.max(
+				Math.min(
+					this._curFrame + this._animDirection,
+					this._totalFrames - 1
+				),
+				0
+			)
 			if (this._curFrame > this._endFrame) {
 				if (this._loop) {
 					if (this._pingPong) {
-						this._curFrame = Math.max(this._endFrame - 1, this._beginFrame)
+						this._curFrame = this._endFrame
+						oldFrame = -1 // oldFrame will be the same as _curFrame,
+						// but we should keep animating, because we changed direction
 						this.doPingPong()
 					} else {
 						this._curFrame = this._beginFrame
@@ -140,7 +172,9 @@ export class Sprite {
 			} else if (this._curFrame < this._beginFrame) {
 				if (this._loop) {
 					if (this._pingPong) {
-						this._curFrame = Math.min(this._beginFrame + 1, Math.min(this._endFrame, this._totalFrames - 1))
+						this._curFrame = this._beginFrame
+						oldFrame = -1 // oldFrame will be the same as _curFrame,
+						// but we should keep animating, because we changed direction
 						this.doPingPong()
 					} else {
 						this._curFrame = this._endFrame
@@ -156,16 +190,21 @@ export class Sprite {
 	}
 
 	private bkgReposition() {
-		this._el.style.backgroundPosition = `-${this._curFrame * this._frameWidth * this._pAspectX}px 0`
+		this._el.style.backgroundPosition = `-${this._curFrame *
+			this._frameWidth *
+			this._pAspectX}px 0`
 		this.reposition()
 	}
 
 	private reposition() {
-		this._el.style.transformOrigin = `${this._anchorX * this._pAspectX}px ${this._anchorY * this._pAspectY}px`
-		this._el.style.transform = `translate(-${this._anchorX * this._pAspectX}px, -${this._anchorY *
-			this._pAspectY}px) translate(${this._x * this._pAspectX}px, ${this._y * this._pAspectY}px) scale(${this._scaleX}, ${this._scaleY}) rotate(${
-			this._rotation
-		}deg)`
+		this._el.style.transformOrigin = `${this._anchorX *
+			this._pAspectX}px ${this._anchorY * this._pAspectY}px`
+		this._el.style.transform = `translate(-${this._anchorX *
+			this._pAspectX}px, -${this._anchorY *
+			this._pAspectY}px) translate(${this._x * this._pAspectX}px, ${this
+			._y * this._pAspectY}px) scale(${this._scaleX}, ${
+			this._scaleY
+		}) rotate(${this._rotation}deg)`
 	}
 
 	setPosition(x: number, y: number) {
@@ -200,7 +239,14 @@ export class Sprite {
 		return this._el
 	}
 
-	setAnimate(startFrame: number, endFrame: number, speed: number, loop: boolean, pingPong: boolean, pingPongFlip: number) {
+	setAnimate(
+		startFrame: number,
+		endFrame: number,
+		speed: number,
+		loop: boolean,
+		pingPong: boolean,
+		pingPongFlip: number
+	) {
 		this._beginFrame = startFrame
 		this._endFrame = endFrame
 		this._loop = loop

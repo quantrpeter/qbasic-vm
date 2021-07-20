@@ -16,16 +16,25 @@ CONST KeyS = (CHR$(115))
 CONST KeyE = (CHR$(101))
 CONST KeyD = (CHR$(100))
 CONST KeyM = (CHR$(109))
+CONST KeyX = (CHR$(120))
 
 COLOR 1, 0, 0
 CLS
 
 DECLARE SUB DrawRoad (t)
+DECLARE SUB EmptyKeyBuf ()
+DECLARE FUNCTION ZeroIsTen (val)
 
-DIM SHARED imgRoad, imgCar, imgSky
+SUB EmptyKeyBuf ()
+	WHILE INKEY$ <> ""
+	WEND
+END SUB
+
+DIM SHARED imgRoad, imgCar, imgSky, imgFont
 imgRoad = IMGLOAD("road.png")
 imgCar = IMGLOAD("car.png")
 imgSky = IMGLOAD("sky.png")
+imgFont = IMGLOAD("cool-font.png")
 
 DIM SHARED turn, level, slide, speed
 lastPeriod# = TIMER
@@ -36,6 +45,8 @@ level = 0
 slide = 22
 speed = 0
 
+moveFactor% = 0
+
 CONST carSprite = 1
 ' Set imgCar as Sprite carSprite (1)
 SPSET carSprite, imgCar, 13
@@ -44,6 +55,36 @@ SPSET carSprite, imgCar, 13
 SPHOME carSprite, 46, 44
 ' Place sprite at 80, 280 of the screen
 SPOFS carSprite, 80, 280
+
+CONST hudD1Sprite = 97
+CONST hudD2Sprite = 98
+CONST hudD3Sprite = 99
+
+SPSET hudD1Sprite, imgFont, 46
+SPSET hudD2Sprite, imgFont, 46
+SPSET hudD3Sprite, imgFont, 46
+
+SPOFS hudD1Sprite, 46, 8
+SPOFS hudD2Sprite, 80, 8
+SPOFS hudD3Sprite, 115, 8
+
+SPANIM hudD1Sprite, 10, 10
+SPANIM hudD2Sprite, 10, 10
+SPANIM hudD3Sprite, 10, 10
+
+SPHIDE hudD1Sprite
+SPHIDE hudD2Sprite
+
+' Paint initial sky background
+GFILL 0, 0, 160, 300, 3
+
+FUNCTION ZeroIsTen (val)
+    IF val = 0 THEN
+		ZeroIsTen = 10
+	ELSE
+		ZeroIsTen = val
+    END IF
+END FUNCTION
 
 SUB DrawRoad (time)
 	IMGPUT imgSky, -160 - (turn / 10) - (slide / 20), 20 - level
@@ -90,10 +131,17 @@ RESTORE SongPtr
 READ Title$, Song$
 ' BGMPLAY Song$
 
-' Flag to indicate the player is breaking
+' Flag to indicate the player is braking
 brake = 0
 ' Flag to indicate the player is turning (sliding)
 sliding = 0
+' Flag to indicate if the car is skidding/lost traction
+skid = 0
+beginSkid = 0
+' Acceleration
+accel# = 0
+maxAccel# = 10
+maxSpeed = 55
 
 t = 0
 f = 0
@@ -109,27 +157,40 @@ DO
 
 	fps = 0
 	
-	PRINT "FPS=";
-	IF f - lastF = 0 THEN
-		PRINT "0     "
-	ELSE
+	IF f - lastF <> 0 THEN
 		fps = INT((f - lastF) / (TIMER - lastPeriod#))
-		PRINT fps, "      "
 	END IF
 	moveFactor% = INT(ABS(speed) / 5.0)
 	IF (speed <> 0) AND (f MOD (5 - (ABS(speed) MOD 5)) = 0) THEN
 		moveFactor% = moveFactor% + 1
 	END IF
-	PRINT "L=";
-	PRINT level, "      "
-	PRINT "TU=";
-	PRINT turn, "      "
-	PRINT "SL=";
-	PRINT slide, "      "
-	PRINT "SP=";
-	PRINT speed,  "      "
-	PRINT "                    "
 
+	' GOSUB DebugHUD
+	GOSUB GameHUD
+
+	IF skid = 0 THEN
+		GOSUB HandleKeys
+		GOSUB HandleDrive
+		GOSUB HandleEngineSound
+	ELSE IF skid = 1 THEN
+		EmptyKeyBuf
+		GOSUB HandleSkidBegin
+	ELSE IF skid = 2 THEN
+		EmptyKeyBuf
+		GOSUB HandleSkidEnd
+	END IF
+	
+	INC f
+	IF speed >= 0 THEN
+		t = t + moveFactor%
+	ELSE
+		t = t - moveFactor%
+	END IF
+
+	WAIT 2
+LOOP WHILE 1 = 1
+
+HandleKeys:
 	KeyPressed$ = INKEY$
 	IF KeyPressed$ = ArrowLeft THEN
 		turn = turn - moveFactor%
@@ -146,16 +207,46 @@ DO
 		slide = slide + moveFactor%
 		sliding = -20
 	ELSE IF KeyPressed$ = KeyE THEN
-		speed = speed + 1
+		accel# = MIN(accel# + 1, maxAccel#)
 		brake = 0
 	ELSE IF KeyPressed$ = KeyD THEN
-		speed = speed - 1
+		accel# = 0
 		brake = 10
 	ELSE IF KeyPressed$ = KeyM THEN
 		REM NextSong
+	ELSE IF KeyPressed$ = KeyX THEN
+		skid = 1
 	END IF
+	RETURN
 
+HandleDrive:
 	brake = MAX(0, brake - 1)
+	' acceleration inertia
+	accel# = MAX(0, accel# - 0.1)
+
+	IF f MOD 5 = 0 THEN
+		IF speed <= 25 OR accel# <= 8.0 OR brake > 0 THEN
+			speed = MAX(0, speed - 1 - brake)
+		END IF
+
+		IF speed < 10 THEN
+			speed = MIN(maxSpeed, speed + INT(accel# / 3.0))
+		ELSE IF speed > 25 THEN
+			IF accel# > 8.0 AND f MOD 20 = 0 THEN
+				speed = MIN(maxSpeed, speed + 1)
+			END IF
+		ELSE IF speed > 35 THEN
+			IF accel# > 8.0 AND f MOD 35 = 0 THEN
+				speed = MIN(maxSpeed, speed + 1)
+			END IF
+		ELSE IF speed > 43 THEN
+			IF accel# > 8.0 AND f MOD 50 = 0 THEN
+				speed = MIN(maxSpeed, speed + 1)
+			END IF
+		ELSE
+			speed = MIN(maxSpeed, speed + INT(accel# / 2.0))
+		END IF
+	END IF
 
 	' Decide if we are going up a hill. If we are, then use the next five cells of the sprite
 	spriteBase = 1
@@ -183,7 +274,7 @@ DO
 		IF speed > 0 THEN
 			' Set sprite scaling to 1,1 for regular drawing
 			SPSCALE carSprite, 1, 1
-		ELSE
+		ELSE IF speed < 0 THEN
 			' Driving in reverse, we should flip the sprite horizontally
 			SPSCALE carSprite, -1, 1
 		END IF
@@ -196,24 +287,80 @@ DO
 		END IF
 		IF speed > 0 THEN
 			SPSCALE carSprite, -1, 1
-		ELSE
+		ELSE IF speed < 0 THEN
 			SPSCALE carSprite, 1, 1
 		END IF
 		SPANIM carSprite, spriteBase + spriteStep, spriteBase + spriteStep, 0
 	ELSE IF sliding = 0 THEN
 		SPSCALE carSprite, 1, 1
 	END IF
+	RETURN
 
-	INC f
-	IF speed >= 0 THEN
-		t = t + moveFactor%
-	ELSE
-		t = t - moveFactor%
-	END IF
-
+HandleEngineSound:
 	IF f MOD (10 - MIN(5, INT(speed / 10))) = 0 THEN
 		SOUND 5 + MAX(0, INT(speed / 10)), 75, 64
 	END IF
+	RETURN
 
-	WAIT 2
-LOOP WHILE 1 = 1
+HandleSkidBegin:
+	SPANIM carSprite, 10, 12, 10, 1, TRUE, 1
+	accel# = 0
+	skid = 2
+	beginSkid = TIMER 
+	RETURN
+
+HandleSkidEnd:
+	IF f MOD 4 = 0 THEN
+		speed = MAX(0, speed - 1)
+	END IF
+	IF (speed = 0) AND ((TIMER - beginSkid) > 3) THEN
+		skid = 0
+		beginSkid = 0
+	END IF
+	RETURN
+
+GameHUD:
+	displaySpeed = speed * 4.53
+	IF displaySpeed >= 100 THEN
+		SPSHOW hudD1Sprite
+		spriteNum = ZeroIsTen(FLOOR(displaySpeed / 100) MOD 10)
+		SPANIM hudD1Sprite, spriteNum, spriteNum
+	ELSE
+		SPHIDE hudD1Sprite
+	END IF
+
+	IF displaySpeed >= 10 THEN
+		SPSHOW hudD2Sprite
+		spriteNum = ZeroIsTen(FLOOR(displaySpeed / 10) MOD 10)
+		SPANIM hudD2Sprite, spriteNum, spriteNum
+	ELSE
+		SPHIDE hudD2Sprite
+	END IF
+
+	spriteNum = ZeroIsTen(displaySpeed MOD 10)
+	SPANIM hudD3Sprite, spriteNum, spriteNum
+
+	GFILL 0, 0, 160, 6, 0
+	GFILL 1, 1, INT(158 * (accel# / maxAccel#)), 2, 6
+	speedColor = 7
+	IF brake > 0 THEN
+		speedColor = 2
+	END IF
+	GFILL 1, 3, INT(158 * (speed / maxSpeed)), 4, speedColor
+
+	RETURN
+
+DebugHUD:
+	PRINT "FPS=";
+	PRINT fps, "       ";
+	PRINT "A=";
+	PRINT INT(accel#), "   ";
+	IF brake > 0 THEN
+		PRINT "B"
+	ELSE
+		PRINT " "
+	END IF
+	PRINT "SP=";
+	PRINT speed,  "      "
+	PRINT "                    "
+	RETURN

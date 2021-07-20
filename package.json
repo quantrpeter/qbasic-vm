@@ -24,6 +24,7 @@
     "build": "tsc -p tsconfig.json",
     "lint": "tslint --project tsconfig.json --config tslint.json",
     "lint-fix": "",
+    "format": "prettier --write --config \"./.prettierrc.json\" \"src/**\"",
     "bundle": "webpack",
     "docs": "yarn docs:html && opn docs/index.html",
     "docs:html": "typedoc src/index.ts --excludePrivate --mode file --theme minimal --out docs",
@@ -50,5 +51,6 @@
     "jsonpath": "^1.1.1",
     "mml-iterator": "^1.1.0",
     "seq-emitter": "^1.2.0"
-  }
+  },
+  "prettier": "./.prettierrc.json"
 }

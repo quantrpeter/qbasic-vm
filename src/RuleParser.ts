@@ -59,7 +59,9 @@ export class RuleParser {
 			self.buildSet.addRule(args[0], [], self.action)
 			return args[0]
 		})
-		rules.addRule('or_expr', ['or_expr', "'\\|'", 'cat_expr'], function(args) {
+		rules.addRule('or_expr', ['or_expr', "'\\|'", 'cat_expr'], function(
+			args
+		) {
 			// Implement the or operator by making two new rules.
 			let name = '_' + self.nextRuleId++
 			self.buildSet.addRule(name, args[0])
@@ -76,30 +78,38 @@ export class RuleParser {
 		})
 
 		rules.addRule('list_expr', ['kleene_expr'])
-		rules.addRule('list_expr', ["'\\['", 'kleene_expr', "','", 'kleene_expr', "'\\]'"], function(args) {
-			let nameOpt = '_' + self.nextRuleId++
-			let name = '_' + self.nextRuleId++
+		rules.addRule(
+			'list_expr',
+			["'\\['", 'kleene_expr', "','", 'kleene_expr', "'\\]'"],
+			function(args) {
+				let nameOpt = '_' + self.nextRuleId++
+				let name = '_' + self.nextRuleId++
 
-			self.buildSet.addRule(nameOpt, [name])
+				self.buildSet.addRule(nameOpt, [name])
 
-			self.buildSet.addRule(nameOpt, [], function() {
-				return []
-			})
+				self.buildSet.addRule(nameOpt, [], function() {
+					return []
+				})
 
-			self.buildSet.addRule(name, [args[1]], function(args) {
-				return args // list of one element.
-			})
+				self.buildSet.addRule(name, [args[1]], function(args) {
+					return args // list of one element.
+				})
 
-			self.buildSet.addRule(name, [name, args[3], args[1]], function(args) {
-				// join the lists and return the result.
-				args[0].push(args[2])
-				return args[0]
-			})
+				self.buildSet.addRule(name, [name, args[3], args[1]], function(
+					args
+				) {
+					// join the lists and return the result.
+					args[0].push(args[2])
+					return args[0]
+				})
 
-			return nameOpt
-		})
+				return nameOpt
+			}
+		)
 
-		rules.addRule('kleene_expr', ['basic_expr', "'[\\+\\*\\?]'"], function(args) {
+		rules.addRule('kleene_expr', ['basic_expr', "'[\\+\\*\\?]'"], function(
+			args
+		) {
 			let name = '_' + self.nextRuleId++
 
 			// Simulates kleene-star operations by adding more rules.
