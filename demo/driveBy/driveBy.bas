@@ -145,6 +145,8 @@ maxSpeed = 55
 
 t = 0
 f = 0
+
+' ### Main game loop
 DO
 	DrawRoad(t)
 
@@ -165,8 +167,8 @@ DO
 		moveFactor% = moveFactor% + 1
 	END IF
 
-	' GOSUB DebugHUD
 	GOSUB GameHUD
+	' GOSUB DebugHUD
 
 	IF skid = 0 THEN
 		GOSUB HandleKeys
@@ -189,6 +191,7 @@ DO
 
 	WAIT 2
 LOOP WHILE 1 = 1
+' ###
 
 HandleKeys:
 	KeyPressed$ = INKEY$
@@ -226,7 +229,7 @@ HandleDrive:
 
 	IF f MOD 5 = 0 THEN
 		IF speed <= 25 OR accel# <= 8.0 OR brake > 0 THEN
-			speed = MAX(0, speed - 1 - brake)
+			speed = MAX(0, speed - 1 - (brake / 2))
 		END IF
 
 		IF speed < 10 THEN
@@ -352,15 +355,14 @@ GameHUD:
 
 DebugHUD:
 	PRINT "FPS=";
-	PRINT fps, "       ";
+	PRINT fps, "   "
 	PRINT "A=";
-	PRINT INT(accel#), "   ";
+	PRINT INT(accel#), "  ";
 	IF brake > 0 THEN
 		PRINT "B"
 	ELSE
 		PRINT " "
 	END IF
 	PRINT "SP=";
-	PRINT speed,  "      "
-	PRINT "                    "
+	PRINT speed, "   "
 	RETURN
