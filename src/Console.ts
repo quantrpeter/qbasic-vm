@@ -189,6 +189,7 @@ export class Console extends EventTarget implements IConsole {
 		this.container.style.imageRendering = 'pixelated'
 		this.container.style.position = 'relative'
 		this.container.style.overflow = 'hidden'
+		this.container.style['contain'] = 'strict'
 		this.canvas.style.position = 'absolute'
 		this.canvas.style.top = '0'
 		this.canvas.style.left = '0'
@@ -354,13 +355,7 @@ export class Console extends EventTarget implements IConsole {
 		return true
 	}
 
-	public line(
-		x1: number,
-		y1: number,
-		x2: number,
-		y2: number,
-		color?: number
-	) {
+	public line(x1: number, y1: number, x2: number, y2: number, color?: number) {
 		const strokeBuf = this.ctx.strokeStyle
 		this.ctx.beginPath()
 		this.ctx.strokeStyle =
@@ -591,7 +586,8 @@ export class Console extends EventTarget implements IConsole {
 				reject(e)
 			})
 			img.src = url
-			img.decode()
+			img
+				.decode()
 				.then(() => {
 					const idx = this.images.findIndex(i => i === undefined)
 					if (idx >= 0) {
@@ -651,12 +647,10 @@ export class Console extends EventTarget implements IConsole {
 			// skip drawing if outside of the canvas
 			if (curDY + curDH > 0 && curDY < screenHeight) {
 				while (curDX < dx + dw) {
-					let clampedSW =
-						Math.min(image.naturalWidth, curSX + curSW) - curSX
+					let clampedSW = Math.min(image.naturalWidth, curSX + curSW) - curSX
 					if (clampedSW === 0) {
 						curSW = sw
-						clampedSW =
-							Math.min(image.naturalWidth, curSX + curSW) - curSX
+						clampedSW = Math.min(image.naturalWidth, curSX + curSW) - curSX
 					}
 					let curDW = (clampedSW / sw) * dw
 					// skip drawing if outside of the canvas
@@ -878,10 +872,7 @@ export class Console extends EventTarget implements IConsole {
 			if (this.inputStr.length > 0) {
 				// if it's backspace,
 				if (event.key === 'Backspace') {
-					this.inputStr = this.inputStr.substr(
-						0,
-						this.inputStr.length - 1
-					)
+					this.inputStr = this.inputStr.substr(0, this.inputStr.length - 1)
 					this.backup(1)
 					this.print(' ')
 					this.backup(1)
@@ -1065,6 +1056,7 @@ export class Console extends EventTarget implements IConsole {
 
 		const sprite = new Sprite(
 			image,
+			spriteNumber,
 			frames,
 			this.containerWidth / this._width,
 			this.containerHeight / this._height
