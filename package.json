@@ -1,7 +1,7 @@
 {
-  "name": "qbasic-interpreter",
+  "name": "qbasic-vm",
   "version": "0.0.0",
-  "description": "A QBASIC interpreter implemented in TypeScript, based on qb.js by Steve Hanov",
+  "description": "A QBASIC Virtual Machine implemented in TypeScript, based on qb.js by Steve Hanov",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:jstarpl/qb.js.git",
@@ -50,7 +50,8 @@
     "fetch-ponyfill": "^7.1.0",
     "jsonpath": "^1.1.1",
     "mml-iterator": "^1.1.0",
-    "seq-emitter": "^1.2.0"
+    "seq-emitter": "^1.2.0",
+    "websocket-polyfill": "0.0.3"
   },
   "prettier": "./.prettierrc.json"
 }

@@ -145,9 +145,7 @@ export class DebugConsole {
 				substitution = convert(matches[i], true)
 			} else if (matches[i].code === 'c') {
 				matches[i].argument = String(
-					String.fromCharCode(
-						Math.abs(parseInt(matches[i].argument, 10))
-					)
+					String.fromCharCode(Math.abs(parseInt(matches[i].argument, 10)))
 				)
 				substitution = convert(matches[i], true)
 			} else if (matches[i].code === 'd') {

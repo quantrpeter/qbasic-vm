@@ -380,10 +380,7 @@ export class VirtualMachine extends EventEmitter<
 
 	public pushScalar(value, typeName) {
 		this.stack.push(
-			new ScalarVariable<any>(
-				this.types[typeName] as SomeScalarType,
-				value
-			)
+			new ScalarVariable<any>(this.types[typeName] as SomeScalarType, value)
 		)
 	}
 }
@@ -913,9 +910,7 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 		minArgs: 1,
 		action: function(vm) {
 			const value = vm.stack.pop()
-			vm.stack.push(
-				Number.isNaN(value) ? 2 : Number.isFinite(value) ? 0 : 1
-			)
+			vm.stack.push(Number.isNaN(value) ? 2 : Number.isFinite(value) ? 0 : 1)
 		}
 	},
 
@@ -1298,8 +1293,7 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 				Math.min(5000, Math.round(getArgValue(vm.stack.pop())))
 			)
 			const frequency = Math.round(
-				(Math.round(getArgValue(vm.stack.pop())) / 255) * (4000 - 12) +
-					12
+				(Math.round(getArgValue(vm.stack.pop())) / 255) * (4000 - 12) + 12
 			)
 
 			if (vm.audio) {
@@ -1380,10 +1374,7 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 				// if the character is '#',
 				if (ch === '#') {
 					// if out of arguments, then type mismatch error.
-					if (
-						curArg === args.length ||
-						!IsNumericType(args[curArg].type)
-					) {
+					if (curArg === args.length || !IsNumericType(args[curArg].type)) {
 						// TODO: errors.
 						dbg().printf('Type mismatch error.\n')
 						break
@@ -1413,9 +1404,7 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 					// appropriate number of digits.
 					let argAsString = '' + args[curArg].value
 					if (argAsString.length > digitCount) {
-						argAsString = argAsString.substr(
-							argAsString.length - digitCount
-						)
+						argAsString = argAsString.substr(argAsString.length - digitCount)
 					} else {
 						while (argAsString.length < digitCount) {
 							argAsString = ' ' + argAsString
@@ -1734,19 +1723,12 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 			const spriteNum = getArgValue(vm.stack.pop())
 
 			vm.cons
-				.createSprite(
-					spriteNum - 1,
-					vm.cons.getImage(imageHandle),
-					frames
-				)
+				.createSprite(spriteNum - 1, vm.cons.getImage(imageHandle), frames)
 				.then(() => {
 					vm.resume()
 				})
 				.catch(e => {
-					throw new RuntimeError(
-						RuntimeErrorCodes.INVALID_ARGUMENT,
-						e
-					)
+					throw new RuntimeError(RuntimeErrorCodes.INVALID_ARGUMENT, e)
 				})
 		}
 	},
@@ -2079,10 +2061,7 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 			for (let i = 0; i < resultArr.length; i++) {
 				target.assign(
 					[i + 1],
-					new ScalarVariable<object>(
-						vm.types['JSON'] as JSONType,
-						resultArr[i]
-					)
+					new ScalarVariable<object>(vm.types['JSON'] as JSONType, resultArr[i])
 				)
 			}
 		}
@@ -2206,10 +2185,7 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 						vm.resume()
 					})
 					.catch(reason => {
-						vm.trace.printf(
-							'Error while fetching data: %s\n',
-							reason
-						)
+						vm.trace.printf('Error while fetching data: %s\n', reason)
 						outResCode.value = -1
 						vm.resume()
 					})

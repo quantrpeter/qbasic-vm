@@ -1,5 +1,6 @@
 /**
- Copyright 2010 Steve Hanov
+ 	Copyright 2010 Steve Hanov
+	Copyright 2019 Jan Starzak
 
 	This file is part of qb.js
 
@@ -59,9 +60,7 @@ export class RuleParser {
 			self.buildSet.addRule(args[0], [], self.action)
 			return args[0]
 		})
-		rules.addRule('or_expr', ['or_expr', "'\\|'", 'cat_expr'], function(
-			args
-		) {
+		rules.addRule('or_expr', ['or_expr', "'\\|'", 'cat_expr'], function(args) {
 			// Implement the or operator by making two new rules.
 			let name = '_' + self.nextRuleId++
 			self.buildSet.addRule(name, args[0])
@@ -95,9 +94,7 @@ export class RuleParser {
 					return args // list of one element.
 				})
 
-				self.buildSet.addRule(name, [name, args[3], args[1]], function(
-					args
-				) {
+				self.buildSet.addRule(name, [name, args[3], args[1]], function(args) {
 					// join the lists and return the result.
 					args[0].push(args[2])
 					return args[0]

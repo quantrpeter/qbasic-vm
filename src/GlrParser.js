@@ -1,20 +1,21 @@
 /**
-    Copyright 2010 Steve Hanov
+	Copyright 2010 Steve Hanov
+	Copyright 2019 Jan Starzak
 
-    This file is part of qb.js
+	This file is part of qb.js
 
-    qb.js is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+	qb.js is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
 
-    qb.js is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+	qb.js is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with qb.js.  If not, see <http://www.gnu.org/licenses/>.
+	You should have received a copy of the GNU General Public License
+	along with qb.js.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 //#include <Tokenizer.js>
@@ -32,7 +33,7 @@ function GlrItem(rule, position) {
 }
 
 GlrItem.prototype = {
-	toString: function() {
+	toString: function () {
 		var str = this.rule.name + ':'
 		for (var i = 0; i < this.rule.symbols.length; i++) {
 			if (i == this.position) {
@@ -77,11 +78,11 @@ GlrState.NextGlrStateId = 0
 
 GlrState.prototype = {
 	/**************************************************************************
-    The key is a string which uniquely identifies the state, so we can
-    determine if we have already generated this state. We use the identifiers
-    of the items' rules, and their positions, concatenated together.
-     *************************************************************************/
-	key: function() {
+	The key is a string which uniquely identifies the state, so we can
+	determine if we have already generated this state. We use the identifiers
+	of the items' rules, and their positions, concatenated together.
+	 *************************************************************************/
+	key: function () {
 		var list = []
 		for (var key in this.items) {
 			if (this.items.hasOwnProperty(key)) {
@@ -91,7 +92,7 @@ GlrState.prototype = {
 		return list.sort().join('_')
 	},
 
-	toString: function() {
+	toString: function () {
 		var str = sprintf('GlrState[%s]:\n', this.id)
 		if (this.accept) {
 			str += '    ACCEPTING\n'
@@ -123,7 +124,7 @@ function GlrShiftNode(locus, state, parents, text) {
 }
 
 GlrShiftNode.prototype = {
-	addParent: function(node) {
+	addParent: function (node) {
 		for (var i = 0; i < this.parents.length; i++) {
 			if (this.parents[i] === node) {
 				return false
@@ -133,7 +134,7 @@ GlrShiftNode.prototype = {
 		return true
 	},
 
-	toString: function() {
+	toString: function () {
 		return sprintf(
 			'GlrShiftNode state=[%s] text=%s',
 			this.state.id,
@@ -141,7 +142,7 @@ GlrShiftNode.prototype = {
 		)
 	},
 
-	evaluate: function() {
+	evaluate: function () {
 		return this.text
 	}
 }
@@ -158,7 +159,7 @@ function GlrInteriorNode(rnode, rule, ref) {
 }
 
 GlrInteriorNode.prototype = {
-	addParent: function(node) {
+	addParent: function (node) {
 		var i
 		for (i = 0; i < this.parents.length; i++) {
 			if (this.parents[i] === node) {
@@ -173,11 +174,11 @@ GlrInteriorNode.prototype = {
 		return false
 	},
 
-	toString: function() {
+	toString: function () {
 		return sprintf('GlrInteriorNode rule=%s', this.rule)
 	},
 
-	evaluate: function() {
+	evaluate: function () {
 		var cur = this.ref
 		var args = []
 		var locus = this.locus
@@ -207,7 +208,7 @@ function GlrReduceNode(locus, state) {
 }
 
 GlrReduceNode.prototype = {
-	addParent: function(node) {
+	addParent: function (node) {
 		for (var i = 0; i < this.parents.length; i++) {
 			if (this.parents[i] === node) {
 				return false
@@ -217,7 +218,7 @@ GlrReduceNode.prototype = {
 		return true
 	},
 
-	getINode: function(rule, ref) {
+	getINode: function (rule, ref) {
 		for (var i = 0; i < this.inodes.length; i++) {
 			if (this.inodes[i].rule === rule && this.inodes[i].ref === ref) {
 				return this.inodes[i]
@@ -233,7 +234,7 @@ GlrReduceNode.prototype = {
 		return inode
 	},
 
-	toString: function() {
+	toString: function () {
 		return sprintf(
 			'GlrReduceNode state=[%s] inodes=%s parents=%s',
 			this.state.id,
@@ -242,7 +243,7 @@ GlrReduceNode.prototype = {
 		)
 	},
 
-	evaluate: function() {
+	evaluate: function () {
 		// choose any inode and return its value.
 		if (this.inodes.length > 1) {
 			dbg.printf('Uh oh! Choice of inodes [%s]...\n', this.state.id)
@@ -269,7 +270,7 @@ function GlrParser(ruleSet) {
 }
 
 GlrParser.prototype = {
-	parse: function(text) {
+	parse: function (text) {
 		this.tokenizer.setText(text)
 		var token
 		var line = 0
@@ -281,7 +282,7 @@ GlrParser.prototype = {
 
 		this.nextTops = []
 
-		for (;;) {
+		for (; ;) {
 			token = this.tokenizer.nextToken(line, position)
 			if (this.debug) {
 				dbg.printf('Got token %s\n', token)
@@ -344,7 +345,7 @@ GlrParser.prototype = {
 		return null
 	},
 
-	printExpected: function(tops) {
+	printExpected: function (tops) {
 		for (var i = 0; i < tops.length; i++) {
 			var state = tops[i].state
 			for (var key in state.items) {
@@ -363,7 +364,7 @@ GlrParser.prototype = {
 		}
 	},
 
-	shift: function(node, symbol) {
+	shift: function (node, symbol) {
 		var nextState = this.computeNext(node.state, symbol.id)
 		if (this.debug) {
 			dbg.printf('Try to shift %s\n', symbol)
@@ -383,14 +384,14 @@ GlrParser.prototype = {
 		}
 	},
 
-	reduceAll: function(node, token) {
+	reduceAll: function (node, token) {
 		node.processed = true
 		for (var i = 0; i < node.state.reductions.length; i++) {
 			this.reduce(node, node.state.reductions[i], token)
 		}
 	},
 
-	reduce: function(node, rule, token) {
+	reduce: function (node, rule, token) {
 		var inode
 
 		if (this.limit++ === 1000) {
@@ -469,7 +470,7 @@ GlrParser.prototype = {
 		dbg.printf('Returning.\n')
 	},
 
-	printStack: function(tops) {
+	printStack: function (tops) {
 		var str = '\nStack:\n'
 		for (var i = 0; i < tops.length; i++) {
 			str += '    ' + tops[i].toString() + '\n'
@@ -478,7 +479,7 @@ GlrParser.prototype = {
 		dbg.print(str)
 	},
 
-	ancestors: function(paths, v, k) {
+	ancestors: function (paths, v, k) {
 		if (k === 0) {
 			paths.push(v)
 		} else {
@@ -488,7 +489,7 @@ GlrParser.prototype = {
 		}
 	},
 
-	findNode: function(tops, state) {
+	findNode: function (tops, state) {
 		for (var i = 0; i < tops.length; i++) {
 			if (tops[i].state === state) {
 				return tops[i]
@@ -497,7 +498,7 @@ GlrParser.prototype = {
 		return null
 	},
 
-	addNonTerminalToState: function(state, ruleName) {
+	addNonTerminalToState: function (state, ruleName) {
 		// for each rule of that name, add it to the state at position 0.
 		var rules = this.ruleSet.rules[ruleName]
 		for (var i = 0; i < rules.length; i++) {
@@ -505,7 +506,7 @@ GlrParser.prototype = {
 		}
 	},
 
-	addRuleToState: function(state, rule, position) {
+	addRuleToState: function (state, rule, position) {
 		// if state contains the rule already, do not add it again.
 		var item = new GlrItem(rule, position)
 		var key = item.key
@@ -531,7 +532,7 @@ GlrParser.prototype = {
 		}
 	},
 
-	cache: function(state) {
+	cache: function (state) {
 		var key = state.key()
 		if (key in this.cached) {
 			GlrState.NextGlrStateId--
@@ -544,7 +545,7 @@ GlrParser.prototype = {
 		return this.cached[key]
 	},
 
-	computeNext: function(state, symbol) {
+	computeNext: function (state, symbol) {
 		if (symbol in state.next) {
 			return state.next[symbol]
 		}

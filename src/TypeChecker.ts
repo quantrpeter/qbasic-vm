@@ -297,10 +297,7 @@ export class TypeChecker implements IVisitor {
 	/**
 	 Check that types of arguments match the ones from the AstDeclareStatement.
 	 */
-	public checkCallArguments(
-		declare: AstDeclareFunction,
-		args: AstArgument[]
-	) {
+	public checkCallArguments(declare: AstDeclareFunction, args: AstArgument[]) {
 		declare.used = true
 		if (declare.args.length !== args.length) {
 			this.error(declare, 'Wrong number of arguments')
@@ -350,11 +347,7 @@ export class TypeChecker implements IVisitor {
 			// error if the typeName does not exist.
 			type = this.types[argument.typeName]
 			if (type === undefined) {
-				this.error(
-					argument,
-					'Type %s is not defined',
-					argument.typeName
-				)
+				this.error(argument, 'Type %s is not defined', argument.typeName)
 				type = new UserType(argument.typeName, {})
 				this.types[argument.typeName] = type
 			}
@@ -525,11 +518,7 @@ export class TypeChecker implements IVisitor {
 		) {
 			let declare = this.declaredSubs[ref.expr.name]
 			if (!declare.isFunction) {
-				this.error(
-					ref,
-					"Tried to call non-function '%s'",
-					ref.expr.name
-				)
+				this.error(ref, "Tried to call non-function '%s'", ref.expr.name)
 			}
 
 			this.checkCallArguments(declare, ref.parameters)
@@ -583,10 +572,7 @@ export class TypeChecker implements IVisitor {
 		for (i = 0; i < ref.parameters.length; i++) {
 			ref.parameters[i].accept(this)
 			if (!IsNumericType(ref.parameters[i].type)) {
-				this.error(
-					ref.parameters[i],
-					'Array subscript must be numeric type'
-				)
+				this.error(ref.parameters[i], 'Array subscript must be numeric type')
 			}
 		}
 
@@ -755,10 +741,7 @@ export class TypeChecker implements IVisitor {
 	public visitSelectStatement(select) {
 		// expr must be compatible with that of each case.
 		select.expr.accept(this)
-		if (
-			!IsNumericType(select.expr.type) &&
-			!IsStringType(select.expr.type)
-		) {
+		if (!IsNumericType(select.expr.type) && !IsStringType(select.expr.type)) {
 			this.error(select, 'Select expression must be numeric or string')
 		}
 
@@ -768,10 +751,7 @@ export class TypeChecker implements IVisitor {
 
 			for (let j = 0; j < caseStatement.exprList.length; j++) {
 				if (
-					!AreTypesCompatible(
-						select.expr.type,
-						caseStatement.exprList[j].type
-					)
+					!AreTypesCompatible(select.expr.type, caseStatement.exprList[j].type)
 				) {
 					this.error(
 						caseStatement,
@@ -831,9 +811,7 @@ export class TypeChecker implements IVisitor {
 	}
 
 	public visitGotoStatement(gotoStatement) {
-		this.labelsUsed.push(
-			new CheckedLabel(gotoStatement.label, gotoStatement)
-		)
+		this.labelsUsed.push(new CheckedLabel(gotoStatement.label, gotoStatement))
 	}
 
 	public visitGosub(gosub) {
@@ -879,11 +857,7 @@ export class TypeChecker implements IVisitor {
 		if (IsStringType(binary.lhs.type)) {
 			// operator must be +, <, >, <>, '='
 			bad |=
-				op !== '+' &&
-				op !== '<' &&
-				op !== '>' &&
-				op !== '<>' &&
-				op !== '='
+				op !== '+' && op !== '<' && op !== '>' && op !== '<>' && op !== '='
 					? 1
 					: 0
 		}
@@ -897,7 +871,9 @@ export class TypeChecker implements IVisitor {
 			op === '<>' ||
 			op === '<' ||
 			op === '<=' ||
-			op === '>='
+			op === '>=' ||
+			op === '<<' ||
+			op === '>>'
 		) {
 			type = this.types.INTEGER
 		}

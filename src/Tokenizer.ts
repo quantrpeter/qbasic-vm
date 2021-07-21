@@ -1,5 +1,6 @@
 /**
 	Copyright 2010 Steve Hanov
+	Copyright 2019 Jan Starzak
 
 	This file is part of qb.js
 
@@ -149,11 +150,7 @@ export class NfaState {
 		}
 		for (let i = 0; i < this.next.length; i++) {
 			str +=
-				'    ch=' +
-				this.next[i].mchar +
-				' goto [' +
-				this.next[i].id +
-				']\n'
+				'    ch=' + this.next[i].mchar + ' goto [' + this.next[i].id + ']\n'
 		}
 		return str
 	}
@@ -511,11 +508,7 @@ export class Tokenizer {
 
 		if (!this.rootDfa) {
 			this.rootDfa = new DfaState()
-			this.addState(
-				this.rootDfa.nfaStates,
-				this.rootDfa.accepts,
-				this.root
-			)
+			this.addState(this.rootDfa.nfaStates, this.rootDfa.accepts, this.root)
 		}
 
 		let dfaState = this.rootDfa
@@ -575,10 +568,7 @@ export class Tokenizer {
 			// dbg.printf("Returning match id=%s at %d:%d text=%s\n", accept.id,
 			//    accept.locus.line, accept.locus.position, accept.text );
 		} else {
-			dbg().printf(
-				"Bad token at '%s'\n",
-				this.text.substr(startPosition, 10)
-			)
+			dbg().printf("Bad token at '%s'\n", this.text.substr(startPosition, 10))
 			dbg().printf('ascii %d\n', this.text.charCodeAt(startPosition))
 		}
 

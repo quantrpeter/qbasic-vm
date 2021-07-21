@@ -1,9 +1,6 @@
-import { Rule, RuleSet, IToken } from './RuleSet'
-import { Token, Locus, Tokenizer } from './Tokenizer'
-import { getDebugConsole as dbg, sprintf } from './DebugConsole'
-
 /**
     Copyright 2010 Steve Hanov
+	Copyright 2019 Jan Starzak
 
     This file is part of qb.js
 
@@ -20,7 +17,10 @@ import { getDebugConsole as dbg, sprintf } from './DebugConsole'
     You should have received a copy of the GNU General Public License
     along with qb.js.  If not, see <http://www.gnu.org/licenses/>.
 */
-// #include <debug.js>
+
+import { Rule, RuleSet, IToken } from './RuleSet'
+import { Token, Locus, Tokenizer } from './Tokenizer'
+import { getDebugConsole as dbg, sprintf } from './DebugConsole'
 
 let NextId = 0
 
@@ -140,9 +140,7 @@ export class EarleyParser {
 		for (i = 0; ; i++) {
 			let token = this.tokenizer.nextToken(line, position)
 			if (token === null) {
-				this.errors.push(
-					sprintf('Bad token at %d:%d\n', line, position)
-				)
+				this.errors.push(sprintf('Bad token at %d:%d\n', line, position))
 				dbg().printf('Bad token!\n')
 				return null
 			} else if (this.debug) {
@@ -162,9 +160,7 @@ export class EarleyParser {
 			this.scan(states, i, token)
 
 			if (states[i].length === 0) {
-				this.errors.push(
-					sprintf('Syntax error at %s: %s', this.locus, token)
-				)
+				this.errors.push(sprintf('Syntax error at %s: %s', this.locus, token))
 				for (j = 0; j < states[i - 1].length; j++) {
 					this.errors.push(sprintf('    %s\n', states[i - 1][j]))
 				}
@@ -222,10 +218,7 @@ export class EarleyParser {
 		if (item.pos === item.rule.symbols.length) {
 			let baseItems = states[item.base]
 			for (let j = 0; j < baseItems.length; j++) {
-				if (
-					baseItems[j].rule.symbols[baseItems[j].pos] ===
-					item.rule.name
-				) {
+				if (baseItems[j].rule.symbols[baseItems[j].pos] === item.rule.name) {
 					this.addToState(
 						states[i],
 						baseItems[j].rule,

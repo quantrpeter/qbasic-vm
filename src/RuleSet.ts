@@ -1,5 +1,6 @@
 /**
 	Copyright 2010 Steve Hanov
+	Copyright 2019 Jan Starzak
 
 	This file is part of qb.js
 
@@ -140,7 +141,8 @@ export class RuleSet {
 	// ------------------------------------------------------------------------
 	// Verify consistency of the rules.
 	//
-	// errors - an array. Text describing the errors will be added to the end of this array.
+	// errors - an array. Text describing the errors will be added to the end of
+	// this array.
 	//
 	// Returns: Number of errors found.
 	// ------------------------------------------------------------------------
@@ -318,20 +320,14 @@ export class RuleSet {
 					for (let j = 0; j < rules[i].symbols.length; j++) {
 						// if it is a terminal
 						if (rules[i].symbols[j][0] === "'") {
-							changed |= addFirst(name, rules[i].symbols[j])
-								? 1
-								: 0
+							changed |= addFirst(name, rules[i].symbols[j]) ? 1 : 0
 							break
 
 							// if it's a terminal,
 						} else {
 							changed |= merge(name, rules[i].symbols[j])
 
-							if (
-								this.first[rules[i].symbols[j]][
-									this.EPSILON
-								] !== 1
-							) {
+							if (this.first[rules[i].symbols[j]][this.EPSILON] !== 1) {
 								// continue only if it contains the epsilon
 								// symbol.
 								break
@@ -370,16 +366,12 @@ export class RuleSet {
 						let follow = this.follow[rule.symbols[j]]
 
 						if (j === rule.symbols.length - 1) {
-							if (
-								rule.symbols[j][0] !== "'" &&
-								rule.symbols[j] !== name
-							) {
+							if (rule.symbols[j][0] !== "'" && rule.symbols[j] !== name) {
 								for (f in this.follow[name]) {
 									if (f !== this.EPSILON) {
 										// dbg.printf("%s follows %s cause it's last of %s\n",
 										//    f, rule.symbols[j], name );
-										changed |=
-											follow[f] === undefined ? 1 : 0
+										changed |= follow[f] === undefined ? 1 : 0
 										follow[f] = 1
 									}
 								}
@@ -388,10 +380,7 @@ export class RuleSet {
 							rule.symbols[j + 1][0] === "'" ||
 							rule.symbols[j + 1] === this.EOF_TOKEN
 						) {
-							changed |=
-								follow[rule.symbols[j + 1]] === undefined
-									? 1
-									: 0
+							changed |= follow[rule.symbols[j + 1]] === undefined ? 1 : 0
 							follow[rule.symbols[j + 1]] = 1
 							// dbg.printf("%s follows %s\n", rule.symbols[j+1],
 							//    rule.symbols[j]);
@@ -425,10 +414,7 @@ export class RuleSet {
 			// dbg.printf("Add token %s='%s'\n",
 			//    this.terminals[i],
 			//    this.innerExpr( this.terminals[i] ) );
-			tokenizer.addToken(
-				this.terminals[i],
-				this.innerExpr(this.terminals[i])
-			)
+			tokenizer.addToken(this.terminals[i], this.innerExpr(this.terminals[i]))
 		}
 
 		tokenizer.EOF_TOKEN = this.EOF_TOKEN

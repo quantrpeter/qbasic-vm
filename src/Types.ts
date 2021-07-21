@@ -310,10 +310,7 @@ export class ArrayVariable<T extends SomeScalarType> {
 		for (i = 0; i < totalSize; i++) {
 			this.values.push(
 				oldValues[i] ||
-					new ScalarVariable<any>(
-						this.type,
-						this.type.createInstance()
-					)
+					new ScalarVariable<any>(this.type, this.type.createInstance())
 			)
 		}
 	}
@@ -323,9 +320,7 @@ export function IsNumericType(
 	type: SomeType
 ): type is IntegerType | SingleType | DoubleType {
 	return (
-		type.name === 'INTEGER' ||
-		type.name === 'SINGLE' ||
-		type.name === 'DOUBLE'
+		type.name === 'INTEGER' || type.name === 'SINGLE' || type.name === 'DOUBLE'
 	)
 }
 
@@ -351,8 +346,7 @@ export function AreTypesCompatible(type1: SomeType, type2: SomeType) {
 		(IsNumericType(type1) && IsNumericType(type2)) ||
 		(IsArrayType(type1) &&
 			IsArrayType(type2) &&
-			(type1.elementType.name === 'ANY' ||
-				type2.elementType.name === 'ANY')) ||
+			(type1.elementType.name === 'ANY' || type2.elementType.name === 'ANY')) ||
 		(!IsArrayType(type1) &&
 			!IsArrayType(type2) &&
 			(type1.name === 'ANY' || type2.name === 'ANY')) ||

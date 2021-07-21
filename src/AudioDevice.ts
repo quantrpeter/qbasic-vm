@@ -1,3 +1,22 @@
+/**
+	Copyright 2021 Jan Starzak
+
+	This file is part of qb.js
+
+	qb.js is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+
+	qb.js is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with qb.js.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 import * as MMLIterator from 'mml-iterator'
 import SeqEmitter = require('seq-emitter')
 import { IAudioDevice } from './IAudioDevice'
@@ -26,7 +45,8 @@ class MMLEmitter extends SeqEmitter {
 			.filter(source => !!source.trim())
 			// strip out MML header
 			.map(source => source.replace(/^MML@/, ''))
-			// MML songs available on the internet often assume the player is going to use the same tempo as in the previous track
+			// MML songs available on the internet often assume the player is going to use the same tempo as in
+			// the previous track
 			.map(track => {
 				const tempo = track.match(/t(\d+)/i)
 				if (!tempo && lastTempo) {
@@ -110,10 +130,7 @@ export class AudioDevice implements IAudioDevice {
 				// loop forever
 				if (repeat === undefined || repeat > 1) {
 					resolve(
-						this.playMusic(
-							mml,
-							repeat === undefined ? undefined : repeat - 1
-						)
+						this.playMusic(mml, repeat === undefined ? undefined : repeat - 1)
 					)
 				} else {
 					resolve()
@@ -165,11 +182,7 @@ export class AudioDevice implements IAudioDevice {
 		amp.gain.exponentialRampToValueAtTime(1e-3, t2)
 		amp.connect(this.audioContext.destination)
 	}
-	makeSound(
-		frequency: number,
-		duration: number,
-		volume = 0.05
-	): Promise<void> {
+	makeSound(frequency: number, duration: number, volume = 0.05): Promise<void> {
 		frequency = Math.min(Math.max(12, frequency), 4000)
 		return new Promise<void>(resolve => {
 			const baseTime = this.audioContext.currentTime

@@ -82,9 +82,7 @@ export class Instruction {
 
 	public toString() {
 		if (this.instr.numArgs === 0) {
-			return (
-				this.instr.name + ` (${this.locus.line}:${this.locus.position})`
-			)
+			return this.instr.name + ` (${this.locus.line}:${this.locus.position})`
 		} else {
 			return (
 				this.instr.name +

@@ -1,0 +1,5 @@
+{
+	"editor.wordSeparators": "`~!@^&*()-=+[{]}\\|;:'\",.<>/?",
+	"editor.linkedEditing": true,
+	"editor.rulers": [80]
+}

@@ -1,5 +1,6 @@
 /**
     Copyright 2010 Steve Hanov
+	Copyright 2019 Jan Starzak
 
     This file is part of qb.js
 
@@ -16,8 +17,6 @@
     You should have received a copy of the GNU General Public License
     along with qb.js.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-// #include <debug.js>
 
 import { getDebugConsole as dbg } from './DebugConsole'
 import { IConsole } from './IConsole'
