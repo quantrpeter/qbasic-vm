@@ -1,6 +1,7 @@
 {
 	"compilerOptions": {
-		"moduleResolution": "node"
+		"moduleResolution": "node",
+		"declaration": true
 	},
 	"extends": "./config/tsconfig.base",
 	"exclude": ["node_modules/**", "src/**/*spec.ts", "src/**/__mocks__/*"],

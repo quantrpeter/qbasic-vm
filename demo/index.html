@@ -1,14 +1,21 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<script src="dist/qb.js" type="text/javascript"></script>
+		<script src="qbasic-vm.js" type="text/javascript"></script>
 	</head>
 	<body>
 		<div id="main"></div>
 		<div id="debug"></div>
 
 		<script type="text/javascript">
-			const cons = new qb.Console(document.getElementById('main'), undefined, 320, 600, '')
+			const qb = window['qbasic-vm']
+			const cons = new qb.Console(
+				document.getElementById('main'),
+				undefined,
+				320,
+				600,
+				''
+			)
 			const audio = new qb.AudioDevice()
 			const network = new qb.NetworkAdapter()
 			const virtualMachine = new qb.VirtualMachine(cons, audio, network)
@@ -32,7 +39,7 @@
 						virtualMachine.cwd = baseUrl.toString()
 
 						virtualMachine.run(program, false)
-						virtualMachine.on('error', (error) => {
+						virtualMachine.on('error', error => {
 							dbg.print('Runtime error: ' + error + ' at ' + error.locus + '\n')
 						})
 					} else {

@@ -90,6 +90,7 @@ export class NetworkAdapter implements INetworkAdapter {
 				throw new Error('Floating WebSocket handle')
 			}
 			socketHandle.socket.send(data)
+			resolve()
 		})
 	}
 	wsGetMessageFromBuffer(handle: number): Promise<string | undefined> {

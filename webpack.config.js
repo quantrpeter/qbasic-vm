@@ -4,11 +4,14 @@ module.exports = {
 	mode: 'development',
 	entry: './src/index.ts',
 	output: {
-		path: __dirname,
-		filename: './dist/qb.js'
+		path: path.join(__dirname, 'dist'),
+		filename: 'qbasic-vm.js',
+		library: 'qbasic-vm',
+		libraryTarget: 'umd',
 	},
 	devtool: 'source-map',
 	resolve: {
+		modules: [path.resolve('./node_modules'), path.resolve('./src')],
 		extensions: ['.js', '.ts', '.json']
 	},
 	module: {
@@ -19,7 +22,7 @@ module.exports = {
 				use: {
 					loader: 'ts-loader',
 					options: {
-						transpileOnly: true
+						transpileOnly: false
 					}
 				}
 			}
@@ -36,6 +39,6 @@ module.exports = {
 		open: true,
 		openPage: 'index.html',
 		watchContentBase: true,
-		filename: 'qb.js'
+		filename: 'qbasic-vm.js'
 	},
 }

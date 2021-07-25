@@ -17,6 +17,13 @@
 	along with qb.js.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+import { Console } from './Console'
+import { DebugConsole } from './DebugConsole'
+import { VirtualMachine } from './VirtualMachine'
+import { QBasicProgram } from './QBasic'
+import { AudioDevice } from './AudioDevice'
+import { NetworkAdapter } from './NetworkAdapter'
+
 export * from './Console'
 export * from './DebugConsole'
 export * from './VirtualMachine'
@@ -26,5 +33,11 @@ export * from './AudioDevice'
 export * from './INetworkAdapter'
 export * from './NetworkAdapter'
 
-import { legacyAPI } from './legacy'
-legacyAPI()
+export default {
+	Console,
+	DebugConsole,
+	VirtualMachine,
+	QBasicProgram,
+	AudioDevice,
+	NetworkAdapter
+}
