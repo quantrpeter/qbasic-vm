@@ -25,7 +25,7 @@
 				'driveBy/driveBy.bas',
 				'artic/artic.bas'
 			]
-			const fileName = demoPrgs[1]
+			const fileName = demoPrgs[0]
 			fetch(fileName)
 				.then(resp => {
 					if (resp.status === 200) return resp.text()

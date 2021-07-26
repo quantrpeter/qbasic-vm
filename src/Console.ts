@@ -138,6 +138,7 @@ export class Console extends EventTarget implements IConsole {
 
 	private keyDown: string[] = []
 	private inputMode: boolean = false
+	private inputNewLineAfterEnter: boolean = false
 	private onInputDone: ((str: string) => void) | null = null
 	private onTrappedKey: {
 		[key: number]: (num?: number) => void
@@ -792,7 +793,7 @@ export class Console extends EventTarget implements IConsole {
 		this.y -= 1
 	}
 
-	public input(): Promise<string> {
+	public input(newLineAfterEnter: boolean): Promise<string> {
 		return new Promise<string>(resolve => {
 			if (this.recording) {
 				let str = ''
@@ -807,6 +808,7 @@ export class Console extends EventTarget implements IConsole {
 				this.inputMode = true
 				this.inputStr = ''
 				this.inputPos = 0
+				this.inputNewLineAfterEnter = newLineAfterEnter || false
 			}
 		})
 	}
@@ -881,7 +883,9 @@ export class Console extends EventTarget implements IConsole {
 			if (event.key === 'Enter') {
 				// done
 				this.inputMode = false
-				this.print('\n')
+				if (this.inputNewLineAfterEnter) {
+					this.print('\n')
+				}
 				this.enableCursor(false)
 				if (this.onInputDone) this.onInputDone(this.inputStr)
 			}

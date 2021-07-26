@@ -83,7 +83,7 @@ export interface IConsole {
 	locate(row: number, col: number): void
 	color(fg: number | null, bg: number | null, bo: number | null): void
 	scroll(): void
-	input(): Promise<string>
+	input(newLineAfterEnter: boolean): Promise<string>
 	onKey(num: number, handler: (() => void) | undefined): void
 	backup(num): void
 	onKeyDown(event: KeyboardEvent): void

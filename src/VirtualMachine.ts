@@ -1197,6 +1197,7 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 		args: [],
 		minArgs: 0,
 		action: function(vm) {
+			// this is here on purpose, to allow setting traps from inside BASIC
 			debugger
 
 			// remove passed in arguments
@@ -1533,10 +1534,11 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 				args.unshift(vm.stack.pop())
 			}
 
-			vm.suspend()
+			let newLineAfterEnter = vm.stack.pop() !== 0
 
+			vm.suspend()
 			vm.cons
-				.input()
+				.input(newLineAfterEnter)
 				.then(result => {
 					args[0].value = result
 					vm.resume()

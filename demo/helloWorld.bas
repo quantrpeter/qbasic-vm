@@ -47,7 +47,7 @@ FOR i = 1 TO 100
 NEXT i
 SPCLR 1
 PRINT "Enter your name:"
-INPUT Name$
+INPUT "What is your name";  Name$
 PRINT "HELLO " + Name$
 SLEEP
 IMGPUT Sprite, 0, 0

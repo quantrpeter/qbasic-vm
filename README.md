@@ -1,4 +1,5 @@
-# qb.js
+qbasic-vm
+=========
 
 ![screenshot](https://raw.github.com/smhanov/qb.js/master/assets/screenshot.png)
 

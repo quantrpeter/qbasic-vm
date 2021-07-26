@@ -195,17 +195,20 @@ export class AstInputStatement implements AstStatement {
 	promptExpr: any
 	printQuestionMark: boolean
 	identifiers: any[]
+	newLineAfterEnter: boolean
 
 	constructor(
 		locus: ILocus,
 		promptExpr: any,
 		printQuestionMark: boolean,
-		identifiers: any[]
+		identifiers: any[],
+		newLineAfterEnter = true
 	) {
 		this.locus = locus
 		this.promptExpr = promptExpr // can be null.
 		this.printQuestionMark = printQuestionMark
 		this.identifiers = identifiers // actually we will only use the first one.
+		this.newLineAfterEnter = newLineAfterEnter
 	}
 
 	public accept(visitor: IVisitor) {
@@ -835,6 +838,7 @@ export class QBasicProgram {
 			rules.addToken('floatconstant', '\\d*\\.\\d+')
 			rules.addToken('intconstant', '-?\\d+')
 			rules.addToken('stringconstant', '"[^"]*"')
+			rules.addToken('fileconstant', '#\\d+')
 			rules.addToken('label', '^([a-zA-Z][a-zA-Z0-9_]*:|\\d+)')
 			rules.addToken('identifier', '[a-zA-Z_][a-zA-Z0-9_]*(\\$|%|#|&|!)?')
 
@@ -1062,9 +1066,19 @@ export class QBasicProgram {
 			rules.addRule("moreExpr: expr ','", UseFirst)
 
 			rules.addRule(
-				"istatement: INPUT constant? (';'|',') identifiers",
+				"istatement: INPUT (';')? constant? (';'|',') identifiers",
 				function(args, locus) {
-					return new AstInputStatement(locus, args[1], args[2] === ';', args[3])
+					return new AstInputStatement(
+						locus,
+						args[2],
+						// if arg[2] is set, this means that the semicolon matched
+						// at arg[3] is the one following the promptExpr
+						args[2] ? args[3] === ';' : false,
+						args[4],
+						// if arg[2] is not set, this means that the semicolon matched
+						// at arg[3] is the one following the INPUT statement
+						args[2] ? args[1] !== ';' : args[3]
+					)
 				}
 			)
 			rules.addRule('istatement: LINE? INPUT identifiers', function(
