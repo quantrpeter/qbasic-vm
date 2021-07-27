@@ -28,11 +28,15 @@ PRINT DATE$
 PRINT "Press ANY key"
 SLEEP
 
+fileNum% = 1
+
 DIM Sprite AS INTEGER
 Sprite = IMGLOAD("test.png")
 SPSET 1, Sprite
 SPOFS 1, 0, 50
 PrintRainbow "HELLO WORLD!"
+OPEN "dupa" FOR INPUT AS fileNum%
+CLOSE
 PRINT ""
 PRINT "Press ANY key"
 SLEEP

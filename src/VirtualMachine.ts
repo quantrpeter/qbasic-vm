@@ -2196,6 +2196,29 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 				outResCode.value = -1
 			}
 		}
+	},
+
+	OPEN: {
+		action: function(vm) {
+			const fileHandle = vm.stack.pop()
+			const fileName = vm.stack.pop()
+			const mode = vm.stack.pop()
+
+			console.log(fileHandle, fileName, mode)
+		}
+	},
+
+	CLOSE: {
+		action: function(vm) {
+			const argCount = vm.stack.pop()
+
+			let fileHandles: number[] = []
+			for (let i = 0; i < argCount; i++) {
+				fileHandles.push(vm.stack.pop())
+			}
+
+			console.log(fileHandles)
+		}
 	}
 }
 
@@ -2466,6 +2489,34 @@ export const Instructions: InstructionDefinition = {
 		numArgs: 0,
 		execute: function(vm) {
 			vm.stack.push(vm.stack.pop() | vm.stack.pop())
+		}
+	},
+
+	XOR: {
+		name: 'or',
+		numArgs: 0,
+		execute: function(vm) {
+			vm.stack.push(vm.stack.pop() ^ vm.stack.pop())
+		}
+	},
+
+	EQV: {
+		name: 'eqv',
+		numArgs: 0,
+		execute: function(vm) {
+			const rhs = vm.stack.pop()
+			const lhs = vm.stack.pop()
+			vm.stack.push((lhs & rhs) | (lhs === rhs ? -1 : 0))
+		}
+	},
+
+	IMP: {
+		name: 'imp',
+		numArgs: 0,
+		execute: function(vm) {
+			const rhs = vm.stack.pop()
+			const lhs = vm.stack.pop()
+			vm.stack.push((rhs & -1) | (lhs === rhs ? -1 : 0))
 		}
 	},
 

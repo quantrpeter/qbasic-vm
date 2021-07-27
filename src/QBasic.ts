@@ -190,6 +190,46 @@ export class AstPrintItem implements AstStatement {
 	}
 }
 
+export class AstOpenStatement implements AstStatement {
+	locus: ILocus
+	fileNameExpr: any
+	mode: string
+	fileHandle: AstVariableReference | AstConstantExpr
+
+	constructor(
+		locus: ILocus,
+		fileNameExpr: any,
+		mode: string,
+		fileHandle: AstVariableReference | AstConstantExpr
+	) {
+		this.locus = locus
+		this.fileNameExpr = fileNameExpr
+		this.mode = (mode || '').toUpperCase()
+		this.fileHandle = fileHandle
+	}
+
+	public accept(visitor: IVisitor) {
+		visitor.visitOpenStatement(this)
+	}
+}
+
+export class AstCloseStatement implements AstStatement {
+	locus: ILocus
+	fileHandles: (AstVariableReference | AstConstantExpr)[]
+
+	constructor(
+		locus: ILocus,
+		fileHandles: (AstVariableReference | AstConstantExpr)[]
+	) {
+		this.locus = locus
+		this.fileHandles = fileHandles
+	}
+
+	public accept(visitor: IVisitor) {
+		visitor.visitCloseStatement(this)
+	}
+}
+
 export class AstInputStatement implements AstStatement {
 	locus: ILocus
 	promptExpr: any
@@ -438,16 +478,11 @@ export class AstDoStatement implements AstStatement {
 	}
 }
 
-export enum AstExitStatementType {
-	FOR = 'for',
-	DO = 'do'
-}
-
 export class AstExitStatement implements AstStatement {
 	locus: ILocus
-	what: AstExitStatementType // "FOR" or "DO"
+	what: string // "FOR" or "DO"
 
-	constructor(locus: ILocus, what: AstExitStatementType) {
+	constructor(locus: ILocus, what: string) {
 		this.locus = locus
 		this.what = what // "FOR" or "DO"
 	}
@@ -811,6 +846,9 @@ export class QBasicProgram {
 			rules.addToken('NEXT', 'NEXT')
 			rules.addToken('NOT', 'NOT')
 			rules.addToken('OR', 'OR')
+			rules.addToken('XOR', 'XOR')
+			rules.addToken('EQV', 'EQV')
+			rules.addToken('IMP', 'IMP')
 			rules.addToken('POKE', 'POKE')
 			rules.addToken('PRINT', 'PRINT')
 			rules.addToken('RESTORE', 'RESTORE')
@@ -831,6 +869,8 @@ export class QBasicProgram {
 			rules.addToken('WEND', 'WEND')
 			rules.addToken('WHILE', 'WHILE')
 			rules.addToken('REM', 'REM ?.*$')
+			rules.addToken('OPEN', 'OPEN')
+			rules.addToken('CLOSE', 'CLOSE')
 			rules.addToken('minus', '\\-')
 			rules.addToken('endl', '\\n')
 			rules.addToken('comment', "'.*$")
@@ -1066,6 +1106,42 @@ export class QBasicProgram {
 			rules.addRule("moreExpr: expr ','", UseFirst)
 
 			rules.addRule(
+				"istatement: OPEN Reference FOR ('OUTPUT'|'INPUT'|'APPEND'|'BINARY'|'RANDOM') AS FileItem",
+				function(args, locus) {
+					return new AstOpenStatement(locus, args[1], args[3], args[5])
+				}
+			)
+			rules.addRule(
+				"istatement: OPEN FileName FOR ('OUTPUT'|'INPUT'|'APPEND'|'BINARY'|'RANDOM') AS FileItem",
+				function(args, locus) {
+					return new AstOpenStatement(locus, args[1], args[3], args[5])
+				}
+			)
+			rules.addRule('istatement: CLOSE FileItems?', function(args, locus) {
+				let fileItems: (AstVariableReference | AstConstantExpr)[]
+				if (Array.isArray(args[1])) {
+					fileItems = [...args[1]]
+				} else if (args[1]) {
+					fileItems = [args[1]]
+				} else {
+					fileItems = []
+				}
+				return new AstCloseStatement(locus, fileItems)
+			})
+			rules.addRule('FileName: stringconstant', this.onString)
+			rules.addRule("FileItems: MoreFileItems* FileItem ','?", function(args) {
+				return args[0]
+			})
+			rules.addRule("FileItems: FileItem (';'|',')?", function(args) {
+				return args[0]
+			})
+			rules.addRule("MoreFileItems: FileItem (';'|',')", function(args) {
+				return args[0]
+			})
+			rules.addRule('FileItem: Reference')
+			rules.addRule('FileItem: fileconstant', this.onFileNumber)
+
+			rules.addRule(
 				"istatement: INPUT (';')? constant? (';'|',') identifiers",
 				function(args, locus) {
 					return new AstInputStatement(
@@ -1228,6 +1304,9 @@ export class QBasicProgram {
 			})
 			rules.addRule("OptParen: '\\(' '\\)'")
 			rules.addRule('expr: expr2')
+			rules.addRule('expr2: expr2 IMP expr3', this.onBinaryOp)
+			rules.addRule('expr2: expr2 EQV expr3', this.onBinaryOp)
+			rules.addRule('expr2: expr2 XOR expr3', this.onBinaryOp)
 			rules.addRule('expr2: expr2 OR expr3', this.onBinaryOp)
 			rules.addRule('expr2: expr3')
 			rules.addRule('expr3: expr3 AND expr4', this.onBinaryOp)
@@ -1349,6 +1428,10 @@ export class QBasicProgram {
 			locus,
 			symbols[0].substr(1, symbols[0].length - 2)
 		)
+	}
+
+	private onFileNumber(symbols, locus) {
+		return new AstConstantExpr(locus, parseInt(symbols[0].substr(1), 10))
 	}
 
 	private onBinaryOp(symbols, locus) {

@@ -63,7 +63,9 @@ import {
 	AstAssignStatement,
 	AstBinaryOp,
 	AstUnaryOperator,
-	AstConstantExpr
+	AstConstantExpr,
+	AstOpenStatement,
+	AstCloseStatement
 } from './QBasic'
 import './types/array.extensions'
 import { IsArrayType } from './Types'
@@ -314,6 +316,22 @@ export class CodeGenerator implements IVisitor {
 		if (node.expr) {
 			node.expr.accept(this)
 		}
+	}
+
+	public visitOpenStatement(node: AstOpenStatement) {
+		this.write('PUSHCONST', node.mode.substr(0, 1), node.locus)
+		node.fileNameExpr.accept(this)
+		node.fileHandle.accept(this)
+		this.write('SYSCALL', 'OPEN', node.locus)
+	}
+
+	public visitCloseStatement(node: AstCloseStatement) {
+		for (let i = 0; i < node.fileHandles.length; i++) {
+			node.fileHandles[i].accept(this)
+		}
+
+		this.write('PUSHCONST', node.fileHandles.length, node.locus)
+		this.write('SYSCALL', 'CLOSE', node.locus)
 	}
 
 	public visitInputStatement(node: AstInputStatement) {

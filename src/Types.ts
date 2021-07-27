@@ -42,7 +42,7 @@ export class NullType extends Type<null> {
 	}
 }
 
-export function DeriveTypeNameFromVariable(name) {
+export function DeriveTypeNameFromVariable(name: string): string | null {
 	if (!name) return null
 	switch (name[name.length - 1]) {
 		case '$':

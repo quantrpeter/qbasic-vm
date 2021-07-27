@@ -56,7 +56,9 @@ import {
 	AstBinaryOp,
 	AstUnaryOperator,
 	AstConstantExpr,
-	AstExitStatement
+	AstExitStatement,
+	AstOpenStatement,
+	AstCloseStatement
 } from './QBasic'
 
 export interface IVisitor {
@@ -68,6 +70,8 @@ export interface IVisitor {
 	visitPrintStatement(print: AstPrintStatement): void
 	visitPrintUsingStatement(printUsing: AstPrintUsingStatement): void
 	visitPrintItem(item: AstPrintItem): void
+	visitOpenStatement(open: AstOpenStatement): void
+	visitCloseStatement(close: AstCloseStatement): void
 	visitInputStatement(input: AstInputStatement): void
 	visitNullStatement(argument: AstNullStatement): void
 	visitEndStatement(argument: AstEndStatement): void

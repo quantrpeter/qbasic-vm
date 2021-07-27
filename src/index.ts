@@ -32,6 +32,7 @@ export * from './IAudioDevice'
 export * from './AudioDevice'
 export * from './INetworkAdapter'
 export * from './NetworkAdapter'
+export * from './IFileSystem'
 
 export default {
 	Console,

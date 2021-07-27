@@ -26,7 +26,15 @@ import {
 	AstSubroutine,
 	AstArgument,
 	AstCallStatement,
-	AstVariableReference
+	AstVariableReference,
+	AstOpenStatement,
+	AstInputStatement,
+	AstForLoop,
+	AstNextStatement,
+	AstExitStatement,
+	AstArrayDeref,
+	AstConstantExpr,
+	AstCloseStatement
 } from './QBasic'
 import {
 	IntegerType,
@@ -54,7 +62,7 @@ import { Locus } from './Tokenizer'
 
 // map from names to type objects.
 class TypeScope {
-	names: { [key: string]: any } = {}
+	names: { [key: string]: SomeType | undefined } = {}
 	constructor() {}
 }
 
@@ -166,7 +174,7 @@ export class TypeChecker implements IVisitor {
 	 Using the current scope, or the type suffix, determine the type of the
 	 variable given its name. Returns the type object.
 	 */
-	public getTypeFromVariableName(name) {
+	public getTypeFromVariableName(name: string) {
 		let type = this.scopes[0].names[name]
 		if (type !== undefined) {
 			return type
@@ -176,9 +184,9 @@ export class TypeChecker implements IVisitor {
 			return type
 		}
 
-		type = DeriveTypeNameFromVariable(name)
-		if (type !== null) {
-			return this.types[type]
+		const typeName = DeriveTypeNameFromVariable(name)
+		if (typeName !== null) {
+			return this.types[typeName]
 		}
 
 		return this.defaultType
@@ -406,7 +414,75 @@ export class TypeChecker implements IVisitor {
 		}
 	}
 
-	public visitInputStatement(input) {
+	public visitOpenStatement(open: AstOpenStatement) {
+		if (!open.fileNameExpr) {
+			this.error(open, 'File name needs to be specified.')
+		} else {
+			// file name must be a string
+			open.fileNameExpr.accept(this)
+			if (!IsStringType(open.fileNameExpr.type)) {
+				this.error(open, 'File name must be a string')
+			}
+
+			// mode must be recognized
+			if (
+				open.mode !== 'INPUT' &&
+				open.mode !== 'OUTPUT' &&
+				open.mode !== 'APPEND' &&
+				open.mode !== 'RANDOM' &&
+				open.mode !== 'BINARY'
+			) {
+				this.error(open, 'Unknown file access mode: %s', open.mode)
+			}
+
+			if (!open.fileHandle) {
+				this.error(open, 'File handle needs to be specified')
+			} else {
+				open.fileHandle.accept(this)
+				if (open.fileHandle instanceof AstVariableReference) {
+					let type = this.getTypeFromVariableName(open.fileHandle.name)
+					if (type.name !== 'INTEGER') {
+						this.error(
+							open,
+							'File handle "%s" number must be an integer',
+							open.fileHandle.name
+						)
+					}
+				} else if (open.fileHandle instanceof AstConstantExpr) {
+					if (!Number.isInteger(open.fileHandle.value)) {
+						this.error(open, 'File handle number must be an integer')
+					}
+				} else {
+					this.error(open, 'Invalid file handle')
+				}
+			}
+		}
+	}
+
+	public visitCloseStatement(close: AstCloseStatement) {
+		for (let i = 0; i < close.fileHandles.length; i++) {
+			const handle = close.fileHandles[i]
+			handle.accept(this)
+			if (handle instanceof AstVariableReference) {
+				let type = this.getTypeFromVariableName(handle.name)
+				if (type.name !== 'INTEGER') {
+					this.error(
+						close,
+						'File handle "%s" number must be an integer',
+						handle.name
+					)
+				}
+			} else if (handle instanceof AstConstantExpr) {
+				if (!Number.isInteger(handle.value)) {
+					this.error(close, 'File handle number must be an integer')
+				}
+			} else {
+				this.error(close, 'Invalid file handle')
+			}
+		}
+	}
+
+	public visitInputStatement(input: AstInputStatement) {
 		// prompt must be null or a string.
 		if (input.promptExpr) {
 			input.promptExpr.accept(this)
@@ -422,7 +498,7 @@ export class TypeChecker implements IVisitor {
 				this.error(
 					input,
 					"Identifier '%s' should be string or numeric.",
-					input.identifiers.type
+					input.identifiers[i].name
 				)
 			}
 		}
@@ -432,7 +508,7 @@ export class TypeChecker implements IVisitor {
 
 	public visitEndStatement(_argument) {}
 
-	public visitForLoop(loop) {
+	public visitForLoop(loop: AstForLoop) {
 		// identifier must be numeric type.
 		if (!IsNumericType(this.getTypeFromVariableName(loop.identifier))) {
 			this.error(loop, 'Loop counter must be a number')
@@ -455,7 +531,7 @@ export class TypeChecker implements IVisitor {
 		this.loopStack.unshift(new CheckedLoopContext('FOR', loop.identifier))
 	}
 
-	public visitNextStatement(next) {
+	public visitNextStatement(next: AstNextStatement) {
 		// pop loops off loopstack in order.
 		// identifier must match loops.
 		for (let i = 0; i < next.identifiers.length; i++) {
@@ -487,7 +563,7 @@ export class TypeChecker implements IVisitor {
 		}
 	}
 
-	public visitExitStatement(exit) {
+	public visitExitStatement(exit: AstExitStatement) {
 		if (
 			exit.what &&
 			exit.what !== 'FOR' &&
@@ -508,7 +584,7 @@ export class TypeChecker implements IVisitor {
 		}
 	}
 
-	public visitArrayDeref(ref) {
+	public visitArrayDeref(ref: AstArrayDeref) {
 		let i
 		ref.expr.accept(this)
 
