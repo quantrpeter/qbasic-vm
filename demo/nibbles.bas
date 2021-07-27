@@ -16,6 +16,9 @@
 ' F1 or click the right mouse button.
 '
 
+' Enable VGA-style 80-columns mode
+SCREEN 10
+
 'Set default data type to integer for faster game play
 DEFINT A-Z
 
@@ -215,7 +218,9 @@ SUB GetInputs (NumPlayers, speed, diff$, monitor$)
     LOOP UNTIL monitor$ = "M" OR monitor$ = "C"
 
     startTime# = TIMER                          ' Calculate speed of system
-    FOR i# = 1 TO 1000: NEXT i#                 ' and do some compensation
+    FOR i# = 1 TO 10        ' This part needed to be modified for this program to work with QBasic-VM
+        WAIT
+    NEXT i#                 ' and do some compensation
     stopTime# = TIMER
     speed = speed * .5 / (stopTime# - startTime#)
 
@@ -249,7 +254,7 @@ END SUB
 'Intro:
 '  Displays game introduction
 SUB Intro
-    SCREEN 0
+    SCREEN 0 
     WIDTH 80, 25
     COLOR 15, 0
     CLS
@@ -270,7 +275,7 @@ SUB Intro
     Center 20, "                       (Down)                 (Down)     "
     Center 24, "Press any key to continue"
 
-    PLAY "MBT160O1L8CDEDCDL4ECC"
+    PLAY "T160O3L8CDEDCDL4ECC" ' Modified to use syntax without MB/MF
     SparklePause
 
 END SUB
@@ -444,7 +449,7 @@ SUB PlayNibbles (NumPlayers, speed, diff$)
 
         playerDied = FALSE
         PrintScore NumPlayers, sammy(1).score, sammy(2).score, sammy(1).lives, sammy(2).lives
-        PLAY "T160O1>L20CDEDCDL10ECC"
+        BGMPLAY "T160O1>L20CDEDCDL10ECC" ' Modified to work with QBasic-VM
 
         DO
             'Print number if no number exists
@@ -463,7 +468,9 @@ SUB PlayNibbles (NumPlayers, speed, diff$)
             END IF
 
             'Delay game
-            FOR a# = 1 TO curSpeed:  NEXT a#
+            FOR a# = 1 TO curSpeed
+                WAIT ' Modified to work with QBasic-VM
+            NEXT a#
 
             'Get keyboard input & Change direction accordingly
             kbd$ = INKEY$
@@ -491,7 +498,7 @@ SUB PlayNibbles (NumPlayers, speed, diff$)
 
                 'If snake hits number, respond accordingly
                 IF numberRow = INT((sammy(a).row + 1) / 2) AND NumberCol = sammy(a).col THEN
-                    PLAY "MBO0L16>CCCE"
+                    PLAY "O0L16>CCCE" ' Modified to work with QBasic-VM
                     IF sammy(a).length < (MAXSNAKELENGTH - 30) THEN
                         sammy(a).length = sammy(a).length + number * 4
                     END IF
@@ -517,7 +524,7 @@ SUB PlayNibbles (NumPlayers, speed, diff$)
             FOR a = 1 TO NumPlayers
                 'If player runs into any point, or the head of the other snake, it dies.
                 IF PointIsThere(sammy(a).row, sammy(a).col, colorTable(4)) OR (sammy(1).row = sammy(2).row AND sammy(1).col = sammy(2).col) THEN
-                    PLAY "MBO0L32EFGEFDC"
+                    PLAY "O0L32EFGEFDC" ' Modified to work with QBasic-VM
                     COLOR , colorTable(4)
                     LOCATE numberRow, NumberCol
                     PRINT " "

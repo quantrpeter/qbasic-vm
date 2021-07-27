@@ -862,7 +862,7 @@ export class TypeChecker implements IVisitor {
 
 	public visitUserType(userType) {
 		// must not already be declared.
-		if (!this.types[userType.name]) {
+		if (this.types[userType.name]) {
 			this.error(userType, "Typename '%s' already defined", userType.name)
 		}
 

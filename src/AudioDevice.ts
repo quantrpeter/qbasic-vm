@@ -41,12 +41,13 @@ class MMLEmitter extends SeqEmitter {
 		const MMLIteratorClass = config.MMLIterator || MMLIterator
 		let lastTempo: number | undefined = undefined
 		const tracks = source
+			.toLowerCase()
 			.split(/[;,]/)
 			.filter(source => !!source.trim())
 			// strip out MML header
 			.map(source => source.replace(/^MML@/, ''))
-			// MML songs available on the internet often assume the player is going to use the same tempo as in
-			// the previous track
+			// MML songs available on the internet often assume the player is going
+			// to use the same tempo as in the previous track
 			.map(track => {
 				const tempo = track.match(/t(\d+)/i)
 				if (!tempo && lastTempo) {

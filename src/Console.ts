@@ -93,7 +93,10 @@ const VIDEO_MODES: { [key: number]: IVideoMode } = {
 	// Portrait MODE7
 	7: { width: 160, height: 300, rows: 37, cols: 20 },
 	// Landscape MODE7
-	8: { width: 300, height: 160, rows: 20, cols: 37, landscape: true }
+	8: { width: 300, height: 160, rows: 20, cols: 37, landscape: true },
+
+	// PC-compatible 80 columns mode
+	10: { width: 640, height: 200, rows: 25, cols: 80, landscape: true }
 }
 
 const DEFAULT_VIDEO_MODE = 1
@@ -319,6 +322,26 @@ export class Console extends EventTarget implements IConsole {
 
 		this.cursor(false)
 
+		this._width = dimensions.width
+		this._height = dimensions.height
+
+		this.containerWidth = this._width
+		this.containerHeight = this._height
+
+		this.container.style.width = this.containerWidth + 'px'
+		this.container.style.height = this.containerHeight + 'px'
+		this.container.style.imageRendering = 'pixelated'
+		this.container.style.position = 'relative'
+		this.container.style.overflow = 'hidden'
+		this.container.style['contain'] = 'strict'
+		this.canvas.style.position = 'absolute'
+		this.canvas.style.top = '0'
+		this.canvas.style.left = '0'
+		this.canvas.style.right = '0'
+		this.canvas.style.bottom = '0'
+		this.canvas.style.width = '100%'
+		this.canvas.style.height = '100%'
+
 		this.canvas.width = dimensions.width
 		this.canvas.height = dimensions.height
 		this.rows = dimensions.rows
@@ -334,9 +357,6 @@ export class Console extends EventTarget implements IConsole {
 				})
 			)
 		}
-
-		this._width = dimensions.width
-		this._height = dimensions.height
 
 		this.cls()
 		this.clearAllSprites()
