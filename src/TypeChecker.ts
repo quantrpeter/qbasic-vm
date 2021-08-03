@@ -2,20 +2,21 @@
  Copyright 2010 Steve Hanov
  Copyright 2019 Jan Starzak
 
- This file is part of qb.js
+ This file is part of qbasic-vm
+ File originally sourced from qb.js, also licensed under GPL v3
 
- qb.js is free software: you can redistribute it and/or modify
+ qbasic-vm is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
 	the Free Software Foundation, either version 3 of the License, or
 	(at your option) any later version.
 
-	qb.js is distributed in the hope that it will be useful,
+	qbasic-vm is distributed in the hope that it will be useful,
 	but WITHOUT ANY WARRANTY; without even the implied warranty of
 	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 	GNU General Public License for more details.
 
 	You should have received a copy of the GNU General Public License
-	along with qb.js.  If not, see <http://www.gnu.org/licenses/>.
+	along with qbasic-vm.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 import {
@@ -34,7 +35,8 @@ import {
 	AstExitStatement,
 	AstArrayDeref,
 	AstConstantExpr,
-	AstCloseStatement
+	AstCloseStatement,
+	AstWriteStatement
 } from './QBasic'
 import {
 	IntegerType,
@@ -412,6 +414,11 @@ export class TypeChecker implements IVisitor {
 				item.expr.type.name
 			)
 		}
+	}
+
+	public visitWriteStatement(write: AstWriteStatement) {
+		// all arguments must be convertable to strings or single.
+		write.writeItems.accept(this)
 	}
 
 	public visitOpenStatement(open: AstOpenStatement) {

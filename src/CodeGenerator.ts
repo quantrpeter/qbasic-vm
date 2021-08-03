@@ -2,20 +2,21 @@
     Copyright 2010 Steve Hanov
     Copyright 2019 Jan Starzak
 
-    This file is part of qb.js
+    This file is part of qbasic-vm
+	File originally sourced from qb.js, also licensed under GPL v3
 
-    qb.js is free software: you can redistribute it and/or modify
+    qbasic-vm is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    qb.js is distributed in the hope that it will be useful,
+    qbasic-vm is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with qb.js.  If not, see <http://www.gnu.org/licenses/>.
+    along with qbasic-vm.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { IVisitor } from './IVisitor'
@@ -65,7 +66,8 @@ import {
 	AstUnaryOperator,
 	AstConstantExpr,
 	AstOpenStatement,
-	AstCloseStatement
+	AstCloseStatement,
+	AstWriteStatement
 } from './QBasic'
 import './types/array.extensions'
 import { IsArrayType } from './Types'
@@ -332,6 +334,15 @@ export class CodeGenerator implements IVisitor {
 
 		this.write('PUSHCONST', node.fileHandles.length, node.locus)
 		this.write('SYSCALL', 'CLOSE', node.locus)
+	}
+
+	public visitWriteStatement(node: AstWriteStatement) {
+		this.map(node.locus)
+		for (let i = 0; i < node.writeItems.length; i++) {
+			node.writeItems[i].accept(this)
+			node.fileHandle.accept(this)
+			this.write('SYSCALL', 'WRITE', node.locus)
+		}
 	}
 
 	public visitInputStatement(node: AstInputStatement) {

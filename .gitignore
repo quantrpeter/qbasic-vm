@@ -1,7 +1,7 @@
 node_modules/*
 dist
-qb.js
-qb.js.map
+qbasic-vm
+qbasic-vm.map
 
 yarn.lock
 *.log

@@ -2,20 +2,21 @@
     Copyright 2010 Steve Hanov
     Copyright 2019 Jan Starzak
 
-    This file is part of qb.js
+    This file is part of qbasic-vm
+	File originally sourced from qb.js, also licensed under GPL v3
 
-    qb.js is free software: you can redistribute it and/or modify
+    qbasic-vm is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    qb.js is distributed in the hope that it will be useful,
+    qbasic-vm is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with qb.js.  If not, see <http://www.gnu.org/licenses/>.
+    along with qbasic-vm.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { sprintf, getDebugConsole as dbg } from './DebugConsole'
@@ -38,6 +39,7 @@ import { QBasicProgram } from './QBasic'
 import { Locus } from './Tokenizer'
 import * as EventEmitter from 'eventemitter3'
 import { query as jsonPathQuery } from 'jsonpath'
+import { FileAccessMode, IFileSystem } from './IFileSystem'
 
 export enum RuntimeErrorCodes {
 	DIVISION_BY_ZERO = 101,
@@ -130,6 +132,9 @@ export class VirtualMachine extends EventEmitter<
 	// The audio device
 	audio: IAudioDevice | undefined
 
+	// The file system
+	fileSystem: IFileSystem | undefined
+
 	// The network adapter
 	networkAdapter: INetworkAdapter | undefined
 
@@ -183,12 +188,14 @@ export class VirtualMachine extends EventEmitter<
 	constructor(
 		console: IConsole,
 		audio?: IAudioDevice,
-		networkAdapter?: INetworkAdapter
+		networkAdapter?: INetworkAdapter,
+		fileSystem?: IFileSystem
 	) {
 		super()
 		this.cons = console
 		this.audio = audio
 		this.networkAdapter = networkAdapter
+		this.fileSystem = fileSystem
 
 		if (!DEBUG) {
 			this.trace = { printf: function() {} } as TraceBuffer
@@ -2199,16 +2206,29 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 	},
 
 	OPEN: {
+		// filename$ FOR (INPUT|OUTPUT|APPEND|RANDOM|BINARY) AS (fileNum%|#N)
 		action: function(vm) {
 			const fileHandle = vm.stack.pop()
 			const fileName = vm.stack.pop()
-			const mode = vm.stack.pop()
+			const mode = vm.stack.pop() as FileAccessMode
 
-			console.log(fileHandle, fileName, mode)
+			if (vm.fileSystem) {
+				vm.suspend()
+				vm.fileSystem
+					.open(fileHandle, fileName, mode)
+					.then(() => vm.resume())
+					.catch(reason => {
+						vm.trace.printf('Error while opening file: %s\n', reason)
+						vm.resume()
+					})
+			} else {
+				vm.trace.printf('File System not available')
+			}
 		}
 	},
 
 	CLOSE: {
+		// [(fileNum1%|#N1), (fileNum2%|#N2), (fileNum3%|#N3), ...]
 		action: function(vm) {
 			const argCount = vm.stack.pop()
 
@@ -2217,7 +2237,44 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 				fileHandles.push(vm.stack.pop())
 			}
 
-			console.log(fileHandles)
+			if (vm.fileSystem) {
+				const fileSystem = vm.fileSystem
+				vm.suspend()
+
+				if (argCount === 0) {
+					fileHandles = vm.fileSystem.getUsedFileHandles()
+				}
+
+				Promise.all(fileHandles.map(fileHandle => fileSystem.close(fileHandle)))
+					.then(() => vm.resume())
+					.catch(reason => {
+						vm.trace.printf('Error while closing file: %s\n', reason)
+					})
+			} else {
+				vm.trace.printf('File System not available')
+			}
+		}
+	},
+
+	WRITE: {
+		// [(fileNum1%|#N1),] PrintItem1, PrintItem2, PrintItem3
+		action: function(vm) {
+			const fileHandle = vm.stack.pop()
+			const buf = vm.stack.pop()
+
+			if (vm.fileSystem) {
+				vm.suspend()
+
+				vm.fileSystem
+					.write(fileHandle, buf)
+					.then(() => vm.resume())
+					.catch(reason => {
+						vm.trace.printf('Error while writing to file: %s\n', reason)
+						vm.resume()
+					})
+			} else {
+				vm.trace.printf('File System not available')
+			}
 		}
 	}
 }

@@ -35,7 +35,8 @@ Sprite = IMGLOAD("test.png")
 SPSET 1, Sprite
 SPOFS 1, 0, 50
 PrintRainbow "HELLO WORLD!"
-OPEN "dupa" FOR INPUT AS fileNum%
+OPEN "test" FOR OUTPUT AS fileNum%
+WRITE fileNum%, "Raz", "Dwa", "Trzy", "Cztery", "Raz dwa " + CHR$(34) + "trzy" + CHR$(34) + " cztery"
 CLOSE
 PRINT ""
 PRINT "Press ANY key"

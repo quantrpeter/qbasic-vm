@@ -1,7 +1,7 @@
 {
   "name": "qbasic-vm",
   "version": "0.0.0",
-  "description": "A QBASIC Virtual Machine implemented in TypeScript, based on qb.js by Steve Hanov",
+  "description": "A QBASIC Virtual Machine implemented in TypeScript, based on qbasic-vm by Steve Hanov",
   "main": "dist/qbasic-vm.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:jstarpl/qbasic-vm.git",
@@ -18,7 +18,7 @@
       "url": "http://stevehanov.ca"
     }
   ],
-  "license": "GPL-3.0-only",
+  "license": "GPL v3.0-only",
   "scripts": {
     "start": "webpack serve",
     "lint": "tslint --project tsconfig.json --config tslint.json",

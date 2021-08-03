@@ -2,20 +2,21 @@
 	Copyright 2010 Steve Hanov
 	Copyright 2019 Jan Starzak
 
-	This file is part of qb.js
+	This file is part of qbasic-vm
+	File originally sourced from qb.js, also licensed under GPL v3
 
-	qb.js is free software: you can redistribute it and/or modify
+	qbasic-vm is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
 	the Free Software Foundation, either version 3 of the License, or
 	(at your option) any later version.
 
-	qb.js is distributed in the hope that it will be useful,
+	qbasic-vm is distributed in the hope that it will be useful,
 	but WITHOUT ANY WARRANTY; without even the implied warranty of
 	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 	GNU General Public License for more details.
 
 	You should have received a copy of the GNU General Public License
-	along with qb.js.  If not, see <http://www.gnu.org/licenses/>.
+	along with qbasic-vm.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { SomeType, SomeScalarType } from './Types'
@@ -227,6 +228,26 @@ export class AstCloseStatement implements AstStatement {
 
 	public accept(visitor: IVisitor) {
 		visitor.visitCloseStatement(this)
+	}
+}
+
+export class AstWriteStatement implements AstStatement {
+	locus: ILocus
+	fileHandle: AstVariableReference | AstConstantExpr
+	writeItems: AstPrintItem[]
+
+	constructor(
+		locus: ILocus,
+		fileHandle: AstVariableReference | AstConstantExpr,
+		writeItems: AstPrintItem[]
+	) {
+		this.locus = locus
+		this.writeItems = writeItems
+		this.fileHandle = fileHandle
+	}
+
+	public accept(visitor: IVisitor) {
+		visitor.visitWriteStatement(this)
 	}
 }
 
@@ -840,6 +861,10 @@ export class QBasicProgram {
 			rules.addToken('GOTO', 'GOTO')
 			rules.addToken('IF', 'IF')
 			rules.addToken('INPUT', 'INPUT')
+			rules.addToken('OUTPUT', 'OUTPUT')
+			rules.addToken('BINARY', 'BINARY')
+			rules.addToken('RANDOM', 'RANDOM')
+			rules.addToken('APPEND', 'APPEND')
 			rules.addToken('LINE', 'LINE')
 			rules.addToken('LOOP', 'LOOP')
 			rules.addToken('MOD', 'MOD')
@@ -871,6 +896,7 @@ export class QBasicProgram {
 			rules.addToken('REM', 'REM ?.*$')
 			rules.addToken('OPEN', 'OPEN')
 			rules.addToken('CLOSE', 'CLOSE')
+			rules.addToken('WRITE', 'WRITE')
 			rules.addToken('minus', '\\-')
 			rules.addToken('endl', '\\n')
 			rules.addToken('comment', "'.*$")
@@ -1140,6 +1166,15 @@ export class QBasicProgram {
 			})
 			rules.addRule('FileItem: Reference')
 			rules.addRule('FileItem: fileconstant', this.onFileNumber)
+			rules.addRule("istatement: WRITE FileItem? ',' PrintItems", function(
+				args,
+				locus
+			) {
+				return new AstWriteStatement(locus, args[1], args[3])
+			})
+			rules.addRule('istatement: WRITE PrintItems', function(args, locus) {
+				return new AstPrintStatement(locus, args[1])
+			})
 
 			rules.addRule(
 				"istatement: INPUT (';')? constant? (';'|',') identifiers",

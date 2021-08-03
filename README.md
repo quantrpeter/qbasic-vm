@@ -1,7 +1,7 @@
 qbasic-vm
 =========
 
-![screenshot](https://raw.github.com/smhanov/qb.js/master/assets/screenshot.png)
+![screenshot](https://raw.github.com/smhanov/qbasic-vm/master/assets/screenshot.png)
 
 A QBASIC implementation in JavaScript. 
 
