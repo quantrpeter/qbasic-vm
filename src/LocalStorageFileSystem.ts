@@ -19,6 +19,13 @@
 
 import { FileAccessMode, IFileSystem } from './IFileSystem'
 
+enum KNOWN_MIME_TYPES {
+	BINARY = 'application/octet-stream',
+	PLAIN = 'text/plain',
+	STRUCTURED_TEXT = 'text/csv',
+	JSON = 'application/json'
+}
+
 type FileHandle = {
 	fileName: string
 	mode: FileAccessMode
@@ -108,12 +115,11 @@ export class LocalStorageFileSystem implements IFileSystem {
 				if (mode === FileAccessMode.BINARY) {
 					someContents = await requestResult.arrayBuffer()
 					meta.contentType =
-						requestResult.headers.get('content-type') ||
-						'application/octet-stream'
+						requestResult.headers.get('content-type') || KNOWN_MIME_TYPES.BINARY
 				} else {
 					someContents = await requestResult.text()
 					meta.contentType =
-						requestResult.headers.get('content-type') || 'text/plain'
+						requestResult.headers.get('content-type') || KNOWN_MIME_TYPES.PLAIN
 				}
 			} else {
 				someContents = null
@@ -125,7 +131,7 @@ export class LocalStorageFileSystem implements IFileSystem {
 			if (!someContents) {
 				contents = []
 				// we're creating this file, so let's assign a sensible mimetype
-				meta.contentType = 'application/json'
+				meta.contentType = KNOWN_MIME_TYPES.JSON
 			} else {
 				try {
 					contents = JSON.parse(someContents as string)
@@ -140,7 +146,7 @@ export class LocalStorageFileSystem implements IFileSystem {
 			if (someContents === null) {
 				someContents = ''
 				// we're creating this file, so let's assign a sensible mimetype
-				meta.contentType = 'application/octet-stream'
+				meta.contentType = KNOWN_MIME_TYPES.BINARY
 			}
 
 			contents =
@@ -156,7 +162,7 @@ export class LocalStorageFileSystem implements IFileSystem {
 		} else {
 			if (someContents === null) {
 				// we're creating this file, so let's assign a sensible mimetype
-				meta.contentType = 'text/csv'
+				meta.contentType = KNOWN_MIME_TYPES.STRUCTURED_TEXT
 			}
 			contents = (someContents as string) || ''
 			if (mode === FileAccessMode.APPEND) {
