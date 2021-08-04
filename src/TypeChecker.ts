@@ -505,7 +505,7 @@ export class TypeChecker implements IVisitor {
 				this.error(
 					input,
 					"Identifier '%s' should be string or numeric.",
-					input.identifiers[i].name
+					input.identifiers[i]
 				)
 			}
 		}

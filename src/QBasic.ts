@@ -253,6 +253,7 @@ export class AstWriteStatement implements AstStatement {
 
 export class AstInputStatement implements AstStatement {
 	locus: ILocus
+	line: boolean
 	promptExpr: any
 	printQuestionMark: boolean
 	identifiers: any[]
@@ -260,12 +261,14 @@ export class AstInputStatement implements AstStatement {
 
 	constructor(
 		locus: ILocus,
+		line: boolean,
 		promptExpr: any,
 		printQuestionMark: boolean,
 		identifiers: any[],
 		newLineAfterEnter = true
 	) {
 		this.locus = locus
+		this.line = line
 		this.promptExpr = promptExpr // can be null.
 		this.printQuestionMark = printQuestionMark
 		this.identifiers = identifiers // actually we will only use the first one.
@@ -1177,18 +1180,19 @@ export class QBasicProgram {
 			})
 
 			rules.addRule(
-				"istatement: INPUT (';')? constant? (';'|',') identifiers",
+				"istatement: LINE? INPUT (';')? constant? (';'|',') identifiers",
 				function(args, locus) {
 					return new AstInputStatement(
 						locus,
-						args[2],
-						// if arg[2] is set, this means that the semicolon matched
-						// at arg[3] is the one following the promptExpr
-						args[2] ? args[3] === ';' : false,
-						args[4],
-						// if arg[2] is not set, this means that the semicolon matched
-						// at arg[3] is the one following the INPUT statement
-						args[2] ? args[1] !== ';' : args[3]
+						!!args[0],
+						args[3],
+						// if arg[3] is set, this means that the semicolon matched
+						// at arg[4] is the one following the promptExpr
+						args[3] ? args[4] === ';' : false,
+						args[5],
+						// if arg[3] is not set, this means that the semicolon matched
+						// at arg[4] is the one following the INPUT statement
+						args[3] ? args[2] !== ';' : args[4]
 					)
 				}
 			)
@@ -1196,7 +1200,7 @@ export class QBasicProgram {
 				args,
 				locus
 			) {
-				return new AstInputStatement(locus, null, false, args[2])
+				return new AstInputStatement(locus, !!args[0], null, false, args[2])
 			})
 			rules.addRule("istatement: POKE expr ',' expr", function(_args, locus) {
 				return new AstNullStatement(locus)

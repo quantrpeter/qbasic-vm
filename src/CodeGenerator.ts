@@ -361,6 +361,12 @@ export class CodeGenerator implements IVisitor {
 			this.write('SYSCALL', 'print', node.locus)
 		}
 
+		if (node.line) {
+			this.write('PUSHCONST', -1, node.locus)
+		} else {
+			this.write('PUSHCONST', 0, node.locus)
+		}
+
 		if (node.newLineAfterEnter) {
 			this.write('PUSHCONST', -1, node.locus)
 		} else {

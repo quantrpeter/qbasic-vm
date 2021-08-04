@@ -25,14 +25,15 @@ import {
 	DeriveTypeNameFromVariable,
 	ScalarVariable,
 	SomeScalarType,
-	IsNumericType,
 	ArrayVariable,
 	Dimension,
 	SomeType,
 	StringType,
-	JSONType
+	JSONType,
+	IsNumericType,
+	IsStringType
 } from './Types'
-import { IConsole } from './IConsole'
+import { IConsole, STRUCTURED_INPUT_MATCH } from './IConsole'
 import { IAudioDevice } from './IAudioDevice'
 import { INetworkAdapter } from './INetworkAdapter'
 import { QBasicProgram } from './QBasic'
@@ -1532,8 +1533,8 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 		action: function(vm) {
 			// TODO: Support multiple arguments. Convert strings input by the
 			// user to numbers.
-			let argCount = vm.stack.pop()
-			let args: any[] = []
+			const argCount = vm.stack.pop()
+			const args: any[] = []
 
 			vm.trace.printf('Argcount=%s\n', argCount)
 
@@ -1541,16 +1542,65 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 				args.unshift(vm.stack.pop())
 			}
 
-			let newLineAfterEnter = vm.stack.pop() !== 0
+			const newLineAfterEnter = vm.stack.pop() !== 0
+			const readUpToNewLine = vm.stack.pop() !== 0
+
+			let currentArg = 0
+			let pastResult = ''
+
+			function handleInput(result: string): Promise<void> {
+				result = pastResult + result
+				const csvMatch = new RegExp(STRUCTURED_INPUT_MATCH)
+				let m: RegExpExecArray | null = null
+				let lastIndex = 0
+				do {
+					m = csvMatch.exec(result)
+					if (m) {
+						let val = m[1]
+						const thisArg = args[currentArg]
+						if (IsStringType(thisArg.type)) {
+							const originalLen = val.length
+							val = String(val).replace(/^"(.*)"$/gi, '$1')
+							// if val is quoted, replace double quotes with single quotes
+							thisArg.value =
+								val.length !== originalLen ? val.replace(/""/gi, '"') : val
+						} else if (IsNumericType(thisArg.type)) {
+							thisArg.value = Number.parseFloat(val)
+							if (thisArg.type.name === 'INTEGER') {
+								thisArg.value = Math.floor(thisArg.value)
+							}
+						}
+						lastIndex = csvMatch.lastIndex
+						currentArg++
+					}
+				} while (m !== null && currentArg < argCount)
+				pastResult = result.substr(lastIndex)
+
+				if (currentArg >= argCount) {
+					return Promise.resolve()
+				} else {
+					return vm.cons
+						.input(newLineAfterEnter)
+						.then(result => handleInput(result))
+				}
+			}
 
 			vm.suspend()
-			vm.cons
-				.input(newLineAfterEnter)
-				.then(result => {
-					args[0].value = result
-					vm.resume()
-				})
-				.catch(e => console.error(e))
+			if (readUpToNewLine) {
+				vm.cons
+					.input(newLineAfterEnter)
+					.then(result => {
+						args[0].value = result
+					})
+					.then(() => vm.resume())
+					.catch(e => dbg().printf('Error when reading input: %s', e))
+			} else {
+				vm.cons
+					.input(newLineAfterEnter)
+					.then(result => handleInput(result))
+					.then(() => vm.resume())
+					.catch(e => dbg().printf('Error when reading input: %s', e))
+			}
 		}
 	},
 

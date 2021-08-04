@@ -17,6 +17,7 @@
 	along with qbasic-vm.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+import { STRUCTURED_INPUT_MATCH } from './IConsole'
 import { FileAccessMode, IFileSystem } from './IFileSystem'
 
 enum KNOWN_MIME_TYPES {
@@ -67,9 +68,7 @@ function string2ArrayBuffer(str: string) {
 
 export class LocalStorageFileSystem implements IFileSystem {
 	private fileHandles: (FileHandle | undefined)[] = []
-	private csvMatch = new RegExp(
-		/(?:,|\n|^)("(?:(?:"")*[^"]*)*"|[^",\n]*|(?:\n|$))/g
-	)
+	private csvMatch = new RegExp(STRUCTURED_INPUT_MATCH)
 
 	getFreeFileHandle(): number {
 		const freeHandle = this.fileHandles.findIndex(

@@ -119,3 +119,7 @@ export interface IConsole {
 		pingPongFlip?: number
 	)
 }
+
+export const STRUCTURED_INPUT_MATCH = new RegExp(
+	/(?:,|\n|^)("(?:(?:"")*[^"]*)*"|[^",\n]*|(?:\n|$))/g
+)
