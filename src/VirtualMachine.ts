@@ -1542,11 +1542,36 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 				args.unshift(vm.stack.pop())
 			}
 
+			const fileHandle = vm.stack.pop()
 			const newLineAfterEnter = vm.stack.pop() !== 0
 			const readUpToNewLine = vm.stack.pop() !== 0
 
 			let currentArg = 0
 			let pastResult = ''
+
+			function handleFileInput(val: number | string | object): Promise<void> {
+				const arg = args[currentArg]
+				if (IsStringType(arg.type) && typeof val === 'string') {
+					arg.value = String(val)
+				} else if (IsNumericType(arg.type)) {
+					arg.value =
+						typeof val === 'string' ? Number.parseFloat(val) : Number(val)
+					if (arg.type.name === 'INTEGER') {
+						arg.value = Math.floor(arg.value)
+					}
+				}
+				currentArg++
+
+				if (currentArg >= argCount) {
+					return Promise.resolve()
+				} else if (vm.fileSystem) {
+					return vm.fileSystem
+						.read(fileHandle)
+						.then(result => handleFileInput(result))
+				} else {
+					return Promise.reject()
+				}
+			}
 
 			function handleInput(result: string): Promise<void> {
 				result = pastResult + result
@@ -1579,27 +1604,47 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 				if (currentArg >= argCount) {
 					return Promise.resolve()
 				} else {
-					return vm.cons
-						.input(newLineAfterEnter)
-						.then(result => handleInput(result))
+					return vm.cons.input(newLineAfterEnter).then(handleInput)
 				}
 			}
 
 			vm.suspend()
-			if (readUpToNewLine) {
-				vm.cons
-					.input(newLineAfterEnter)
-					.then(result => {
-						args[0].value = result
-					})
-					.then(() => vm.resume())
-					.catch(e => dbg().printf('Error when reading input: %s', e))
+			if (fileHandle === null) {
+				if (readUpToNewLine) {
+					vm.cons
+						.input(newLineAfterEnter)
+						.then(result => {
+							args[0].value = result
+						})
+						.then(() => vm.resume())
+						.catch(e => {
+							dbg().printf('Error when reading input: %s', e)
+							vm.resume()
+						})
+				} else {
+					vm.cons
+						.input(newLineAfterEnter)
+						.then(result => handleInput(result))
+						.then(() => vm.resume())
+						.catch(e => {
+							dbg().printf('Error when reading input: %s', e)
+							vm.resume()
+						})
+				}
 			} else {
-				vm.cons
-					.input(newLineAfterEnter)
-					.then(result => handleInput(result))
-					.then(() => vm.resume())
-					.catch(e => dbg().printf('Error when reading input: %s', e))
+				if (vm.fileSystem) {
+					vm.fileSystem
+						.read(fileHandle)
+						.then(handleFileInput)
+						.then(() => vm.resume())
+						.catch(e => {
+							dbg().printf('Error when reading input: %s', e)
+							vm.resume()
+						})
+				} else {
+					dbg().printf('File system not available')
+					vm.resume()
+				}
 			}
 		}
 	},

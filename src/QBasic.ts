@@ -258,6 +258,7 @@ export class AstInputStatement implements AstStatement {
 	printQuestionMark: boolean
 	identifiers: any[]
 	newLineAfterEnter: boolean
+	fileHandle: AstVariableReference | AstConstantExpr | undefined
 
 	constructor(
 		locus: ILocus,
@@ -265,7 +266,8 @@ export class AstInputStatement implements AstStatement {
 		promptExpr: any,
 		printQuestionMark: boolean,
 		identifiers: any[],
-		newLineAfterEnter = true
+		newLineAfterEnter = true,
+		fileHandle = undefined
 	) {
 		this.locus = locus
 		this.line = line
@@ -273,6 +275,7 @@ export class AstInputStatement implements AstStatement {
 		this.printQuestionMark = printQuestionMark
 		this.identifiers = identifiers // actually we will only use the first one.
 		this.newLineAfterEnter = newLineAfterEnter
+		this.fileHandle = fileHandle
 	}
 
 	public accept(visitor: IVisitor) {
@@ -1193,6 +1196,24 @@ export class QBasicProgram {
 						// if arg[3] is not set, this means that the semicolon matched
 						// at arg[4] is the one following the INPUT statement
 						args[3] ? args[2] !== ';' : args[4]
+					)
+				}
+			)
+			rules.addRule(
+				"istatement: LINE? INPUT FileItem ',' identifiers",
+				function(args, locus) {
+					return new AstInputStatement(
+						locus,
+						!!args[0],
+						null,
+						// if arg[3] is set, this means that the semicolon matched
+						// at arg[4] is the one following the promptExpr
+						false,
+						args[4],
+						// if arg[3] is not set, this means that the semicolon matched
+						// at arg[4] is the one following the INPUT statement
+						false,
+						args[2]
 					)
 				}
 			)

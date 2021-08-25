@@ -39,7 +39,6 @@ const STORAGE_PREFIX = 'LocalStorageFileSystem'
 const META_PREFIX = 'META'
 
 function arrayBuffer2String(buf: ArrayBuffer | ArrayLike<number>) {
-	debugger
 	if (Array.isArray(buf)) {
 		const source = buf
 		const sourceLen = source.length
@@ -56,7 +55,6 @@ function arrayBuffer2String(buf: ArrayBuffer | ArrayLike<number>) {
 	return String.fromCharCode.apply(null, new Uint16Array(buf))
 }
 function string2ArrayBuffer(str: string) {
-	debugger
 	const buf = new ArrayBuffer(str.length * 2) // 2 bytes for each char
 	const bufView = new Uint16Array(buf)
 	const strLen = str.length

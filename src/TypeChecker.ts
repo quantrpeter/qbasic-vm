@@ -490,6 +490,27 @@ export class TypeChecker implements IVisitor {
 	}
 
 	public visitInputStatement(input: AstInputStatement) {
+		// if fileHandle is specified, it needs to be a valid file handler
+		if (input.fileHandle) {
+			input.fileHandle.accept(this)
+			if (input.fileHandle instanceof AstVariableReference) {
+				let type = this.getTypeFromVariableName(input.fileHandle.name)
+				if (type.name !== 'INTEGER') {
+					this.error(
+						input,
+						'File handle "%s" number must be an integer',
+						input.fileHandle.name
+					)
+				}
+			} else if (input.fileHandle instanceof AstConstantExpr) {
+				if (!Number.isInteger(input.fileHandle.value)) {
+					this.error(input, 'File handle number must be an integer')
+				}
+			} else {
+				this.error(input, 'Invalid file handle')
+			}
+		}
+
 		// prompt must be null or a string.
 		if (input.promptExpr) {
 			input.promptExpr.accept(this)

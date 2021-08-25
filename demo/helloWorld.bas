@@ -52,8 +52,12 @@ FOR i = 1 TO 100
 NEXT i
 SPCLR 1
 PRINT "Enter your name:"
-INPUT "What is your name";  Name$
+INPUT "What is your name"; Name$
 PRINT "HELLO " + Name$
+OPEN "test" FOR INPUT AS fileNum%
+INPUT #1, string1$
+CLOSE
+PRINT string1$
 SLEEP
 IMGPUT Sprite, 0, 0
 LOCATE 1, 1

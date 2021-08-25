@@ -348,17 +348,19 @@ export class CodeGenerator implements IVisitor {
 	public visitInputStatement(node: AstInputStatement) {
 		this.map(node.locus)
 		// print the prompt, if any, and question mark, if required.
-		if (node.promptExpr) {
-			node.promptExpr.accept(this)
-			this.write('SYSCALL', 'print', node.locus)
-		}
+		if (!node.fileHandle) {
+			if (node.promptExpr) {
+				node.promptExpr.accept(this)
+				this.write('SYSCALL', 'print', node.locus)
+			}
 
-		if (node.printQuestionMark) {
-			this.write('PUSHCONST', '? ', node.locus)
-			this.write('SYSCALL', 'print', node.locus)
-		} else {
-			this.write('PUSHCONST', ' ', node.locus)
-			this.write('SYSCALL', 'print', node.locus)
+			if (node.printQuestionMark) {
+				this.write('PUSHCONST', '? ', node.locus)
+				this.write('SYSCALL', 'print', node.locus)
+			} else {
+				this.write('PUSHCONST', ' ', node.locus)
+				this.write('SYSCALL', 'print', node.locus)
+			}
 		}
 
 		if (node.line) {
@@ -371,6 +373,12 @@ export class CodeGenerator implements IVisitor {
 			this.write('PUSHCONST', -1, node.locus)
 		} else {
 			this.write('PUSHCONST', 0, node.locus)
+		}
+
+		if (node.fileHandle) {
+			node.fileHandle.accept(this)
+		} else {
+			this.write('PUSHCONST', null, node.locus)
 		}
 
 		// push onto the stack: identifiers
