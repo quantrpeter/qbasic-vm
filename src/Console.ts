@@ -654,10 +654,10 @@ export class Console extends EventTarget implements IConsole {
 		let curSH = sh
 
 		if (curSX < 0) {
-			curSX = 0
+			curSX = sw + (Math.abs(curSX) % curSW)
 		}
 		if (curSY < 0) {
-			curSY = 0
+			curSY = sy + (Math.abs(curSY) % curSH)
 		}
 		// let curDW = dw
 		// let curDH = dh

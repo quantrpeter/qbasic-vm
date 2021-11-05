@@ -32,7 +32,7 @@ END SUB
 
 DIM SHARED imgRoad, imgCar, imgSky, imgFont
 imgRoad = IMGLOAD("road.png")
-imgCar = IMGLOAD("car.png")
+imgCar = IMGLOAD("fiat126p.png")
 imgSky = IMGLOAD("sky.png")
 imgFont = IMGLOAD("cool-font.png")
 
@@ -52,7 +52,7 @@ CONST carSprite = 1
 SPSET carSprite, imgCar, 13
 ' Set home position for the sprite to be 46,44 - i.e. this pixel of the sprite will be given it's position as specified
 ' by SPOFS
-SPHOME carSprite, 46, 44
+SPHOME carSprite, 40, 44
 ' Place sprite at 80, 280 of the screen
 SPOFS carSprite, 80, 280
 
@@ -141,7 +141,7 @@ beginSkid = 0
 ' Acceleration
 accel# = 0
 maxAccel# = 10
-maxSpeed = 55
+maxSpeed = 25
 
 t = 0
 f = 0
@@ -232,17 +232,17 @@ HandleDrive:
 			speed = MAX(0, speed - 1 - (brake / 2))
 		END IF
 
-		IF speed < 10 THEN
+		IF speed < 5 THEN
 			speed = MIN(maxSpeed, speed + INT(accel# / 3.0))
-		ELSE IF speed > 25 THEN
+		ELSE IF speed > 15 THEN
 			IF accel# > 8.0 AND f MOD 20 = 0 THEN
 				speed = MIN(maxSpeed, speed + 1)
 			END IF
-		ELSE IF speed > 35 THEN
+		ELSE IF speed > 17 THEN
 			IF accel# > 8.0 AND f MOD 35 = 0 THEN
 				speed = MIN(maxSpeed, speed + 1)
 			END IF
-		ELSE IF speed > 43 THEN
+		ELSE IF speed > 20 THEN
 			IF accel# > 8.0 AND f MOD 50 = 0 THEN
 				speed = MIN(maxSpeed, speed + 1)
 			END IF
