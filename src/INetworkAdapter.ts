@@ -31,9 +31,11 @@ export interface INetworkAdapter {
 			body?: string | Blob | Uint8Array
 		}
 	): Promise<IFetchResponse>
-	wsOpen(url: string): Promise<number>
+	wsOpen(handle: number, url: string, protocol?: string): Promise<void>
 	wsSend(handle: number, data: string): Promise<void>
 	wsGetMessageFromBuffer(handle: number): Promise<string | undefined>
 	wsClose(handle: number)
+	addEventListener(handle: number, listener: () => void): void
+	removeEventListener(handle: number, listener: () => void): void
 	reset()
 }

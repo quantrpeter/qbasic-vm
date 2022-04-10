@@ -24,7 +24,8 @@ import 'websocket-polyfill'
 
 interface SocketHandle {
 	socket: WebSocket
-	buffer: string[]
+	buffer: string[],
+	eventListeners: (() => void)[]
 }
 
 export class NetworkAdapter implements INetworkAdapter {
@@ -66,21 +67,33 @@ export class NetworkAdapter implements INetworkAdapter {
 				body: statusAndResponse[1]
 			}))
 	}
-	wsOpen(url: string): Promise<number> {
-		return new Promise(resolve => {
-			const socket = new WebSocket(url)
-			const socketHandle = {
+	wsOpen(handle: number, url: string, protocol?: string): Promise<void> {
+		return new Promise((resolve, reject) => {
+			if (this.sockets[handle]) {
+				throw new Error('WebSocket handle busy')
+			}
+			const socket = new WebSocket(url, protocol)
+			const socketHandle: SocketHandle = {
 				socket,
-				buffer: []
+				buffer: [],
+				eventListeners: []
 			}
-			let idx = this.sockets.findIndex(i => i === undefined)
-			if (idx >= 0) {
-				this.sockets[idx] = socketHandle
-			} else {
-				idx = this.sockets.push(socketHandle) - 1
-			}
-			socket.addEventListener('message', e => this.wsOnMessage(idx, e.data))
-			resolve(idx)
+			this.sockets[handle] = socketHandle
+			let opened = false
+			socket.addEventListener('message', e => this.wsOnMessage(handle, e.data))
+			socket.addEventListener('open', () => {
+				opened = true
+				resolve()
+			})
+			socket.addEventListener('close', () => {
+				this.sockets[handle] = undefined
+			})
+			socket.addEventListener('error', () => {
+				this.sockets[handle] = undefined
+				if (!opened) {
+					reject()
+				}
+			})
 		})
 	}
 	wsSend(handle: number, data: string): Promise<void> {
@@ -116,6 +129,30 @@ export class NetworkAdapter implements INetworkAdapter {
 			throw new Error('Floating WebSocket handle')
 		}
 		socketHandle.buffer.push(message)
+		socketHandle.eventListeners.forEach(handler => {
+			try {
+				handler()
+			} catch (e) { // prevent a broken handler from borking all event listeners
+				console.error(e)
+			}
+		})
+	}
+	addEventListener(handle: number, listener: () => void): void {
+		const socketHandle = this.sockets[handle]
+		if (!socketHandle) {
+			throw new Error('Floating WebSocket handle')
+		}
+		socketHandle.eventListeners.push(listener)
+	}
+	removeEventListener(handle: number, listener: () => void): void {
+		const socketHandle = this.sockets[handle]
+		if (!socketHandle) {
+			throw new Error('Floating WebSocket handle')
+		}
+		const index = socketHandle.eventListeners.indexOf(listener)
+		if (index >= 0) {
+			socketHandle.eventListeners.splice(index, 1)
+		}
 	}
 	reset() {
 		this.sockets.forEach(socketHandle => {
