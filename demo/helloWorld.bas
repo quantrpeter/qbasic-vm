@@ -1,4 +1,4 @@
-REM Very basic demo of the QBasic implementation for Meritum
+REM Very basic demo of the QBasic implementation for Lamus
 REM Uses all the advanced APIs
 REM ---
 

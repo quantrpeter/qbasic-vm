@@ -1,10 +1,10 @@
 {
-  "name": "qbasic-vm",
+  "name": "@lamus/qbasic-vm",
   "version": "0.0.0",
   "description": "A QBASIC Virtual Machine implemented in TypeScript, based on qbasic-vm by Steve Hanov",
   "main": "dist/qbasic-vm.js",
   "types": "dist/index.d.ts",
-  "repository": "git@github.com:jstarpl/qbasic-vm.git",
+  "repository": "https://github.com/jstarpl/qbasic-vm",
   "author": "Jan Starzak <jan.starzak@gmail.com>",
   "contributors": [
     {
@@ -39,11 +39,11 @@
     "ts-loader": "^6.2.1",
     "tslint": "^5.20.0",
     "tslint-config-standard": "^8.0.1",
-    "typedoc": "^0.15.0",
+    "typedoc": "^0.22.13",
     "typescript": "^3.6.4",
-    "webpack": "^4.46.0",
+    "webpack": "^5.70.0",
     "webpack-cli": "^4.5.0",
-    "webpack-dev-server": "^3.11.2"
+    "webpack-dev-server": "^4.7.4"
   },
   "dependencies": {
     "eventemitter3": "^4.0.0",
