@@ -48,7 +48,7 @@ LOOP WHILE 1 = 1
 
 Header:
 	CLS
-	COLOR 1, 0
+	COLOR 1, 2
 	PRINT " ART INSTITUTE OF   ";
 	PRINT " CHICAGO            ";
 	PRINT "                    "

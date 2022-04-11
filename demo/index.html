@@ -4,6 +4,9 @@
 		<script src="qbasic-vm.js" type="text/javascript"></script>
 	</head>
 	<body>
+		<div>
+			<select id="select"></select>
+		</div>
 		<div id="main"></div>
 		<div id="debug"></div>
 
@@ -26,19 +29,15 @@
 				fileSystem
 			)
 			const dbg = new qb.DebugConsole(document.getElementById('debug'))
-			const demoPrgs = [
-				'helloWorld.bas',
-				'driveBy/driveBy.bas',
-				'artic/artic.bas',
-				'nibbles.bas'
-			]
-			const fileName = demoPrgs[1]
-			fetch(fileName)
+
+			function startProgram(fileName) {
+				fetch(fileName)
 				.then(resp => {
 					if (resp.status === 200) return resp.text()
 					throw new Error(resp.status, resp.statusText)
 				})
 				.then(code => {
+					virtualMachine.reset()
 					const program = new qb.QBasicProgram(code)
 					if (program.errors.length === 0) {
 						const fileNameAbsUrl = new URL(fileName, window.location.href)
@@ -50,7 +49,7 @@
 							dbg.print('Runtime error: ' + error + ' at ' + error.locus + '\n')
 						})
 					} else {
-						virtualMachine.reset(null)
+						virtualMachine.reset()
 						for (let i = 0; i < program.errors.length; i++) {
 							dbg.print(program.errors[i] + '\n')
 						}
@@ -58,6 +57,31 @@
 					}
 				})
 				.catch(e => console.error(e))
+			}
+
+			const demoPrgs = [
+				'helloWorld.bas',
+				'driveBy/driveBy.bas',
+				'artic/artic.bas',
+				'nibbles.bas'
+			]
+
+			const fileName = demoPrgs[2]
+
+			const select = document.getElementById('select')
+			for (const file of demoPrgs) {
+				const option = document.createElement('option')
+				option.innerText = file
+				option.selected = file === fileName
+				select.appendChild(option)
+			}
+
+			select.addEventListener('change', (e) => {
+				const fileName = e.target.value
+				startProgram(fileName)
+			})
+
+			startProgram(fileName)
 		</script>
 	</body>
 </html>
