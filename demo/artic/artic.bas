@@ -21,6 +21,8 @@ CONST KeyA = (CHR$(97))
 CONST KeyEnter = (CHR$(0) + CHR$(13))
 CONST KeyEscape = (CHR$(0) + CHR$(27))
 
+CONST ScreenWidth = 20
+
 SUB EmptyKeyBuf ()
 	WHILE INKEY$ <> ""
 	WEND
@@ -29,12 +31,12 @@ END SUB
 SUB FullLine (text$, lines%)
     length = LEN(text$)
 	out$ = text$
-	IF length / 20 > lines% THEN
-		out$ = LEFT$(text$, lines% * 20 - 3) + "..."
+	IF length / ScreenWidth > lines% THEN
+		out$ = LEFT$(text$, lines% * ScreenWidth - 3) + "..."
 	END IF
 	PRINT out$;
-	remain = 20 - (LEN(out$) MOD 20)
-	IF remain < 20 THEN
+	remain = ScreenWidth - (LEN(out$) MOD ScreenWidth)
+	IF remain < ScreenWidth THEN
 		PRINT SPACE$(remain);
 	END IF
 END SUB
