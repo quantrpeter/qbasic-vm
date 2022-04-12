@@ -17,9 +17,10 @@ PrevPrice(1) = -1
 PrevPrice(2) = -1
 PrevPrice(3) = -1
 
-DIM SHARED imgLabels, imgNumbers
+DIM SHARED imgLabels, imgNumbers, imgBkg
 imgLabels = IMGLOAD("alien.png")
 imgNumbers = IMGLOAD("money.png")
+imgBkg = IMGLOAD("bkg.png")
 
 API_KEY$ = "OeAFFmMliFG5orCUuwAKQ8l4WWFQ67YX"
 EODHD_API_URL$ = "wss://ws.eodhistoricaldata.com/ws/us?api_token=" + API_KEY$
@@ -172,10 +173,15 @@ ViewList:
 	GOSUB Header
 	LOCATE 5, 1
 
+
 	FOR i = 1 TO LEN(Stocks)
-		Price$ = "$" + LEFT$(STR$(Price(i)), 6)
-		PaintText(Stocks(i), imgLabels, 30, 0 + ((i - 1) * 100), 25, 24, 0)
-		PaintText(Price$, imgNumbers, -5, 30 + ((i - 1) * 100), 50, 48, -28)
+		Price# = Price(i)
+		IF (Price# > 0) THEN
+			IMGPUT(imgBkg, 0, 0 + ((i - 1) * 100) - 10)
+			Price$ = "$" + LEFT$(STR$(Price#), 6)
+			PaintText(Stocks(i), imgLabels, 30, 0 + ((i - 1) * 100), 25, 24, 0)
+			PaintText(Price$, imgNumbers, -5, 30 + ((i - 1) * 100), 50, 48, -28)
+		END IF
 	NEXT i
 
 	RETURN
