@@ -438,7 +438,7 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 		args: ['INTEGER'],
 		minArgs: 0,
 		action: function(vm) {
-			let numArgs = vm.stack.pop()
+			const numArgs = vm.stack.pop()
 			let n = 1
 			if (numArgs === 1) {
 				n = vm.stack.pop()
@@ -456,8 +456,23 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 		args: ['INTEGER'],
 		minArgs: 1,
 		action: function(vm) {
-			let num = vm.stack.pop()
+			const num = vm.stack.pop()
 			vm.stack.push(String.fromCharCode(num))
+		}
+	},
+
+	ASC: {
+		type: 'INTEGER',
+		args: ['STRING', 'INTEGER'],
+		minArgs: 1,
+		action: function(vm) {
+			const numArgs = vm.stack.pop()
+			let pos = 1
+			if (numArgs > 1) {
+				pos = vm.stack.pop()
+			}
+			const str = vm.stack.pop()
+			vm.stack.push(str.charCodeAt(pos - 1))
 		}
 	},
 
@@ -1202,7 +1217,7 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 				vm.trace.printf('General IO not available')
 			}
 		}
-	},
+	}
 }
 
 interface ISystemSubroutine {

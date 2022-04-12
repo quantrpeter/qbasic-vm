@@ -24,13 +24,16 @@ import 'websocket-polyfill'
 
 interface SocketHandle {
 	socket: WebSocket
-	buffer: string[],
+	buffer: string[]
 	eventListeners: (() => void)[]
 }
+
+const MAX_BUFFER_SIZE = 32 * 1024 * 1024
 
 export class NetworkAdapter implements INetworkAdapter {
 	private sockets: (SocketHandle | undefined)[] = []
 	private fetchAborts: Set<AbortController> = new Set()
+	private bufferSize = 0
 
 	fetch(
 		url: string,
@@ -112,7 +115,9 @@ export class NetworkAdapter implements INetworkAdapter {
 			if (!socketHandle) {
 				throw new Error('Floating WebSocket handle')
 			}
-			resolve(socketHandle.buffer.shift())
+			const message = socketHandle.buffer.shift()
+			this.bufferSize -= message ? message.length : 0
+			resolve(message)
 		})
 	}
 	wsClose(handle: number) {
@@ -128,11 +133,16 @@ export class NetworkAdapter implements INetworkAdapter {
 		if (!socketHandle) {
 			throw new Error('Floating WebSocket handle')
 		}
+		if (this.bufferSize + message.length > MAX_BUFFER_SIZE) {
+			return
+		}
 		socketHandle.buffer.push(message)
+		this.bufferSize += message.length
 		socketHandle.eventListeners.forEach(handler => {
 			try {
 				handler()
-			} catch (e) { // prevent a broken handler from borking all event listeners
+			} catch (e) {
+				// prevent a broken handler from borking all event listeners
 				console.error(e)
 			}
 		})
@@ -157,10 +167,11 @@ export class NetworkAdapter implements INetworkAdapter {
 	reset() {
 		this.sockets.forEach(socketHandle => {
 			if (socketHandle) {
-				socketHandle.socket.close(1001, 'Network adapter reset.')
+				socketHandle.socket.close(1000, 'Network adapter reset.')
 			}
 		})
 		this.sockets.length = 0
+		this.bufferSize = 0
 
 		this.fetchAborts.forEach(abortController => abortController.abort())
 		this.fetchAborts.clear()

@@ -38,6 +38,7 @@
 				})
 				.then(code => {
 					virtualMachine.reset()
+					network.reset()
 					const program = new qb.QBasicProgram(code)
 					if (program.errors.length === 0) {
 						const fileNameAbsUrl = new URL(fileName, window.location.href)
@@ -50,6 +51,7 @@
 						})
 					} else {
 						virtualMachine.reset()
+						network.reset()
 						for (let i = 0; i < program.errors.length; i++) {
 							dbg.print(program.errors[i] + '\n')
 						}
@@ -63,10 +65,11 @@
 				'helloWorld.bas',
 				'driveBy/driveBy.bas',
 				'artic/artic.bas',
+				'stock/stock.bas',
 				'nibbles.bas'
 			]
 
-			const fileName = demoPrgs[2]
+			const fileName = demoPrgs[3]
 
 			const select = document.getElementById('select')
 			for (const file of demoPrgs) {
