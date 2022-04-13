@@ -39,7 +39,7 @@ import { INetworkAdapter } from './INetworkAdapter'
 import { QBasicProgram } from './QBasic'
 import { Locus } from './Tokenizer'
 import * as EventEmitter from 'eventemitter3'
-import { query as jsonPathQuery } from 'jsonpath'
+import * as jsonPath from 'jsonpath'
 import { FileAccessMode, IFileSystem } from './IFileSystem'
 import { IGeneralIO } from './IGeneralIO'
 
@@ -443,11 +443,11 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 			if (numArgs === 1) {
 				n = vm.stack.pop()
 			}
-			if (n === 0) {
-				vm.stack.push(vm.lastRandomNumber)
-			} else {
-				vm.stack.push(Math.random())
+
+			if (n !== 0) {
+				vm.lastRandomNumber = Math.random()
 			}
+			vm.stack.push(vm.lastRandomNumber)
 		}
 	},
 
@@ -1094,7 +1094,7 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 			const path = vm.stack.pop()
 			const obj = vm.stack.pop()
 
-			const resultArr = jsonPathQuery(obj, path)
+			const resultArr = jsonPath.query(obj, path)
 			if (resultArr.length === 0) {
 				vm.stack.push(defValue)
 			} else {
@@ -1124,7 +1124,7 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 			const path = vm.stack.pop()
 			const obj = vm.stack.pop()
 
-			const resultArr = jsonPathQuery(obj, path)
+			const resultArr = jsonPath.query(obj, path)
 			if (resultArr.length === 0) {
 				vm.stack.push(defValue)
 			} else {
@@ -1148,7 +1148,7 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 			const path = vm.stack.pop()
 			const obj = vm.stack.pop()
 
-			const resultArr = jsonPathQuery(obj, path)
+			const resultArr = jsonPath.query(obj, path)
 			if (resultArr.length === 0) {
 				vm.stack.push(defValue)
 			} else {
@@ -2207,7 +2207,7 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 			const path = getArgValue(vm.stack.pop())
 			const obj = getArgValue(vm.stack.pop())
 
-			const resultArr = jsonPathQuery(obj, path)
+			const resultArr = jsonPath.query(obj, path)
 			target.resize([new Dimension(1, resultArr.length)])
 			for (let i = 0; i < resultArr.length; i++) {
 				target.assign(
@@ -2349,12 +2349,7 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 
 	WSOPEN: {
 		// URL$, OUT ERR_CODE%, [, HANDLE% [, PROTOCOL$]]
-		args: [
-			'STRING',
-			'INTEGER',
-			'INTEGER',
-			'STRING'
-		],
+		args: ['STRING', 'INTEGER', 'INTEGER', 'STRING'],
 		minArgs: 2,
 		action: function(vm) {
 			const argCount = vm.stack.pop()
@@ -2393,9 +2388,7 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 
 	WSCLOSE: {
 		// [ HANDLE% ]
-		args: [
-			'INTEGER'
-		],
+		args: ['INTEGER'],
 		minArgs: 0,
 		action: function(vm) {
 			const argCount = vm.stack.pop()
@@ -2407,25 +2400,24 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 
 			if (vm.networkAdapter) {
 				vm.suspend()
-				vm.networkAdapter.wsClose(handle).then(() => {
-					vm.resume()
-				})
-				.catch(reason => {
-					vm.trace.printf('Error while closing WebSocket: %s\n', reason)
-					vm.resume()
-				})
+				vm.networkAdapter
+					.wsClose(handle)
+					.then(() => {
+						vm.resume()
+					})
+					.catch(reason => {
+						vm.trace.printf('Error while closing WebSocket: %s\n', reason)
+						vm.resume()
+					})
 			} else {
 				vm.trace.printf('Network adapter not available')
 			}
-		},
+		}
 	},
 
 	WSWRITE: {
 		// DATA$ [, OUT ERR_CODE% [, HANDLE% ]]
-		args: [
-			'STRING',
-			'INTEGER'
-		],
+		args: ['STRING', 'INTEGER'],
 		minArgs: 1,
 		action: function(vm) {
 			const argCount = vm.stack.pop()
@@ -2443,18 +2435,24 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 
 			if (vm.networkAdapter) {
 				vm.suspend()
-				vm.networkAdapter.wsSend(handle, data).then(() => {
-					if (outErrCode) {
-						outErrCode.value = 0
-					}
-					vm.resume()
-				}).catch(reason => {
-					if (outErrCode) {
-						outErrCode.value = -1
-					}
-					vm.trace.printf('Error while sending data through WebSocket: %s\n', reason)
-					vm.resume()
-				})
+				vm.networkAdapter
+					.wsSend(handle, data)
+					.then(() => {
+						if (outErrCode) {
+							outErrCode.value = 0
+						}
+						vm.resume()
+					})
+					.catch(reason => {
+						if (outErrCode) {
+							outErrCode.value = -1
+						}
+						vm.trace.printf(
+							'Error while sending data through WebSocket: %s\n',
+							reason
+						)
+						vm.resume()
+					})
 			} else {
 				vm.trace.printf('Network adapter not available')
 			}
@@ -2463,11 +2461,7 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 
 	WSREAD: {
 		// OUT DATA$ [, OUT ERR_CODE% [, HANDLE% ]]
-		args: [
-			'STRING',
-			'INTEGER',
-			'INTEGER',
-		],
+		args: ['STRING', 'INTEGER', 'INTEGER'],
 		minArgs: 1,
 		action: function(vm) {
 			const argCount = vm.stack.pop()
@@ -2485,29 +2479,32 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 
 			if (vm.networkAdapter) {
 				vm.suspend()
-				vm.networkAdapter.wsGetMessageFromBuffer(handle).then((data) => {
-					if (data === undefined) {
+				vm.networkAdapter
+					.wsGetMessageFromBuffer(handle)
+					.then(data => {
+						if (data === undefined) {
+							if (outErrCode) {
+								outErrCode.value = -2
+							}
+							vm.resume()
+							return
+						}
+						outData.value = String(data)
 						if (outErrCode) {
-							outErrCode.value = -2
+							outErrCode.value = 0
 						}
 						vm.resume()
-						return
-					}
-					outData.value = String(data)
-					if (outErrCode) {
-						outErrCode.value = 0
-					}
-					vm.resume()
-				}).catch(reason => {
-					if (outErrCode) {
-						outErrCode.value = -1
-					}
-					vm.trace.printf(
-						'Error while reading data from WebSocket buffer: %s\n',
-						reason
-					)
-					vm.resume()
-				})
+					})
+					.catch(reason => {
+						if (outErrCode) {
+							outErrCode.value = -1
+						}
+						vm.trace.printf(
+							'Error while reading data from WebSocket buffer: %s\n',
+							reason
+						)
+						vm.resume()
+					})
 			} else {
 				vm.trace.printf('Network adapter not available')
 			}

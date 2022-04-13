@@ -120,10 +120,11 @@ export class Sprite {
 			this._imgHeight = image.naturalHeight
 			this._imgWidth = image.naturalWidth
 			this._frameWidth = image.naturalWidth / frames
-			this._el.style.height = `${image.naturalHeight * this._pAspectY}px`
+			this._el.style.height = `${image.naturalHeight *
+				this._pAspectY}px`
 			this._el.style.width = `${this._frameWidth * this._pAspectX}px`
-			this._el.style.backgroundSize = `${this._imgWidth * pAspectX}px ${this
-				._imgHeight * pAspectY}px`
+			this._el.style.backgroundSize = `${this._imgWidth *
+				pAspectX}px ${this._imgHeight * pAspectY}px`
 			this.reposition()
 			this.bkgReposition()
 			resolve()
@@ -156,6 +157,10 @@ export class Sprite {
 				this._scaleY = this._scaleY * -1
 			}
 		}
+		this._curFrame = Math.max(
+			Math.min(this._curFrame + this._animDirection, this._totalFrames),
+			-1
+		)
 	}
 
 	update() {
@@ -167,11 +172,15 @@ export class Sprite {
 			} else {
 				this._skip = 0
 			}
+			console.log(this._animating, this._loop)
 
 			let oldFrame = this._curFrame
 			this._curFrame = Math.max(
-				Math.min(this._curFrame + this._animDirection, this._totalFrames - 1),
-				0
+				Math.min(
+					this._curFrame + this._animDirection,
+					this._totalFrames
+				),
+				-1
 			)
 			if (this._curFrame > this._endFrame) {
 				if (this._loop) {
@@ -215,13 +224,13 @@ export class Sprite {
 	}
 
 	private reposition() {
-		this._el.style.transformOrigin = `${this._anchorX * this._pAspectX}px ${this
-			._anchorY * this._pAspectY}px`
+		this._el.style.transformOrigin = `${this._anchorX *
+			this._pAspectX}px ${this._anchorY * this._pAspectY}px`
 		this._el.style.transform = `translate(-${this._anchorX *
-			this._pAspectX}px, -${this._anchorY * this._pAspectY}px) translate(${this
-			._x * this._pAspectX}px, ${this._y * this._pAspectY}px) scale(${
-			this._scaleX
-		}, ${this._scaleY}) rotate(${this._rotation}deg)`
+			this._pAspectX}px, -${this._anchorY *
+			this._pAspectY}px) translate(${this._x * this._pAspectX}px, ${this
+				._y * this._pAspectY}px) scale(${this._scaleX}, ${this._scaleY
+			}) rotate(${this._rotation}deg)`
 	}
 
 	setPosition(x: number, y: number) {
@@ -264,11 +273,12 @@ export class Sprite {
 		pingPong: boolean,
 		pingPongFlip: number
 	) {
-		this._beginFrame = startFrame
-		this._endFrame = endFrame
+		this._animDirection = startFrame <= endFrame ? 1 : -1
+		this._beginFrame = Math.min(startFrame, endFrame)
+		this._endFrame = Math.max(startFrame, endFrame)
+		this._curFrame = startFrame
 		this._loop = loop
 		this._animating = true
-		this._animDirection = this._beginFrame <= this._endFrame ? 1 : -1
 		this._speed = speed
 		this._pingPong = pingPong || false
 		this._pingPongFlip = pingPongFlip || 0

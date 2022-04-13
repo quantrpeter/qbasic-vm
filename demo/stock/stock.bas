@@ -17,10 +17,11 @@ PrevPrice(1) = -1
 PrevPrice(2) = -1
 PrevPrice(3) = -1
 
-DIM SHARED imgLabels, imgNumbers, imgBkg
+DIM SHARED imgLabels, imgNumbers, imgBkg, imgBling
 imgLabels = IMGLOAD("alien.png")
 imgNumbers = IMGLOAD("money.png")
 imgBkg = IMGLOAD("bkg.png")
+imgBling = IMGLOAD("bling.png")
 
 API_KEY$ = "OeAFFmMliFG5orCUuwAKQ8l4WWFQ67YX"
 EODHD_API_URL$ = "wss://ws.eodhistoricaldata.com/ws/us?api_token=" + API_KEY$
@@ -41,6 +42,14 @@ CONST KeyEnter = (CHR$(0) + CHR$(13))
 CONST KeyEscape = (CHR$(0) + CHR$(27))
 
 CONST ScreenWidth = 20
+
+SCREEN 1
+RANDOMIZE
+
+CONST blingSprite = 1
+SPSET blingSprite, imgBling, 7
+SPHOME blingSprite, 4, 4
+
 
 SUB PaintText (text$, font, x, y, w, h, letterSpacing)
 	Length = LEN(text$)
@@ -155,6 +164,7 @@ DO
 
 	ReadRecvMessages(Stocks)
 	GOSUB ViewList
+	GOSUB Bling
 	WAIT
 
 LOOP WHILE 1 = 1
@@ -184,4 +194,25 @@ ViewList:
 		END IF
 	NEXT i
 
+	RETURN
+
+Bling:
+	BlingNow = RND() * 1000
+	IF BlingNow < 999 THEN
+		RETURN
+	END IF
+
+	BlingX# = RND()
+	BlingY# = RND()
+	RandomItem = INT(RND() * 15)
+	Select = 0
+	IF (RandomItem >= 0) AND (RandomItem < 5) THEN
+		Select = 2
+	ELSE IF (RandomItem >= 5) AND (RandomItem < 10) THEN
+		Select = 1
+	ELSE
+		Select = 0
+	END IF
+	SPOFS blingSprite, 32 + INT(BlingX# * 110), 32 + INT(BlingY# * 5) + (Select * 100)
+	SPANIM blingSprite, 1, 7, 10, 0, 0, 0
 	RETURN

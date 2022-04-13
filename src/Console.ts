@@ -159,8 +159,8 @@ export class Console extends EventTarget implements IConsole {
 		return this._height
 	}
 
-	private containerWidth: number
-	private containerHeight: number
+	private containerWidth: number | undefined
+	private containerHeight: number | undefined
 
 	constructor(
 		parentElement: HTMLElement,
@@ -185,11 +185,14 @@ export class Console extends EventTarget implements IConsole {
 		this.canvas.width = VIDEO_MODES[DEFAULT_VIDEO_MODE].width
 		this.canvas.height = VIDEO_MODES[DEFAULT_VIDEO_MODE].height
 
-		this.containerWidth = width || this._width
-		this.containerHeight = height || this._height
+		this.containerWidth = width
+		this.containerHeight = height
 
-		this.container.style.width = this.containerWidth + 'px'
-		this.container.style.height = this.containerHeight + 'px'
+		const targetContainerWidth = this.containerWidth || this._width
+		const targetContainerHeight = this.containerHeight || this._height
+
+		this.container.style.width = targetContainerWidth + 'px'
+		this.container.style.height = targetContainerHeight + 'px'
 		this.container.style.imageRendering = 'pixelated'
 		this.container.style.position = 'relative'
 		this.container.style.overflow = 'hidden'
@@ -326,11 +329,14 @@ export class Console extends EventTarget implements IConsole {
 		this._width = dimensions.width
 		this._height = dimensions.height
 
-		this.containerWidth = this._width
-		this.containerHeight = this._height
+		// this.containerWidth = this._width
+		// this.containerHeight = this._height
 
-		this.container.style.width = this.containerWidth + 'px'
-		this.container.style.height = this.containerHeight + 'px'
+		const targetContainerWidth = this.containerWidth || this._width
+		const targetContainerHeight = this.containerHeight || this._height
+
+		this.container.style.width = targetContainerWidth + 'px'
+		this.container.style.height = targetContainerHeight + 'px'
 		this.container.style.imageRendering = 'pixelated'
 		this.container.style.position = 'relative'
 		this.container.style.overflow = 'hidden'
@@ -348,16 +354,7 @@ export class Console extends EventTarget implements IConsole {
 		this.rows = dimensions.rows
 		this.cols = dimensions.cols
 
-		if (this._landscape !== (dimensions.landscape || false)) {
-			this._landscape = dimensions.landscape || false
-			this.dispatchEvent(
-				new CustomEvent('orientationchange', {
-					detail: {
-						landscape: this._landscape
-					}
-				})
-			)
-		}
+		this.ctx.imageSmoothingEnabled = false
 
 		this.cls()
 		this.clearAllSprites()
@@ -372,6 +369,17 @@ export class Console extends EventTarget implements IConsole {
 				}
 			})
 		)
+
+		if (this._landscape !== (dimensions.landscape || false)) {
+			this._landscape = dimensions.landscape || false
+			this.dispatchEvent(
+				new CustomEvent('orientationchange', {
+					detail: {
+						landscape: this._landscape
+					}
+				})
+			)
+		}
 
 		return true
 	}
@@ -1078,12 +1086,15 @@ export class Console extends EventTarget implements IConsole {
 			this.clearSprite(spriteNumber)
 		}
 
+		const targetContainerWidth = this.containerWidth || this._width
+		const targetContainerHeight = this.containerHeight || this._height
+
 		const sprite = new Sprite(
 			image,
 			spriteNumber,
 			frames,
-			this.containerWidth / this._width,
-			this.containerHeight / this._height
+			targetContainerWidth / this._width,
+			targetContainerHeight / this._height
 		)
 		this.container.appendChild(sprite.getElement())
 		this.sprites[spriteNumber] = sprite
@@ -1157,9 +1168,9 @@ export class Console extends EventTarget implements IConsole {
 				startFrame,
 				endFrame,
 				speed,
-				loop || true,
-				pingPong || false,
-				pingPongFlip || 0
+				loop ?? true,
+				pingPong ?? false,
+				pingPongFlip ?? 0
 			)
 		}
 	}

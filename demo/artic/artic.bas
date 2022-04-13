@@ -41,6 +41,8 @@ SUB FullLine (text$, lines%)
 	END IF
 END SUB
 
+SCREEN 1
+
 DO
 
 	GOSUB ViewList

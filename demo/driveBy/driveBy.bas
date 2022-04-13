@@ -47,6 +47,8 @@ speed = 0
 
 moveFactor% = 0
 
+SCREEN 1
+
 CONST carSprite = 1
 ' Set imgCar as Sprite carSprite (1)
 SPSET carSprite, imgCar, 13
