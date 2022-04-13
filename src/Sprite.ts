@@ -172,7 +172,6 @@ export class Sprite {
 			} else {
 				this._skip = 0
 			}
-			console.log(this._animating, this._loop)
 
 			let oldFrame = this._curFrame
 			this._curFrame = Math.max(
