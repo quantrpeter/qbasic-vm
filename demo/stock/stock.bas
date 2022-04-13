@@ -28,7 +28,7 @@ EODHD_API_URL$ = "wss://ws.eodhistoricaldata.com/ws/us?api_token=" + API_KEY$
 
 DECLARE SUB FullLine (text$, lines%)
 DECLARE SUB EmptyKeyBuf ()
-DECLARE SUB ReadRecvMessages (Stocks$())
+DECLARE SUB ReadRecvMessages ()
 DECLARE FUNCTION Concat$ (Arr$())
 DECLARE FUNCTION IndexOf% (Arr$(), Needle$)
 DECLARE SUB PaintText (text$, font, x, y, w, h, letterSpacing)
@@ -98,7 +98,7 @@ SUB FullLine (text$, lines%)
 	END IF
 END SUB
 
-SUB ReadRecvMessages (Stocks$())
+SUB ReadRecvMessages ()
 	Data$ = ""
 	ResCode% = -1000
 	DO
@@ -162,25 +162,15 @@ WSWRITE JSONSTR$(SubscriptionJ)
 
 DO
 
-	ReadRecvMessages(Stocks)
+	ReadRecvMessages()
 	GOSUB ViewList
 	GOSUB Bling
 	WAIT
 
 LOOP WHILE 1 = 1
 
-Header:
-	CLS
-	' COLOR 1, 8
-	' PRINT " EOD HISTORICAL     ";
-	' PRINT " DATA               ";
-	' PRINT "                    "
-	' COLOR 15, 0
-	RETURN
-
-
 ViewList:
-	GOSUB Header
+	CLS
 	LOCATE 5, 1
 
 
