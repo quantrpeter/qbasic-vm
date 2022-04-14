@@ -48,7 +48,7 @@ RANDOMIZE
 
 CONST blingSprite = 1
 SPSET blingSprite, imgBling, 7
-SPHOME blingSprite, 4, 4
+SPHOME blingSprite, 9, 10
 
 
 SUB PaintText (text$, font, x, y, w, h, letterSpacing)
@@ -187,22 +187,42 @@ ViewList:
 	RETURN
 
 Bling:
+	' Randomly decide if we want to bling now
 	BlingNow = RND() * 1000
-	IF BlingNow < 999 THEN
+	IF BlingNow < 990 THEN
 		RETURN
 	END IF
 
-	BlingX# = RND()
-	BlingY# = RND()
-	RandomItem = INT(RND() * 15)
-	Select = 0
-	IF (RandomItem >= 0) AND (RandomItem < 5) THEN
-		Select = 2
-	ELSE IF (RandomItem >= 5) AND (RandomItem < 10) THEN
-		Select = 1
-	ELSE
+	' Limit on how long we're going to try to find a blingable spot
+	BlingGiveUp = 10
+	FOR i = 1 TO BlingGiveUp
+		' Select a random bling position
+		BlingX# = RND()
+		BlingY# = RND()
+		' Randomly select the item we're going to bling
+		RandomItem = INT(RND() * 15)
 		Select = 0
-	END IF
-	SPOFS blingSprite, 32 + INT(BlingX# * 110), 32 + INT(BlingY# * 5) + (Select * 100)
-	SPANIM blingSprite, 1, 7, 10, 0, 0, 0
+		IF (RandomItem >= 0) AND (RandomItem < 5) THEN
+			Select = 2
+		ELSE IF (RandomItem >= 5) AND (RandomItem < 10) THEN
+			Select = 1
+		ELSE
+			Select = 0
+		END IF
+		' Scale the bling random point onto the blingable area
+		TargetBlinkX = 32 + INT(BlingX# * 110)
+		TargetBlinkY = 32 + INT(BlingY# * 20) + (Select * 100)
+		DIM PixelRed, PixelGreen, PixelBlue
+		' Check the bling point
+		GPGET TargetBlinkX, TargetBlinkY, PixelRed, PixelGreen, PixelBlue
+		' See if the luminance of the bling point is high enough
+		Luminance# = (PixelRed * 0.3) + (PixelGreen * 0.59) + (PixelBlue * 0.11)
+		IF Luminance# > 80 THEN
+			SPOFS blingSprite, TargetBlinkX, TargetBlinkY
+			SPANIM blingSprite, 1, 7, 10, 0, 0, 0
+			' We've blinged, we can exit the Bling routine
+			RETURN
+		END IF
+	NEXT i
+
 	RETURN

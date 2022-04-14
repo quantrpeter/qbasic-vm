@@ -2175,7 +2175,7 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 	},
 
 	GPGET: {
-		// X%, Y%, OUT RED%, OUT GREEN, OUT BLUE
+		// X%, Y%, OUT RED%, OUT GREEN%, OUT BLUE%
 		args: ['INTEGER', 'INTEGER', 'INTEGER', 'INTEGER', 'INTEGER'],
 		action: function(vm) {
 			let x1: number
