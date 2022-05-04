@@ -61,7 +61,7 @@ import {
 	AstOpenStatement,
 	AstCloseStatement,
 	AstWriteStatement,
-	AstEventStatement
+	AstOnEventStatement
 } from './QBasic'
 
 export interface IVisitor {
@@ -100,7 +100,7 @@ export interface IVisitor {
 	visitUserType(userType: AstUserType): void
 	visitGotoStatement(gotoStatement: AstGotoStatement): void
 	visitGosub(gosub: AstGosubStatement): void
-	visitEventStatement(event: AstEventStatement): void
+	visitOnEventStatement(event: AstOnEventStatement): void
 	visitLabel(label: AstLabel): void
 	visitAssignStatement(assign: AstAssignStatement): void
 	visitBinaryOp(binary: AstBinaryOp): void

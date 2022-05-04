@@ -703,7 +703,7 @@ export class AstCallStatement implements AstStatement {
 	}
 }
 
-export class AstEventStatement implements AstStatement {
+export class AstOnEventStatement implements AstStatement {
 	locus: ILocus
 	path: any
 	handler: string
@@ -715,7 +715,7 @@ export class AstEventStatement implements AstStatement {
 	}
 
 	public accept(visitor: IVisitor): void {
-		visitor.visitEventStatement(this)
+		visitor.visitOnEventStatement(this)
 	}
 }
 
@@ -897,6 +897,8 @@ export class QBasicProgram {
 			rules.addToken('EQV', 'EQV')
 			rules.addToken('IMP', 'IMP')
 			rules.addToken('POKE', 'POKE')
+			rules.addToken('ON', 'ON')
+			rules.addToken('OFF', 'OFF')
 			rules.addToken('EVENT', 'EVENT')
 			rules.addToken('PRINT', 'PRINT')
 			rules.addToken('RESTORE', 'RESTORE')
@@ -1154,9 +1156,17 @@ export class QBasicProgram {
 
 			rules.addRule("moreExpr: expr ','", UseFirst)
 
-			rules.addRule("istatement: EVENT expr ',' identifier", 
+			// QBasic had [COM|STRIG|PEN|KEY](X) [ON|OFF], but we don't need that
+			// so we ignore any EVENT(X) [ON|OFF] statements for compatibility
+			rules.addRule("istatement: EVENT '\\(' expr '\\)' (ON|OFF)",
+				function (_args, locus) {
+					return new AstNullStatement(locus)
+				}
+			)
+
+			rules.addRule("istatement: ON EVENT '\\(' expr '\\)' GOSUB identifier", 
 				function(args, locus) {
-					return new AstEventStatement(locus, args[1], args[3])
+					return new AstOnEventStatement(locus, args[3], args[6])
 				}
 			)
 

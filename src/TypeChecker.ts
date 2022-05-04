@@ -37,7 +37,7 @@ import {
 	AstConstantExpr,
 	AstCloseStatement,
 	AstWriteStatement,
-	AstEventStatement
+	AstOnEventStatement
 } from './QBasic'
 import {
 	IntegerType,
@@ -923,7 +923,7 @@ export class TypeChecker implements IVisitor {
 		this.labelsUsed.push(new CheckedLabel(gosub.label, gosub))
 	}
 
-	public visitEventStatement(event: AstEventStatement) {
+	public visitOnEventStatement(event: AstOnEventStatement) {
 		event.path.accept(this)
 		if (
 			!IsStringType(event.path.type)

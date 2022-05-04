@@ -33,7 +33,7 @@
 			)
 			const dbg = new qb.DebugConsole(document.getElementById('debug'))
 			document.getElementById('poke').addEventListener('click', () => {
-				generalIORouter.emit('/poke', 'Random Data From JavaScript')
+				generalIORouter.emit('/poke', 'Random Data From JavaScript: ' + Math.random() * 1000)
 			})
 
 			function startProgram(fileName) {

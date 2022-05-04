@@ -68,7 +68,7 @@ import {
 	AstOpenStatement,
 	AstCloseStatement,
 	AstWriteStatement,
-	AstEventStatement
+	AstOnEventStatement
 } from './QBasic'
 import './types/array.extensions'
 import { IsArrayType } from './Types'
@@ -692,7 +692,7 @@ export class CodeGenerator implements IVisitor {
 		this.write('GOSUB', labelId, node.locus)
 	}
 
-	public visitEventStatement(node: AstEventStatement) {
+	public visitOnEventStatement(node: AstOnEventStatement) {
 		this.map(node.locus)
 		node.path.accept(this)
 		let labelId = this.getGotoLabel(node.handler)

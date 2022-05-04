@@ -56,6 +56,7 @@ export class GeneralIORouter implements IGeneralIO {
 		return ''
 	}
 	addEventListener(path: string, handler: (data: string) => void): void {
+		this.eventsRouter.remove(path)
 		this.eventsRouter.insert({
 			path,
 			handler,

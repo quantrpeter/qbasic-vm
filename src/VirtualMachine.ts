@@ -1513,6 +1513,7 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 	},
 
 	LOCATE: {
+		// Y% [, X%]
 		args: ['INTEGER', 'INTEGER'],
 		minArgs: 1,
 		action: function(vm) {
