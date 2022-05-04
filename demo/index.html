@@ -8,6 +8,7 @@
 			<select id="select"></select>
 		</div>
 		<div id="main"></div>
+		<button id="poke">POKE</button>
 		<div id="debug"></div>
 
 		<script type="text/javascript">
@@ -22,13 +23,18 @@
 			const audio = new qb.AudioDevice()
 			const network = new qb.NetworkAdapter()
 			const fileSystem = new qb.LocalStorageFileSystem()
+			const generalIORouter = new qb.GeneralIORouter()
 			const virtualMachine = new qb.VirtualMachine(
 				cons,
 				audio,
 				network,
-				fileSystem
+				fileSystem,
+				generalIORouter
 			)
 			const dbg = new qb.DebugConsole(document.getElementById('debug'))
+			document.getElementById('poke').addEventListener('click', () => {
+				generalIORouter.emit('/poke', 'Random Data From JavaScript')
+			})
 
 			function startProgram(fileName) {
 				fetch(fileName)
@@ -63,13 +69,14 @@
 
 			const demoPrgs = [
 				'helloWorld.bas',
+				'events.bas',
 				'driveBy/driveBy.bas',
 				'artic/artic.bas',
 				'stock/stock.bas',
 				'nibbles.bas'
 			]
 
-			const fileName = demoPrgs[3]
+			const fileName = demoPrgs[1]
 
 			const select = document.getElementById('select')
 			for (const file of demoPrgs) {

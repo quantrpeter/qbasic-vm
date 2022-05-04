@@ -35,7 +35,7 @@ export class NetworkAdapter implements INetworkAdapter {
 	private fetchAborts: Set<AbortController> = new Set()
 	private bufferSize = 0
 
-	fetch(
+	async fetch(
 		url: string,
 		options: {
 			method?: string | undefined
@@ -55,20 +55,21 @@ export class NetworkAdapter implements INetworkAdapter {
 		const abortController = new AbortController()
 		this.fetchAborts.add(abortController)
 
-		return fetch(url, {
+		const response = await fetch(url, {
 			method,
 			headers: fetchHeaders,
 			body,
 			signal: abortController.signal
 		})
-			.then(response => {
-				this.fetchAborts.delete(abortController)
-				return Promise.all([response.status, response.text()])
-			})
-			.then(statusAndResponse => ({
-				code: statusAndResponse[0],
-				body: statusAndResponse[1]
-			}))
+
+		this.fetchAborts.delete(abortController)
+		const responseCode = response.status
+		const responseBody = await response.text()
+
+		return {
+			code: responseCode,
+			body: responseBody
+		}
 	}
 	wsOpen(handle: number, url: string, protocol?: string): Promise<void> {
 		return new Promise((resolve, reject) => {
@@ -99,26 +100,21 @@ export class NetworkAdapter implements INetworkAdapter {
 			})
 		})
 	}
-	wsSend(handle: number, data: string): Promise<void> {
-		return new Promise(resolve => {
-			const socketHandle = this.sockets[handle]
-			if (!socketHandle) {
-				throw new Error('Floating WebSocket handle')
-			}
-			socketHandle.socket.send(data)
-			resolve()
-		})
+	async wsSend(handle: number, data: string): Promise<void> {
+		const socketHandle = this.sockets[handle]
+		if (!socketHandle) {
+			throw new Error('Floating WebSocket handle')
+		}
+		socketHandle.socket.send(data)
 	}
-	wsGetMessageFromBuffer(handle: number): Promise<string | undefined> {
-		return new Promise(resolve => {
-			const socketHandle = this.sockets[handle]
-			if (!socketHandle) {
-				throw new Error('Floating WebSocket handle')
-			}
-			const message = socketHandle.buffer.shift()
-			this.bufferSize -= message ? message.length : 0
-			resolve(message)
-		})
+	async wsGetMessageFromBuffer(handle: number): Promise<string | undefined> {
+		const socketHandle = this.sockets[handle]
+		if (!socketHandle) {
+			throw new Error('Floating WebSocket handle')
+		}
+		const message = socketHandle.buffer.shift()
+		this.bufferSize -= message ? message.length : 0
+		return message
 	}
 	wsClose(handle: number) {
 		const socketHandle = this.sockets[handle]
@@ -164,7 +160,7 @@ export class NetworkAdapter implements INetworkAdapter {
 			socketHandle.eventListeners.splice(index, 1)
 		}
 	}
-	reset() {
+	async reset(): Promise<void> {
 		this.sockets.forEach(socketHandle => {
 			if (socketHandle) {
 				socketHandle.socket.close(1000, 'Network adapter reset.')

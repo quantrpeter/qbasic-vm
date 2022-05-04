@@ -23,6 +23,7 @@ import { VirtualMachine } from './VirtualMachine'
 import { QBasicProgram } from './QBasic'
 import { AudioDevice } from './AudioDevice'
 import { NetworkAdapter } from './NetworkAdapter'
+import { GeneralIORouter } from './GeneralIO'
 
 export * from './Console'
 export * from './DebugConsole'
@@ -34,6 +35,8 @@ export * from './INetworkAdapter'
 export * from './NetworkAdapter'
 export * from './IFileSystem'
 export * from './LocalStorageFileSystem'
+export * from './IGeneralIO'
+export * from './GeneralIO'
 
 export default {
 	Console,
@@ -41,5 +44,6 @@ export default {
 	VirtualMachine,
 	QBasicProgram,
 	AudioDevice,
-	NetworkAdapter
+	NetworkAdapter,
+	GeneralIORouter
 }

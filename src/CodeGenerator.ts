@@ -67,7 +67,8 @@ import {
 	AstConstantExpr,
 	AstOpenStatement,
 	AstCloseStatement,
-	AstWriteStatement
+	AstWriteStatement,
+	AstEventStatement
 } from './QBasic'
 import './types/array.extensions'
 import { IsArrayType } from './Types'
@@ -90,7 +91,7 @@ export class Instruction {
 		} else {
 			return (
 				this.instr.name +
-				`${this.arg} (${this.locus.line}:${this.locus.position})`
+				` ${this.arg} (${this.locus.line}:${this.locus.position})`
 			)
 		}
 	}
@@ -689,6 +690,13 @@ export class CodeGenerator implements IVisitor {
 		this.map(node.locus)
 		let labelId = this.getGotoLabel(node.label)
 		this.write('GOSUB', labelId, node.locus)
+	}
+
+	public visitEventStatement(node: AstEventStatement) {
+		this.map(node.locus)
+		node.path.accept(this)
+		let labelId = this.getGotoLabel(node.handler)
+		this.write('REG_EVENT_HANDLER', labelId, node.locus)
 	}
 
 	public visitLabel(node: AstLabel) {

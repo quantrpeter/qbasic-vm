@@ -1,4 +1,5 @@
 const path = require('path')
+const webpack = require('webpack')
 
 module.exports = {
 	mode: 'development',
@@ -12,7 +13,11 @@ module.exports = {
 	devtool: 'source-map',
 	resolve: {
 		modules: [path.resolve('./node_modules'), path.resolve('./src')],
-		extensions: ['.js', '.ts', '.json']
+		extensions: ['.js', '.ts', '.json'],
+		fallback: {
+			"assert": require.resolve("assert-browserify"),
+			"process": false,
+		}
 	},
 	module: {
 		rules: [
@@ -44,5 +49,10 @@ module.exports = {
 		port: 9000,
 		open: ['index.html'],
 		watchFiles: ['dist/qbasic-vm.js', 'demo/**/*']
-	}
+	},
+	plugins: [
+		new webpack.ProvidePlugin({
+			process: 'process/browser',
+		}),
+	]
 }

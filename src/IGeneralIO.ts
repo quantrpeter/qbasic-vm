@@ -18,8 +18,10 @@
 */
 
 export interface IGeneralIO {
-	output(address: string, data: string): Promise<void>
-	input(address: string): Promise<string>
-	addEventListener(address: string, listener: (data: string) => void): void
-	removeEventListener(address: string, listener: (data: string) => void): void
+	output(path: string, data: string): Promise<void>
+	input(path: string): Promise<string>
+	addEventListener(path: string, handler: (data: string) => void): void
+	removeEventListener(path: string, handler: (data: string) => void): void
+
+	reset(): void
 }

@@ -703,6 +703,22 @@ export class AstCallStatement implements AstStatement {
 	}
 }
 
+export class AstEventStatement implements AstStatement {
+	locus: ILocus
+	path: any
+	handler: string
+
+	constructor(locus: ILocus, path: any, handler: string) {
+		this.locus = locus
+		this.path = path
+		this.handler = handler
+	}
+
+	public accept(visitor: IVisitor): void {
+		visitor.visitEventStatement(this)
+	}
+}
+
 export class AstAssignStatement implements AstStatement {
 	locus: ILocus
 	lhs: any // could be a referenceList
@@ -881,6 +897,7 @@ export class QBasicProgram {
 			rules.addToken('EQV', 'EQV')
 			rules.addToken('IMP', 'IMP')
 			rules.addToken('POKE', 'POKE')
+			rules.addToken('EVENT', 'EVENT')
 			rules.addToken('PRINT', 'PRINT')
 			rules.addToken('RESTORE', 'RESTORE')
 			rules.addToken('RETURN', 'RETURN')
@@ -1136,6 +1153,12 @@ export class QBasicProgram {
 			rules.addRule('exprList: moreExpr* expr', JoinListsLR)
 
 			rules.addRule("moreExpr: expr ','", UseFirst)
+
+			rules.addRule("istatement: EVENT expr ',' identifier", 
+				function(args, locus) {
+					return new AstEventStatement(locus, args[1], args[3])
+				}
+			)
 
 			rules.addRule(
 				"istatement: OPEN Reference FOR ('OUTPUT'|'INPUT'|'APPEND'|'BINARY'|'RANDOM') AS FileItem",

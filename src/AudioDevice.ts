@@ -77,7 +77,7 @@ export class AudioDevice implements IAudioDevice {
 	private currentMMLEmitter: MMLEmitter | undefined
 
 	constructor() {
-		this.audioContext = new AudioContext()
+		this.reset()
 	}
 
 	beep(num: number): Promise<void> {
@@ -208,5 +208,11 @@ export class AudioDevice implements IAudioDevice {
 				resolve()
 			})
 		})
+	}
+	async reset(): Promise<void> {
+		if (this.audioContext) {
+			await this.audioContext.close()
+		}
+		this.audioContext = new AudioContext()
 	}
 }

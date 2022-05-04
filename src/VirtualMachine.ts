@@ -194,13 +194,15 @@ export class VirtualMachine extends EventEmitter<
 		console: IConsole,
 		audio?: IAudioDevice,
 		networkAdapter?: INetworkAdapter,
-		fileSystem?: IFileSystem
+		fileSystem?: IFileSystem,
+		generalIo?: IGeneralIO
 	) {
 		super()
 		this.cons = console
 		this.audio = audio
 		this.networkAdapter = networkAdapter
 		this.fileSystem = fileSystem
+		this.generalIo = generalIo
 
 		if (!DEBUG) {
 			this.trace = { printf: function() {} } as TraceBuffer
@@ -2608,28 +2610,6 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 				vm.trace.printf('General IO not available')
 			}
 		}
-	},
-
-	EVENT: {
-		// address$, label
-		args: ['STRING', 'ANY'],
-		action: function(vm) {
-			const pc = vm.stack.pop()
-			const address = vm.stack.pop()
-
-			if (vm.generalIo) {
-				vm.generalIo.addEventListener(address, data => {
-					let oldvariables = vm.frame.variables
-					vm.frame = new StackFrame(vm.pc)
-					vm.frame.variables = oldvariables
-					vm.callstack.push(vm.frame)
-					vm.stack.push(data)
-					vm.pc = pc
-				})
-			} else {
-				vm.trace.printf('General IO not available')
-			}
-		}
 	}
 }
 
@@ -3184,6 +3164,31 @@ export const Instructions: InstructionDefinition = {
 			let rhs = vm.stack.pop()
 
 			lhs.value = lhs.type.copy(rhs)
+		}
+	},
+
+	REG_EVENT_HANDLER: {
+		name: 'reg_event_handler',
+		numArgs: 1,
+		addrLabel: true,
+		execute: function(vm, arg) {
+			const handler = arg
+			const address = vm.stack.pop()
+
+			if (vm.generalIo) {
+				vm.generalIo.addEventListener(address, data => {
+					console.log("EVENT", address, handler)
+					
+					const stringType = vm.types['STRING']
+					const dataVariable = new ScalarVariable<string>(stringType, data)
+					vm.stack.push(dataVariable)
+					vm.frame = new StackFrame(vm.pc)
+					vm.callstack.push(vm.frame)
+					vm.pc = handler
+				})
+			} else {
+				vm.trace.printf('General IO not available')
+			}
 		}
 	},
 

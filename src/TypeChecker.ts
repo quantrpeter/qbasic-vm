@@ -36,7 +36,8 @@ import {
 	AstArrayDeref,
 	AstConstantExpr,
 	AstCloseStatement,
-	AstWriteStatement
+	AstWriteStatement,
+	AstEventStatement
 } from './QBasic'
 import {
 	IntegerType,
@@ -920,6 +921,23 @@ export class TypeChecker implements IVisitor {
 
 	public visitGosub(gosub) {
 		this.labelsUsed.push(new CheckedLabel(gosub.label, gosub))
+	}
+
+	public visitEventStatement(event: AstEventStatement) {
+		event.path.accept(this)
+		if (
+			!IsStringType(event.path.type)
+		) {
+			this.error(event, 'Event path must be a string.')
+		}
+		const declare = this.declaredSubs[event.handler]
+		if (!declare) {
+			this.error(event, "Call to undefined sub '%s'", event.handler)
+		} else {
+			this.checkCallArguments(declare, [
+				new AstArgument(event.locus, 'data$', 'STRING')
+			])
+		}
 	}
 
 	public visitLabel(label) {

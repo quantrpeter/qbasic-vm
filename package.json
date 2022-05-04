@@ -45,10 +45,13 @@
     "webpack-dev-server": "^4.7.4"
   },
   "dependencies": {
+    "assert-browserify": "^2.0.0",
     "eventemitter3": "^4.0.0",
     "fetch-ponyfill": "^7.1.0",
     "jsonpath": "^1.1.1",
     "mml-iterator": "^1.1.0",
+    "process": "^0.11.10",
+    "radix-router": "^3.0.1",
     "seq-emitter": "^1.2.0",
     "websocket-polyfill": "0.0.3"
   },

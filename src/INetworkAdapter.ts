@@ -37,5 +37,6 @@ export interface INetworkAdapter {
 	wsClose(handle: number)
 	addEventListener(handle: number, listener: () => void): void
 	removeEventListener(handle: number, listener: () => void): void
-	reset()
+
+	reset(): Promise<void>
 }

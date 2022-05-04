@@ -26,4 +26,6 @@ export interface IAudioDevice {
 	stopMusic(): void
 	isPlayingMusic(): boolean
 	makeSound(frequency: number, duration: number, volume?: number): Promise<void>
+
+	reset(): Promise<void>
 }
