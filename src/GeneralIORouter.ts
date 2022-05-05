@@ -37,6 +37,7 @@ export class GeneralIORouter implements IGeneralIO {
 	}
 	async output(path: string, data: string): Promise<void> {
 		const route = this.inOutRouter.lookup(path)
+		
 		if (route) {
 			await route.handler({
 				...route,
@@ -51,7 +52,7 @@ export class GeneralIORouter implements IGeneralIO {
 			return route.handler({
 				...route,
 				method: 'in',
-			})
+			}) || ''
 		}
 		return ''
 	}

@@ -9,11 +9,23 @@ ON EVENT("/poke") GOSUB OnDummyEvent
 
 i=0
 
+PRINT INP$("/peek")
+OUT "/peek/somePath", "20"
+
+PRINT ""
+PRINT "Press ANY key..."
+
+SLEEP
+
+CLS
+
 DO
 
 	LOCATE 1
+	PRINT "Press POKE to trigger EVENT"
+	PRINT ""
 	INPUT "Say "; Text$
-	LOCATE 2
+	LOCATE 7
 	PRINT Text$
 	i = i + 1
 	WAIT

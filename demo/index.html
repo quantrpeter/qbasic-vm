@@ -35,11 +35,19 @@
 			document.getElementById('poke').addEventListener('click', () => {
 				generalIORouter.emit('/poke', 'Random Data From JavaScript: ' + Math.random() * 1000)
 			})
+			generalIORouter.insertRoute('/peek', (req) => {
+				console.log(req)
+				return 'Reading from /peek, time is: ' + new Date().toTimeString()
+			})
+			generalIORouter.insertRoute('/peek/**', (req) => {
+				console.log(req)
+				return Promise((resolve) => resolve('Reading from a resolved promise /peek/someEndpoint, time is: ' + new Date().toTimeString()))
+			})
 
 			function startProgram(fileName) {
 				fetch(fileName)
 				.then(resp => {
-					if (resp.status === 200) return resp.text()
+					if (resp.ok) return resp.text()
 					throw new Error(resp.status, resp.statusText)
 				})
 				.then(code => {

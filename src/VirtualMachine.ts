@@ -2591,8 +2591,8 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 		// address$, data$
 		args: ['STRING', 'STRING'],
 		action: function(vm) {
-			const data = vm.stack.pop()
-			const address = vm.stack.pop()
+			const data = getArgValue(vm.stack.pop())
+			const address = getArgValue(vm.stack.pop())
 
 			if (vm.generalIo) {
 				vm.suspend()
