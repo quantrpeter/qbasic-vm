@@ -1106,7 +1106,7 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 						? result === true
 							? -1
 							: 0
-						: Math.round(result)
+						: Math.floor(result)
 				)
 			}
 		}
