@@ -17,10 +17,7 @@
 	along with qbasic-vm.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-import * as fetchPonyfill from 'fetch-ponyfill'
 import { IFetchResponse, INetworkAdapter } from './INetworkAdapter'
-const { fetch, Headers } = fetchPonyfill()
-import 'websocket-polyfill'
 
 interface SocketHandle {
 	socket: WebSocket
