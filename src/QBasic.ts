@@ -819,12 +819,25 @@ export interface IError {}
 
 export interface IParser {
 	parse(code: string): AstProgram | null
-	errors: string[]
+	errors: IError[]
+}
+
+export enum ErrorType {
+	UnknownToken = 'unknownToken',
+	SyntaxError = 'syntaxError',
+	InternalRuleError = 'internalRuleError',
+	TypeMismatch = 'typeMismatch'
+}
+
+export interface IError {
+	locus?: ILocus
+	message: string
+	type: ErrorType
 }
 
 export class QBasicProgram {
 	parser: IParser | undefined = undefined
-	errors: string[]
+	errors: IError[]
 	testMode: boolean
 
 	sourcecode: string

@@ -22,6 +22,7 @@
 import { Rule, RuleSet, IToken } from './RuleSet'
 import { Token, Locus, Tokenizer } from './Tokenizer'
 import { getDebugConsole as dbg, sprintf } from './DebugConsole'
+import { ErrorType, IError } from './QBasic'
 
 let NextId = 0
 
@@ -35,14 +36,7 @@ class EarleyItem {
 	prev: EarleyItem | undefined
 	locus: Locus | undefined
 
-	constructor(
-		rule: Rule,
-		position: number,
-		base: number,
-		token?: Token,
-		prev?: EarleyItem,
-		locus?: Locus
-	) {
+	constructor(rule: Rule, position: number, base: number, token?: Token, prev?: EarleyItem, locus?: Locus) {
 		this.id = NextId++
 		this.rule = rule
 		this.pos = position
@@ -92,7 +86,7 @@ export class EarleyParser {
 		[key: string]: Rule[]
 	}
 
-	errors: string[]
+	errors: IError[]
 
 	debug: boolean
 
@@ -141,7 +135,14 @@ export class EarleyParser {
 		for (i = 0; ; i++) {
 			let token = this.tokenizer.nextToken(line, position)
 			if (token === null) {
-				this.errors.push(sprintf('Bad token at %d:%d\n', line, position))
+				this.errors.push({
+					message: sprintf('Bad token at %d:%d\n', line, position),
+					type: ErrorType.UnknownToken,
+					locus: {
+						line,
+						position,
+					},
+				})
 				dbg().printf('Bad token!\n')
 				return null
 			} else if (this.debug) {
@@ -161,7 +162,14 @@ export class EarleyParser {
 			this.scan(states, i, token)
 
 			if (states[i].length === 0) {
-				this.errors.push(sprintf('Syntax error at %s: %s', this.locus, token))
+				this.errors.push({
+					message: sprintf('Syntax error at %s: %s', this.locus, token),
+					type: ErrorType.SyntaxError,
+					locus: {
+						line,
+						position,
+					},
+				})
 				for (j = 0; j < states[i - 1].length; j++) {
 					this.errors.push(sprintf('    %s\n', states[i - 1][j]))
 				}
@@ -220,14 +228,7 @@ export class EarleyParser {
 			let baseItems = states[item.base]
 			for (let j = 0; j < baseItems.length; j++) {
 				if (baseItems[j].rule.symbols[baseItems[j].pos] === item.rule.name) {
-					this.addToState(
-						states[i],
-						baseItems[j].rule,
-						baseItems[j].pos + 1,
-						baseItems[j].base,
-						item,
-						baseItems[j]
-					)
+					this.addToState(states[i], baseItems[j].rule, baseItems[j].pos + 1, baseItems[j].base, item, baseItems[j])
 				}
 			}
 		}
@@ -237,27 +238,14 @@ export class EarleyParser {
 		let items = states[i]
 		for (let j = 0; j < items.length; j++) {
 			if (items[j].rule.symbols[items[j].pos] === token.id) {
-				states[i + 1].push(
-					new EarleyItem(
-						items[j].rule,
-						items[j].pos + 1,
-						items[j].base,
-						token,
-						items[j],
-						this.locus
-					)
-				)
+				states[i + 1].push(new EarleyItem(items[j].rule, items[j].pos + 1, items[j].base, token, items[j], this.locus))
 			}
 		}
 	}
 
 	public addToState(items, rule, pos, base, token, prev) {
 		for (let i = 0; i < items.length; i++) {
-			if (
-				items[i].rule === rule &&
-				items[i].pos === pos &&
-				items[i].base === base
-			) {
+			if (items[i].rule === rule && items[i].pos === pos && items[i].base === base) {
 				return
 			}
 		}

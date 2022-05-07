@@ -19,6 +19,7 @@
 	along with qbasic-vm.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+import { ErrorType, IError } from './QBasic'
 import { Tokenizer } from './Tokenizer'
 
 let NextRuleId = 0
@@ -147,7 +148,7 @@ export class RuleSet {
 	//
 	// Returns: Number of errors found.
 	// ------------------------------------------------------------------------
-	public check(errors: string[]) {
+	public check(errors: IError[]) {
 		let size = errors.length
 
 		// for each rule name,
@@ -160,22 +161,24 @@ export class RuleSet {
 				for (let j = 0; j < rule.symbols.length; j++) {
 					let symbol = rule.symbols[j]
 					if (symbol.length === 0) {
-						errors.push(
-							"Error: Rule '" +
+						errors.push({
+							message: "Error: Rule '" +
 								ruleName +
 								"' contains a zero length symbol: " +
-								symbol
-						)
+								symbol,
+							type: ErrorType.InternalRuleError
+						})
 
 						// Verify that all non-terminals in the rule exist.
 					} else if (symbol[0] !== "'") {
 						if (!this.rules[symbol]) {
-							errors.push(
-								"Error: Rule'" +
+							errors.push({
+								message: "Error: Rule'" +
 									ruleName +
 									"' contains an undefined symbol: " +
-									symbol
-							)
+									symbol,
+								type: ErrorType.InternalRuleError
+							})
 						}
 
 						// 2. Verify that all terminals are valid regular expressions.

@@ -67,7 +67,7 @@
 						virtualMachine.reset()
 						network.reset()
 						for (let i = 0; i < program.errors.length; i++) {
-							dbg.print(program.errors[i] + '\n')
+							dbg.print(program.errors[i].message + '\n')
 						}
 						cons.enableCursor(true)
 					}
