@@ -32,9 +32,9 @@ interface IMatch {
 }
 
 export class DebugConsole {
-	ta: HTMLTextAreaElement
+	ta: HTMLTextAreaElement | HTMLElement
 
-	constructor(textarea: HTMLTextAreaElement) {
+	constructor(textarea: HTMLTextAreaElement | HTMLElement) {
 		this.ta = textarea
 		setDebugConsole(this)
 	}

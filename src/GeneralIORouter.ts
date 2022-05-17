@@ -33,6 +33,7 @@ export class GeneralIORouter implements IGeneralIO {
 	inOutRouter: RadixRouter<InOutRouteHandler>
 	eventsRouter: RadixRouter<EventRouteHandler>
 	constructor() {
+		this.inOutRouter = new RadixRouter<InOutRouteHandler>()
 		this.reset()
 	}
 	async output(path: string, data: string): Promise<void> {
@@ -82,7 +83,9 @@ export class GeneralIORouter implements IGeneralIO {
 		return this.inOutRouter.remove(path)
 	}
 	reset(): void {
-		this.inOutRouter = new RadixRouter<InOutRouteHandler>()
+		// only reset the eventsRouter, since that's what hooks into user-code
+		// the inOutRouter has routes from the environment, so it should be
+		// static
 		this.eventsRouter = new RadixRouter<EventRouteHandler>({
 			strict: true
 		})

@@ -19,6 +19,9 @@
 	along with qbasic-vm.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// Fix a problem with setTimeout/clearTimeout NodeJS vs Web
+/// <reference path="./types/timeout.fix.d.ts" />
+
 import { sprintf, getDebugConsole as dbg } from './DebugConsole'
 import { Instruction } from './CodeGenerator'
 import {
@@ -36,12 +39,13 @@ import {
 import { IConsole, STRUCTURED_INPUT_MATCH } from './IConsole'
 import { IAudioDevice } from './IAudioDevice'
 import { INetworkAdapter } from './INetworkAdapter'
+import { IGeneralIO } from './IGeneralIO'
+import { ICryptography } from './ICryptography'
 import { QBasicProgram } from './QBasic'
 import { Locus } from './Tokenizer'
 import * as EventEmitter from 'eventemitter3'
 import * as jsonPath from 'jsonpath'
 import { FileAccessMode, IFileSystem } from './IFileSystem'
-import { IGeneralIO } from './IGeneralIO'
 
 export enum RuntimeErrorCodes {
 	DIVISION_BY_ZERO = 101,
@@ -143,6 +147,9 @@ export class VirtualMachine extends EventEmitter<
 	// The general I/O adapter
 	generalIo: IGeneralIO | undefined
 
+	// The cryptography engine
+	cryptography: ICryptography | undefined
+
 	// The bytecode (array of Instruction objects)
 	instructions: Instruction[] = []
 
@@ -195,7 +202,8 @@ export class VirtualMachine extends EventEmitter<
 		audio?: IAudioDevice,
 		networkAdapter?: INetworkAdapter,
 		fileSystem?: IFileSystem,
-		generalIo?: IGeneralIO
+		generalIo?: IGeneralIO,
+		cryptography?: ICryptography
 	) {
 		super()
 		this.cons = console
@@ -203,6 +211,7 @@ export class VirtualMachine extends EventEmitter<
 		this.networkAdapter = networkAdapter
 		this.fileSystem = fileSystem
 		this.generalIo = generalIo
+		this.cryptography = cryptography
 
 		if (!DEBUG) {
 			this.trace = { printf: function() {} } as TraceBuffer
@@ -228,7 +237,7 @@ export class VirtualMachine extends EventEmitter<
 		this.dataPtr = 0
 		this.suspended = false
 		if (this.interval) {
-			window.clearInterval(this.interval)
+			clearInterval(this.interval)
 			this.interval = undefined
 		}
 
@@ -238,6 +247,10 @@ export class VirtualMachine extends EventEmitter<
 		} else {
 			this.cons.reset()
 		}
+		this.audio?.reset()
+		this.networkAdapter?.reset()
+		this.generalIo?.reset()
+		this.cryptography?.reset()
 	}
 
 	/**

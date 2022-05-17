@@ -46,6 +46,7 @@
   },
   "dependencies": {
     "assert-browserify": "^2.0.0",
+    "easy-web-crypto": "^1.2.10",
     "eventemitter3": "^4.0.0",
     "jsonpath": "^1.1.1",
     "mml-iterator": "^1.1.0",
