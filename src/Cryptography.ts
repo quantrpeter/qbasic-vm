@@ -51,12 +51,12 @@ export class Cryptography implements ICryptography {
 	async sign(privateKey: number, data: string | object): Promise<string> {
 		const key = this.keyChain[privateKey]
 		if (!key) throw new Error('Invalid key handle.')
-		return (await sign(key, data, 'base64')).toString()
+		return (await sign(key, data, 'base64', 'sha-256')).toString()
 	}
 	async verify(publicKey: number, data: string | object, signature: string): Promise<boolean> {
 		const key = this.keyChain[publicKey]
 		if (!key) throw new Error('Invalid key handle.')
-		return await verify(key, data, 'base64')
+		return await verify(key, data, signature, 'base64')
 	}
 	async genAESKey(): Promise<number> {
 		const aesKey = await genAESKey(true, 'AES-GCM', 128)
@@ -77,10 +77,10 @@ export class Cryptography implements ICryptography {
 	async exportKey(keyId: number): Promise<string> {
 		const key = this.keyChain[keyId]
 		if (!key) throw new Error('Invalid key handle.')
-		return (await exportKey(key, 'raw')).toString()
+		return (await exportKey(key, 'pkcs8')).toString()
 	}
 	async importKey(data: string): Promise<number> {
-		const key = await importKey(data as any, 'raw', 'AES-GCM')
+		const key = await importKey(data as any, 'pkcs8', 'AES-GCM')
 		return this.keyChain.push(key) - 1
 	}
 	async forgetKey(key: number): Promise<void> {
