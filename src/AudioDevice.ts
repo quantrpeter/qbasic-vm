@@ -210,7 +210,7 @@ export class AudioDevice implements IAudioDevice {
 		})
 	}
 	async reset(): Promise<void> {
-		if (this.audioContext) {
+		if (this.audioContext && (this.audioContext.state === 'running' || this.audioContext.state === 'suspended')) {
 			try {
 				await this.audioContext.close()
 			} catch (e) {
