@@ -557,6 +557,7 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 	},
 
 	INSTR: {
+		// [startAt%, ] haystack$, needle$
 		type: 'INTEGER',
 		args: ['ANY', 'STRING', 'STRING'],
 		minArgs: 2,
@@ -573,6 +574,7 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 	},
 
 	REPL$: {
+		// haystack$, needle$, subs$, startAt% = 0, upTill% = -1
 		type: 'STRING',
 		args: ['STRING', 'STRING', 'STRING', 'INTEGER', 'INTEGER', 'INTEGER'],
 		minArgs: 3,
@@ -962,6 +964,8 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 	},
 
 	CLASSIFY: {
+		// number#
+		// returns 2 for NaN, 1 for Infinite, 0 for Finite
 		type: 'DOUBLE',
 		args: ['DOUBLE'],
 		minArgs: 1,
@@ -1081,7 +1085,7 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 	},
 
 	JOIN$: {
-		// SPLIT_ARR(), DELIM$
+		// split_arr$(), delim$
 		args: ['ANY', 'STRING'],
 		type: 'STRING',
 		minArgs: 2,
@@ -1098,6 +1102,7 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 	},
 
 	'JSONREAD%': {
+		// dataObjJ, path$ [, default%]
 		type: 'INTEGER',
 		args: ['JSON', 'STRING', 'INTEGER'],
 		minArgs: 2,
@@ -1123,6 +1128,7 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 	},
 
 	'JSONREAD#': {
+		// dataObjJ, path$ [, default#]
 		type: 'DOUBLE',
 		args: ['JSON', 'STRING', 'DOUBLE'],
 		minArgs: 2,
@@ -1147,6 +1153,7 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 	},
 
 	JSONREAD$: {
+		// dataObjJ, path$ [, default$]
 		type: 'STRING',
 		args: ['JSON', 'STRING', 'STRING'],
 		minArgs: 2,
@@ -1170,6 +1177,7 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 	},
 
 	JSON: {
+		// data$
 		type: 'JSON',
 		args: ['STRING'],
 		minArgs: 0,
@@ -1186,6 +1194,7 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 	},
 
 	JSONSTR$: {
+		// dataJ
 		type: 'STRING',
 		args: ['JSON'],
 		minArgs: 1,
@@ -1201,6 +1210,7 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 	},
 
 	B64ENC$: {
+		// data$
 		type: 'STRING',
 		args: ['STRING'],
 		minArgs: 1,
@@ -1211,6 +1221,7 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 	},
 
 	B64DEC$: {
+		// b64Data$
 		type: 'STRING',
 		args: ['STRING'],
 		minArgs: 1,
@@ -1221,6 +1232,7 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 	},
 
 	B64URL$: {
+		// urlUnsafeB64Data$
 		type: 'STRING',
 		args: ['STRING'],
 		minArgs: 1,
@@ -1235,6 +1247,7 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 	},
 
 	B64DEURL$: {
+		// urlSafeB64Data$
 		type: 'STRING',
 		args: ['STRING'],
 		minArgs: 1,
@@ -1289,6 +1302,7 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 	},
 
 	SHA1$: {
+		// data$
 		type: 'STRING',
 		args: ['ANY'],
 		minArgs: 1,
@@ -1314,6 +1328,7 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 	},
 
 	SHA256$: {
+		// data$
 		type: 'STRING',
 		args: ['ANY'],
 		minArgs: 1,
@@ -1339,6 +1354,8 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 	},
 
 	SIGN$: {
+		// keyId, data$
+		// keyId, dataJ
 		type: 'STRING',
 		args: ['INTEGER', 'ANY'],
 		minArgs: 2,
@@ -1365,6 +1382,8 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 	},
 
 	VERIFY: {
+		// keyId, dataJ, signature$
+		// keyId, data$, signature$
 		type: 'INTEGER',
 		args: ['INTEGER', 'ANY', 'STRING'],
 		minArgs: 3,
