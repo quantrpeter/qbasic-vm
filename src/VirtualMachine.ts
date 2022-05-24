@@ -1080,6 +1080,23 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 		},
 	},
 
+	JOIN$: {
+		// SPLIT_ARR(), DELIM$
+		args: ['ANY', 'STRING'],
+		type: 'STRING',
+		minArgs: 2,
+		action: function (vm) {
+			const delim = vm.stack.pop()
+			const target = vm.stack.pop() as ArrayVariable<JSONType>
+
+			if (target.type !== vm.types['STRING']) {
+				throw new RuntimeError(RuntimeErrorCodes.INVALID_ARGUMENT, `Argument is not an array of STRING`)
+			}
+
+			vm.stack.push(target.values.map((item) => item.value).join(delim))
+		},
+	},
+
 	'JSONREAD%': {
 		type: 'INTEGER',
 		args: ['JSON', 'STRING', 'INTEGER'],
@@ -2373,6 +2390,26 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 			}
 
 			target[explodedPath.shift()!] = typeof value === 'number' && convertToBool ? (value === 0 ? false : true) : value
+		},
+	},
+
+	SPLIT: {
+		// SOURCE$, DELIM$, OUT SPLIT_ARR$()
+		args: ['STRING', 'STRING', 'ARRAY OF STRING'],
+		minArgs: 3,
+		action: function (vm) {
+			vm.stack.pop() //numArgs
+
+			const target = vm.stack.pop() as ArrayVariable<JSONType>
+			const delim = getArgValue(vm.stack.pop())
+			const source = getArgValue(vm.stack.pop())
+
+			const resultArr = source.split(delim)
+
+			target.resize([new Dimension(1, resultArr.length)])
+			for (let i = 0; i < resultArr.length; i++) {
+				target.assign([i + 1], new ScalarVariable<string>(vm.types['STRING'] as StringType, resultArr[i]))
+			}
 		},
 	},
 

@@ -211,7 +211,11 @@ export class AudioDevice implements IAudioDevice {
 	}
 	async reset(): Promise<void> {
 		if (this.audioContext) {
-			await this.audioContext.close()
+			try {
+				await this.audioContext.close()
+			} catch (e) {
+				console.error(e)
+			}
 		}
 		this.audioContext = new AudioContext()
 	}

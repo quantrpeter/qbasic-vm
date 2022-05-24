@@ -24,6 +24,7 @@ import { QBasicProgram } from './QBasic'
 import { AudioDevice } from './AudioDevice'
 import { NetworkAdapter } from './NetworkAdapter'
 import { GeneralIORouter } from './GeneralIORouter'
+import { Cryptography } from './Cryptography'
 
 export * from './Console'
 export * from './DebugConsole'
@@ -37,6 +38,8 @@ export * from './IFileSystem'
 export * from './LocalStorageFileSystem'
 export * from './IGeneralIO'
 export * from './GeneralIORouter'
+export * from './ICryptography'
+export * from './Cryptography'
 
 export default {
 	Console,
@@ -45,5 +48,6 @@ export default {
 	QBasicProgram,
 	AudioDevice,
 	NetworkAdapter,
-	GeneralIORouter
+	GeneralIORouter,
+	Cryptography,
 }
