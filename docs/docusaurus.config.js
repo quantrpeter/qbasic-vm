@@ -55,9 +55,9 @@ const config = {
 		/** @type {import('@docusaurus/preset-classic').ThemeConfig} */
 		({
 			navbar: {
-				title: 'My Site',
+				title: 'Lamus BASIC',
 				logo: {
-					alt: 'My Site Logo',
+					alt: 'Lamus BASIC',
 					src: 'img/logo.svg',
 				},
 				items: [
@@ -118,7 +118,7 @@ const config = {
 						],
 					},
 				],
-				copyright: `Copyright © ${new Date().getFullYear()} My Project, Inc. Built with Docusaurus.`,
+				copyright: `Copyright © ${new Date().getFullYear()} Jan Starzak and Contributors. Built with Docusaurus.`,
 			},
 			prism: {
 				theme: lightCodeTheme,

@@ -1,7 +1,7 @@
 qbasic-vm
 =========
 
-![screenshot](https://raw.github.com/smhanov/qbasic-vm/master/assets/screenshot.png)
+![screenshot](https://raw.github.com/smhanov/qb.js/master/assets/screenshot.png)
 
 A QBASIC implementation in JavaScript. 
 
@@ -13,6 +13,7 @@ WARNING WARNING I only implemented enough of the language to run NIBBLES.BAS! It
 
 If I were doing it again, I would replace the parser with a packrat parser such as peg.js.
 
+Copyright 2022 Jan Starzak
 Copyright 2014 Steve Hanov
 
 Licensed GPL v3, see the LICENSE file.

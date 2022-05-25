@@ -1,9 +1,10 @@
 {
   "name": "@lamus/qbasic-vm",
   "version": "0.0.0",
-  "description": "A QBASIC Virtual Machine implemented in TypeScript, based on qbasic-vm by Steve Hanov",
+  "description": "A QBASIC Virtual Machine implemented in TypeScript, based on qb.js by Steve Hanov",
   "main": "dist/qbasic-vm.js",
   "types": "dist/index.d.ts",
+  "sideEffects": false,
   "repository": "https://github.com/jstarpl/qbasic-vm",
   "author": "Jan Starzak <jan.starzak@gmail.com>",
   "contributors": [

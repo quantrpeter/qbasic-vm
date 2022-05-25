@@ -2487,7 +2487,7 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 	},
 
 	WSOPEN: {
-		// URL$, OUT ERR_CODE%, [, HANDLE% [, PROTOCOL$]]
+		// URL$, OUT ERR_CODE% [, HANDLE% [, PROTOCOL$]]
 		args: ['STRING', 'INTEGER', 'INTEGER', 'STRING'],
 		minArgs: 2,
 		action: function (vm) {
@@ -2620,7 +2620,7 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 					.then((data) => {
 						if (data === undefined) {
 							if (outErrCode) {
-								outErrCode.value = -2
+								outErrCode.value = -2 // buffer is empty
 							}
 							vm.resume()
 							return
@@ -2633,7 +2633,7 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 					})
 					.catch((reason) => {
 						if (outErrCode) {
-							outErrCode.value = -1
+							outErrCode.value = -1 // could not get data from buffer
 						}
 						vm.trace.printf('Error while reading data from WebSocket buffer: %s\n', reason)
 						vm.resume()
