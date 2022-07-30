@@ -1353,7 +1353,7 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 		},
 	},
 
-	SIGN$: {
+	CPSIGN$: {
 		// keyId, data$
 		// keyId, dataJ
 		type: 'STRING',
@@ -1364,6 +1364,9 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 			const keyId = vm.stack.pop()
 
 			if (vm.cryptography) {
+				if (typeof data !== 'string' && typeof data !== 'object')
+					throw new RuntimeError(RuntimeErrorCodes.INVALID_ARGUMENT, `Data needs to be either STRING or JSON`)
+
 				vm.suspend()
 
 				vm.cryptography
@@ -1381,7 +1384,7 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 		},
 	},
 
-	VERIFY: {
+	CPVERIFY: {
 		// keyId, dataJ, signature$
 		// keyId, data$, signature$
 		type: 'INTEGER',
@@ -1393,6 +1396,9 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 			const keyId = vm.stack.pop()
 
 			if (vm.cryptography) {
+				if (typeof data !== 'string' && typeof data !== 'object')
+					throw new RuntimeError(RuntimeErrorCodes.INVALID_ARGUMENT, `Data needs to be either STRING or JSON`)
+
 				vm.suspend()
 
 				vm.cryptography
@@ -1403,6 +1409,295 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 					})
 					.catch((error) => {
 						throw new RuntimeError(RuntimeErrorCodes.IO_ERROR, `Error while verifying signature: ${error}`)
+					})
+			} else {
+				throw new RuntimeError(RuntimeErrorCodes.UKNOWN_SYSCALL, `Cryptography not available`)
+			}
+		},
+	},
+
+	CPEPUBK$: {
+		// pubKeyId%
+		type: 'STRING',
+		args: ['INTEGER'],
+		minArgs: 1,
+		action: function (vm) {
+			const pubKeyId = vm.stack.pop()
+
+			if (vm.cryptography) {
+				vm.suspend()
+
+				vm.cryptography
+					.exportPublicKey(pubKeyId)
+					.then((pubKey) => {
+						vm.stack.push(pubKey)
+						vm.resume()
+					})
+					.catch((error) => {
+						throw new RuntimeError(RuntimeErrorCodes.IO_ERROR, `Error while exporting key: ${error}`)
+					})
+			} else {
+				throw new RuntimeError(RuntimeErrorCodes.UKNOWN_SYSCALL, `Cryptography not available`)
+			}
+		},
+	},
+
+	CPEPRIVK$: {
+		// privKeyId%
+		type: 'STRING',
+		args: ['INTEGER'],
+		minArgs: 1,
+		action: function (vm) {
+			const privateKeyId = vm.stack.pop()
+
+			if (vm.cryptography) {
+				vm.suspend()
+
+				vm.cryptography
+					.exportPrivateKey(privateKeyId)
+					.then((pubKey) => {
+						vm.stack.push(pubKey)
+						vm.resume()
+					})
+					.catch((error) => {
+						throw new RuntimeError(RuntimeErrorCodes.IO_ERROR, `Error while exporting key: ${error}`)
+					})
+			} else {
+				throw new RuntimeError(RuntimeErrorCodes.UKNOWN_SYSCALL, `Cryptography not available`)
+			}
+		},
+	},
+
+	CPIPUBK: {
+		// pubKey$
+		type: 'INTEGER',
+		args: ['STRING'],
+		minArgs: 1,
+		action: function (vm) {
+			const pubKey = vm.stack.pop()
+
+			if (vm.cryptography) {
+				vm.suspend()
+
+				vm.cryptography
+					.importPublicKey(pubKey)
+					.then((pubKeyId) => {
+						vm.stack.push(pubKeyId)
+						vm.resume()
+					})
+					.catch((error) => {
+						throw new RuntimeError(RuntimeErrorCodes.IO_ERROR, `Error while importing key: ${error}`)
+					})
+			} else {
+				throw new RuntimeError(RuntimeErrorCodes.UKNOWN_SYSCALL, `Cryptography not available`)
+			}
+		},
+	},
+
+	CPIPRIVK: {
+		// privKey$
+		type: 'INTEGER',
+		args: ['STRING'],
+		minArgs: 1,
+		action: function (vm) {
+			const privateKey = vm.stack.pop()
+
+			if (vm.cryptography) {
+				vm.suspend()
+
+				vm.cryptography
+					.importPrivateKey(privateKey)
+					.then((pubKeyId) => {
+						vm.stack.push(pubKeyId)
+						vm.resume()
+					})
+					.catch((error) => {
+						throw new RuntimeError(RuntimeErrorCodes.IO_ERROR, `Error while importing key: ${error}`)
+					})
+			} else {
+				throw new RuntimeError(RuntimeErrorCodes.UKNOWN_SYSCALL, `Cryptography not available`)
+			}
+		},
+	},
+
+	CPENCRYPT$: {
+		// keyId%, data$
+		type: 'STRING',
+		args: ['INTEGER', 'STRING'],
+		minArgs: 2,
+		action: function (vm) {
+			const data = vm.stack.pop()
+			const keyId = vm.stack.pop()
+
+			if (vm.cryptography) {
+				vm.suspend()
+
+				vm.cryptography
+					.encrypt(keyId, data)
+					.then((encData) => {
+						vm.stack.push(encData)
+						vm.resume()
+					})
+					.catch((error) => {
+						throw new RuntimeError(RuntimeErrorCodes.IO_ERROR, `Error while encrypting: ${error}`)
+					})
+			} else {
+				throw new RuntimeError(RuntimeErrorCodes.UKNOWN_SYSCALL, `Cryptography not available`)
+			}
+		},
+	},
+
+	CPDECRYPT$: {
+		// keyId%, encData$
+		type: 'STRING',
+		args: ['INTEGER', 'STRING'],
+		minArgs: 2,
+		action: function (vm) {
+			const encData = vm.stack.pop()
+			const keyId = vm.stack.pop()
+
+			if (vm.cryptography) {
+				vm.suspend()
+
+				vm.cryptography
+					.encrypt(keyId, encData)
+					.then((data) => {
+						vm.stack.push(data)
+						vm.resume()
+					})
+					.catch((error) => {
+						throw new RuntimeError(RuntimeErrorCodes.IO_ERROR, `Error while decrypting: ${error}`)
+					})
+			} else {
+				throw new RuntimeError(RuntimeErrorCodes.UKNOWN_SYSCALL, `Cryptography not available`)
+			}
+		},
+	},
+
+	CPEAESK$: {
+		// keyId%
+		type: 'STRING',
+		args: ['INTEGER'],
+		minArgs: 1,
+		action: function (vm) {
+			const keyId = vm.stack.pop()
+
+			if (vm.cryptography) {
+				vm.suspend()
+
+				vm.cryptography
+					.exportKey(keyId)
+					.then((aesKey) => {
+						vm.stack.push(aesKey)
+						vm.resume()
+					})
+					.catch((error) => {
+						throw new RuntimeError(RuntimeErrorCodes.IO_ERROR, `Error while exporting key: ${error}`)
+					})
+			} else {
+				throw new RuntimeError(RuntimeErrorCodes.UKNOWN_SYSCALL, `Cryptography not available`)
+			}
+		},
+	},
+
+	CPIAESK: {
+		// aesKey$
+		type: 'INTEGER',
+		args: ['STRING'],
+		minArgs: 1,
+		action: function (vm) {
+			const aesKey = vm.stack.pop()
+
+			if (vm.cryptography) {
+				vm.suspend()
+
+				vm.cryptography
+					.importKey(aesKey)
+					.then((aesKeyId) => {
+						vm.stack.push(aesKeyId)
+						vm.resume()
+					})
+					.catch((error) => {
+						throw new RuntimeError(RuntimeErrorCodes.IO_ERROR, `Error while importing key: ${error}`)
+					})
+			} else {
+				throw new RuntimeError(RuntimeErrorCodes.UKNOWN_SYSCALL, `Cryptography not available`)
+			}
+		},
+	},
+
+	CPMASTERKDECRYPT: {
+		// masterKeyId%, passphrase$
+		type: 'INTEGER',
+		args: ['INTEGER', 'STRING'],
+		minArgs: 2,
+		action: function (vm) {
+			const passphrase = vm.stack.pop()
+			const masterKey = vm.stack.pop()
+
+			if (vm.cryptography) {
+				vm.suspend()
+
+				vm.cryptography
+					.decryptMasterKey(passphrase, masterKey)
+					.then((aesKeyId) => {
+						vm.stack.push(aesKeyId)
+						vm.resume()
+					})
+					.catch((error) => {
+						throw new RuntimeError(RuntimeErrorCodes.IO_ERROR, `Error while importing key: ${error}`)
+					})
+			} else {
+				throw new RuntimeError(RuntimeErrorCodes.UKNOWN_SYSCALL, `Cryptography not available`)
+			}
+		},
+	},
+
+	CPEMASTERK$: {
+		// masterKeyId%
+		type: 'STRING',
+		args: ['INTEGER'],
+		minArgs: 1,
+		action: function (vm) {
+			const keyId = vm.stack.pop()
+
+			if (vm.cryptography) {
+				vm.suspend()
+
+				vm.cryptography
+					.exportMasterKey(keyId)
+					.then((pubKey) => {
+						vm.stack.push(pubKey)
+						vm.resume()
+					})
+					.catch((error) => {
+						throw new RuntimeError(RuntimeErrorCodes.IO_ERROR, `Error while exporting key: ${error}`)
+					})
+			} else {
+				throw new RuntimeError(RuntimeErrorCodes.UKNOWN_SYSCALL, `Cryptography not available`)
+			}
+		},
+	},
+
+	CPIMASTERK: {
+		// masterKey$
+		type: 'INTEGER',
+		args: ['STRING'],
+		minArgs: 1,
+		action: function (vm) {
+			const masterKey = vm.stack.pop()
+
+			if (vm.cryptography) {
+				vm.suspend()
+
+				vm.cryptography
+					.importMasterKey(masterKey)
+					.then((pubKeyId) => {
+						vm.stack.push(pubKeyId)
+						vm.resume()
+					})
+					.catch((error) => {
+						throw new RuntimeError(RuntimeErrorCodes.IO_ERROR, `Error while importing key: ${error}`)
 					})
 			} else {
 				throw new RuntimeError(RuntimeErrorCodes.UKNOWN_SYSCALL, `Cryptography not available`)
@@ -2736,6 +3031,129 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 					})
 			} else {
 				vm.trace.printf('General IO not available')
+			}
+		},
+	},
+
+	CPGENKEYPAIR: {
+		// OUT pubKeyId%, OUT privKeyId%
+		args: ['INTEGER', 'INTEGER'],
+		action: function (vm) {
+			const privKeyId = vm.stack.pop()
+			const pubKeyId = vm.stack.pop()
+
+			if (vm.cryptography) {
+				vm.suspend()
+
+				vm.cryptography
+					.genKeyPair()
+					.then(([publicKeyId, privateKeyId]) => {
+						privKeyId.value = privateKeyId
+						pubKeyId.value = publicKeyId
+						vm.resume()
+					})
+					.catch((error) => {
+						throw new RuntimeError(RuntimeErrorCodes.IO_ERROR, `Error while generating key pair: ${error}`)
+					})
+			} else {
+				throw new RuntimeError(RuntimeErrorCodes.UKNOWN_SYSCALL, `Cryptography not available`)
+			}
+		},
+	},
+
+	CPGENKEYAES: {
+		// OUT aesKeyId%
+		args: ['INTEGER'],
+		action: function (vm) {
+			const keyId = vm.stack.pop()
+
+			if (vm.cryptography) {
+				vm.suspend()
+
+				vm.cryptography
+					.genAESKey()
+					.then((aesKeyId) => {
+						keyId.value = aesKeyId
+						vm.resume()
+					})
+					.catch((error) => {
+						throw new RuntimeError(RuntimeErrorCodes.IO_ERROR, `Error while generating AES key: ${error}`)
+					})
+			} else {
+				throw new RuntimeError(RuntimeErrorCodes.UKNOWN_SYSCALL, `Cryptography not available`)
+			}
+		},
+	},
+
+	CPCLRKEY: {
+		// keyId%
+		args: ['INTEGER'],
+		action: function (vm) {
+			const keyId = getArgValue(vm.stack.pop())
+
+			if (vm.cryptography) {
+				vm.suspend()
+
+				vm.cryptography
+					.forgetKey(keyId)
+					.then(() => {
+						vm.resume()
+					})
+					.catch((error) => {
+						throw new RuntimeError(RuntimeErrorCodes.IO_ERROR, `Error while forgetting key: ${error}`)
+					})
+			} else {
+				throw new RuntimeError(RuntimeErrorCodes.UKNOWN_SYSCALL, `Cryptography not available`)
+			}
+		},
+	},
+
+	CPGENMKEY: {
+		// OUT masterKeyId%, passphrase$
+		args: ['INTEGER', 'STRING'],
+		action: function (vm) {
+			const passphrase = getArgValue(vm.stack.pop())
+			const keyId = vm.stack.pop()
+
+			if (vm.cryptography) {
+				vm.suspend()
+
+				vm.cryptography
+					.genEncryptedMasterKey(passphrase)
+					.then((masterKeyId) => {
+						keyId.value = masterKeyId
+						vm.resume()
+					})
+					.catch((error) => {
+						throw new RuntimeError(RuntimeErrorCodes.IO_ERROR, `Error while generating AES key: ${error}`)
+					})
+			} else {
+				throw new RuntimeError(RuntimeErrorCodes.UKNOWN_SYSCALL, `Cryptography not available`)
+			}
+		},
+	},
+
+	CPMKEYUPDPASS: {
+		// masterKeyId%, oldPassphrase$, newPassphrase$
+		args: ['INTEGER', 'STRING'],
+		action: function (vm) {
+			const newPassphrase = getArgValue(vm.stack.pop())
+			const oldPassphrase = getArgValue(vm.stack.pop())
+			const keyId = getArgValue(vm.stack.pop())
+
+			if (vm.cryptography) {
+				vm.suspend()
+
+				vm.cryptography
+					.updatePassphraseKey(oldPassphrase, newPassphrase, keyId)
+					.then(() => {
+						vm.resume()
+					})
+					.catch((error) => {
+						throw new RuntimeError(RuntimeErrorCodes.IO_ERROR, `Error while generating AES key: ${error}`)
+					})
+			} else {
+				throw new RuntimeError(RuntimeErrorCodes.UKNOWN_SYSCALL, `Cryptography not available`)
 			}
 		},
 	},
