@@ -2587,22 +2587,29 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 	},
 
 	GPSET: {
-		// X%, Y%, RED, GREEN, BLUE
+		// X%, Y%, COLOR%
+		// X%, Y%, RED%, GREEN%, BLUE%
 		args: ['INTEGER', 'INTEGER', 'INTEGER', 'INTEGER', 'INTEGER'],
+		minArgs: 3,
 		action: function (vm) {
-			let x1: number
-			let y1: number
-			let red: number
-			let green: number
-			let blue: number
+			const argCount = vm.stack.pop()
+			let color: number | [number, number, number]
 
-			blue = Math.round(getArgValue(vm.stack.pop())) & 255
-			green = Math.round(getArgValue(vm.stack.pop())) & 255
-			red = Math.round(getArgValue(vm.stack.pop())) & 255
-			y1 = Math.round(getArgValue(vm.stack.pop()))
-			x1 = Math.round(getArgValue(vm.stack.pop()))
+			if (argCount === 5) {
+				const blue = Math.round(getArgValue(vm.stack.pop())) & 255
+				const green = Math.round(getArgValue(vm.stack.pop())) & 255
+				const red = Math.round(getArgValue(vm.stack.pop())) & 255
 
-			vm.cons.putPixel(x1, y1, [red, green, blue])
+				color = [red, green, blue]
+			} else {
+				const colorNum = Math.round(getArgValue(vm.stack.pop()))
+
+				color = colorNum
+			}
+
+			const y1 = Math.round(getArgValue(vm.stack.pop()))
+			const x1 = Math.round(getArgValue(vm.stack.pop()))
+			vm.cons.putPixel(x1, y1, color as any)
 		},
 	},
 

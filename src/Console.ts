@@ -58,6 +58,9 @@ const VIDEO_COLORS = [
 	'#afafaf' // 15: Light grey
 ]
 
+// binary mask to only select the lowest 4 bits of a color number
+const VIDEO_COLORS_MASK = 15
+
 const SPECIAL_CHARS = {
 	ArrowLeft: 75,
 	ArrowUp: 72,
@@ -553,9 +556,19 @@ export class Console extends EventTarget implements IConsole {
 		return [image.data[0], image.data[1], image.data[2]]
 	}
 
-	public putPixel(x: number, y: number, color: [number, number, number]) {
+	public putPixel(x: number, y: number, color: number)
+	public putPixel(x: number, y: number, color: [number, number, number])
+	public putPixel(x: number, y: number, color: [number, number, number] | number) {
 		const fillBuf = this.ctx.fillStyle
-		this.ctx.fillStyle = `rgb(${color[0]}, ${color[1]}, ${color[2]})`
+		if (typeof color === "number") {
+			if (color < 0) {
+				this.ctx.fillStyle = Console.colorIntegerToRgb(color)
+			} else {
+				this.ctx.fillStyle = VIDEO_COLORS[color & VIDEO_COLORS_MASK];
+			}
+		} else {
+			this.ctx.fillStyle = `rgb(${color[0]}, ${color[1]}, ${color[2]})`
+		}
 		this.ctx.beginPath()
 		this.ctx.rect(x, y, 1, 1)
 		this.ctx.fill()
@@ -790,11 +803,11 @@ export class Console extends EventTarget implements IConsole {
 		this.record(']\n')
 
 		this.fgcolorNum = fg
-		this.fgcolor = fg < 0 ? Console.colorIntegerToRgb(fg) : VIDEO_COLORS[fg]
+		this.fgcolor = fg < 0 ? Console.colorIntegerToRgb(fg) : VIDEO_COLORS[fg & VIDEO_COLORS_MASK]
 		this.bgcolorNum = bg
-		this.bgcolor = bg < 0 ? Console.colorIntegerToRgb(bg) : VIDEO_COLORS[bg]
+		this.bgcolor = bg < 0 ? Console.colorIntegerToRgb(bg) : VIDEO_COLORS[bg & VIDEO_COLORS_MASK]
 		this.bocolorNum = bo
-		this.bocolor = bo < 0 ? Console.colorIntegerToRgb(bo) : VIDEO_COLORS[bo]
+		this.bocolor = bo < 0 ? Console.colorIntegerToRgb(bo) : VIDEO_COLORS[bo & VIDEO_COLORS_MASK]
 
 		document.body.style.setProperty(SCREEN_BORDER_VARIABLE, this.bocolor)
 	}
