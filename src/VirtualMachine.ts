@@ -1063,6 +1063,32 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 		},
 	},
 
+	EOF: {
+		// (fileNum1%|#N1)
+		type: 'INTEGER',
+		args: ['INTEGER'],
+		minArgs: 1,
+		action: function (vm) {
+			let fileNum = vm.stack.pop()
+
+			if (vm.fileSystem) {
+				vm.suspend()
+
+				vm.fileSystem
+					.eof(fileNum)
+					.then((isEof) => {
+						vm.stack.push(isEof ? -1 : 0)
+						vm.resume()
+					})
+					.catch((error) => {
+						throw new RuntimeError(RuntimeErrorCodes.IO_ERROR, `Error while checking EOF: ${error}`)
+					})
+			} else {
+				throw new RuntimeError(RuntimeErrorCodes.UKNOWN_SYSCALL, `File System not available`)
+			}
+		},
+	},
+
 	RGB: {
 		type: 'INTEGER',
 		args: ['INTEGER', 'INTEGER', 'INTEGER'],
@@ -3015,6 +3041,85 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 					})
 			} else {
 				vm.trace.printf('File System not available')
+			}
+		},
+	},
+
+	SEEK: {
+		// [(fileNum1%|#N1),] offset%
+		action: function (vm) {
+			const fileHandle = vm.stack.pop()
+			const offset = getArgValue(vm.stack.pop())
+
+			if (vm.fileSystem) {
+				vm.suspend()
+
+				vm.fileSystem
+					.seek(fileHandle, offset)
+					.then(() => vm.resume())
+					.catch((reason) => {
+						vm.trace.printf('Error while writing to file: %s\n', reason)
+						vm.resume()
+					})
+			} else {
+				vm.trace.printf('File System not available')
+			}
+		},
+	},
+
+	KILL: {
+		// fileName$
+		args: ['STRING'],
+		minArgs: 1,
+		action: function (vm) {
+			const fileName = getArgValue(vm.stack.pop())
+
+			if (vm.fileSystem) {
+				vm.suspend()
+
+				Promise.all(vm.fileSystem.kill(fileName))
+					.then(() => vm.resume())
+					.catch((reason) => {
+						vm.trace.printf('Error while deleting files: %s\n', reason)
+						vm.resume()
+					})
+			} else {
+				vm.trace.printf('File System not available')
+			}
+		},
+	},
+
+	DIRECTORY: {
+		// [fileName$, ] OUT fileNames()
+		args: ['ANY', 'ARRAY OF STRING'],
+		minArgs: 1,
+		action: function (vm) {
+			const argCount = vm.stack.pop()
+
+			let specifier = '*'
+
+			const target = vm.stack.pop() as ArrayVariable<StringType>
+			if (argCount > 1) {
+				specifier = getArgValue(vm.stack.pop())
+			}
+
+			if (vm.fileSystem) {
+				vm.suspend()
+
+				vm.fileSystem
+					.directory(specifier)
+					.then((files) => {
+						target.resize([new Dimension(1, files.length)])
+						for (let i = 0; i < files.length; i++) {
+							target.assign([i + 1], new ScalarVariable<string>(vm.types['STRING'] as StringType, files[i]))
+						}
+						vm.resume()
+					})
+					.catch((error) => {
+						throw new RuntimeError(RuntimeErrorCodes.IO_ERROR, `Error while listing directory contents: ${error}`)
+					})
+			} else {
+				throw new RuntimeError(RuntimeErrorCodes.UKNOWN_SYSCALL, `File System not available`)
 			}
 		},
 	},

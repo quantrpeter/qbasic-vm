@@ -21,6 +21,7 @@
 
 import { getDebugConsole as dbg } from './DebugConsole'
 import { IConsole } from './IConsole'
+import { FileAccessMode, IFileSystem } from './IFileSystem'
 import { Sprite } from './Sprite'
 
 export class ImageManipulator {
@@ -55,7 +56,7 @@ const VIDEO_COLORS = [
 	'#8b8b8b', // 12: Grey
 	'#82fb85', // 13: Light green
 	'#7764e8', // 14: Light blue
-	'#afafaf' // 15: Light grey
+	'#afafaf', // 15: Light grey
 ]
 
 // binary mask to only select the lowest 4 bits of a color number
@@ -74,7 +75,7 @@ const SPECIAL_CHARS = {
 	Delete: 83,
 	Enter: 13,
 	Escape: 27,
-	Backspace: 8
+	Backspace: 8,
 }
 
 interface IVideoMode {
@@ -100,7 +101,7 @@ const VIDEO_MODES: { [key: number]: IVideoMode } = {
 	8: { width: 300, height: 160, rows: 20, cols: 37, landscape: true },
 
 	// PC-compatible 80 columns mode
-	10: { width: 640, height: 200, rows: 25, cols: 80, landscape: true }
+	10: { width: 640, height: 200, rows: 25, cols: 80, landscape: true },
 }
 
 const DEFAULT_VIDEO_MODE = 1
@@ -165,14 +166,19 @@ export class Console extends EventTarget implements IConsole {
 	private containerWidth: number | undefined
 	private containerHeight: number | undefined
 
+	private fileSystem: IFileSystem | undefined
+
 	constructor(
 		parentElement: HTMLElement,
 		className?: string,
 		width?: number,
 		height?: number,
-		assetPath = 'assets/'
+		assetPath = 'assets/',
+		fileSystem?: IFileSystem
 	) {
 		super()
+
+		this.fileSystem = fileSystem
 
 		this.canvas = document.createElement('canvas')
 		this.container = document.createElement('div')
@@ -211,8 +217,7 @@ export class Console extends EventTarget implements IConsole {
 		this.canvas.className = className || ''
 		this.container.tabIndex = 0
 		const context = this.canvas.getContext('2d')
-		if (context === null)
-			throw new Error('Could not get 2D context for Console')
+		if (context === null) throw new Error('Could not get 2D context for Console')
 		this.ctx = context
 		this.ctx.setTransform(1, 0, 0, 1, 0, 0)
 		this.ctx.imageSmoothingEnabled = false
@@ -228,26 +233,26 @@ export class Console extends EventTarget implements IConsole {
 
 		this.reset(false)
 
-		window.addEventListener('keydown', event => {
+		window.addEventListener('keydown', (event) => {
 			if (this.hasFocus) {
 				this.onKeyDown(event)
 				event.preventDefault()
 			}
 		})
 
-		window.addEventListener('keyup', event => {
+		window.addEventListener('keyup', (event) => {
 			this.onKeyUp(event)
 			if (this.hasFocus) {
 				event.preventDefault()
 			}
 		})
 
-		this.container.addEventListener('focus', event => {
+		this.container.addEventListener('focus', (event) => {
 			this.hasFocus = true
 			event.stopPropagation()
 		})
 
-		this.container.addEventListener('blur', event => {
+		this.container.addEventListener('blur', (event) => {
 			this.hasFocus = false
 			event.stopPropagation()
 		})
@@ -260,7 +265,7 @@ export class Console extends EventTarget implements IConsole {
 	}
 
 	public animationFrame = () => {
-		this.sprites.forEach(sprite => sprite && sprite.update())
+		this.sprites.forEach((sprite) => sprite && sprite.update())
 		this.repeatKeyboard()
 		window.requestAnimationFrame(this.animationFrame)
 	}
@@ -368,8 +373,8 @@ export class Console extends EventTarget implements IConsole {
 					width: this._width,
 					height: this._height,
 					rows: this.rows,
-					cols: this.cols
-				}
+					cols: this.cols,
+				},
 			})
 		)
 
@@ -378,8 +383,8 @@ export class Console extends EventTarget implements IConsole {
 			this.dispatchEvent(
 				new CustomEvent('orientationchange', {
 					detail: {
-						landscape: this._landscape
-					}
+						landscape: this._landscape,
+					},
 				})
 			)
 		}
@@ -391,11 +396,7 @@ export class Console extends EventTarget implements IConsole {
 		const strokeBuf = this.ctx.strokeStyle
 		this.ctx.beginPath()
 		this.ctx.strokeStyle =
-			color === undefined
-				? this.fgcolor
-				: color >= 0
-				? VIDEO_COLORS[color]
-				: Console.colorIntegerToRgb(color)
+			color === undefined ? this.fgcolor : color >= 0 ? VIDEO_COLORS[color] : Console.colorIntegerToRgb(color)
 		this.ctx.moveTo(x1, y1)
 		this.ctx.lineTo(x2, y2)
 		this.ctx.stroke()
@@ -440,11 +441,7 @@ export class Console extends EventTarget implements IConsole {
 
 		const strokeBuf = this.ctx.strokeStyle
 		this.ctx.strokeStyle =
-			color === undefined
-				? this.fgcolor
-				: color >= 0
-				? VIDEO_COLORS[color]
-				: Console.colorIntegerToRgb(color)
+			color === undefined ? this.fgcolor : color >= 0 ? VIDEO_COLORS[color] : Console.colorIntegerToRgb(color)
 
 		if (start === undefined) {
 			start = 0.0
@@ -473,20 +470,10 @@ export class Console extends EventTarget implements IConsole {
 		this.ctx.strokeStyle = strokeBuf
 	}
 
-	public box(
-		x1: number,
-		y1: number,
-		x2: number,
-		y2: number,
-		color?: number
-	): void {
+	public box(x1: number, y1: number, x2: number, y2: number, color?: number): void {
 		const strokeBuf = this.ctx.strokeStyle
 		this.ctx.strokeStyle =
-			color === undefined
-				? this.fgcolor
-				: color >= 0
-				? VIDEO_COLORS[color]
-				: Console.colorIntegerToRgb(color)
+			color === undefined ? this.fgcolor : color >= 0 ? VIDEO_COLORS[color] : Console.colorIntegerToRgb(color)
 		this.ctx.beginPath()
 		this.ctx.moveTo(x1, y1)
 		this.ctx.lineTo(x2, y1)
@@ -500,20 +487,10 @@ export class Console extends EventTarget implements IConsole {
 		this.ctx.strokeStyle = strokeBuf
 	}
 
-	public fill(
-		x1: number,
-		y1: number,
-		x2: number,
-		y2: number,
-		color?: number
-	): void {
+	public fill(x1: number, y1: number, x2: number, y2: number, color?: number): void {
 		const fillBuf = this.ctx.fillStyle
 		this.ctx.fillStyle =
-			color === undefined
-				? this.fgcolor
-				: color >= 0
-				? VIDEO_COLORS[color]
-				: Console.colorIntegerToRgb(color)
+			color === undefined ? this.fgcolor : color >= 0 ? VIDEO_COLORS[color] : Console.colorIntegerToRgb(color)
 		this.ctx.beginPath()
 		this.ctx.rect(x1, y1, x2 - x1 + 1, y2 - y1 + 1)
 		this.ctx.fill()
@@ -523,22 +500,10 @@ export class Console extends EventTarget implements IConsole {
 		this.ctx.fillStyle = fillBuf
 	}
 
-	public triangleFill(
-		x1: number,
-		y1: number,
-		x2: number,
-		y2: number,
-		x3: number,
-		y3: number,
-		color?: number
-	): void {
+	public triangleFill(x1: number, y1: number, x2: number, y2: number, x3: number, y3: number, color?: number): void {
 		const fillBuf = this.ctx.fillStyle
 		this.ctx.fillStyle =
-			color === undefined
-				? this.fgcolor
-				: color >= 0
-				? VIDEO_COLORS[color]
-				: Console.colorIntegerToRgb(color)
+			color === undefined ? this.fgcolor : color >= 0 ? VIDEO_COLORS[color] : Console.colorIntegerToRgb(color)
 		this.ctx.beginPath()
 		this.ctx.moveTo(x1, y1)
 		this.ctx.lineTo(x2, y2)
@@ -560,11 +525,11 @@ export class Console extends EventTarget implements IConsole {
 	public putPixel(x: number, y: number, color: [number, number, number])
 	public putPixel(x: number, y: number, color: [number, number, number] | number) {
 		const fillBuf = this.ctx.fillStyle
-		if (typeof color === "number") {
+		if (typeof color === 'number') {
 			if (color < 0) {
 				this.ctx.fillStyle = Console.colorIntegerToRgb(color)
 			} else {
-				this.ctx.fillStyle = VIDEO_COLORS[color & VIDEO_COLORS_MASK];
+				this.ctx.fillStyle = VIDEO_COLORS[color & VIDEO_COLORS_MASK]
 			}
 		} else {
 			this.ctx.fillStyle = `rgb(${color[0]}, ${color[1]}, ${color[2]})`
@@ -607,39 +572,60 @@ export class Console extends EventTarget implements IConsole {
 		this.ctx.putImageData(data, x, y)
 	}
 
-	public paint(
-		_x: number,
-		_y: number,
-		_colour: number,
-		_borderColour: number,
-		_step?: number
-	) {
-		let image = new ImageManipulator(
-			this.ctx.getImageData(0, 0, this._width, this._height)
-		)
+	public paint(_x: number, _y: number, _colour: number, _borderColour: number, _step?: number) {
+		let image = new ImageManipulator(this.ctx.getImageData(0, 0, this._width, this._height))
 
 		dbg().printf('%s\n', image.get(10, 10))
+	}
+
+	private innerLoadImage(
+		img: HTMLImageElement,
+		url: string,
+		resolve: (value: number | PromiseLike<number>) => void,
+		reject: (reason?: any) => void
+	) {
+		img.src = url
+		img
+			.decode()
+			.then(() => {
+				const idx = this.images.findIndex((i) => i === undefined)
+				if (idx >= 0) {
+					this.images[idx] = img
+					resolve(idx)
+				} else {
+					resolve(this.images.push(img) - 1)
+				}
+			})
+			.catch(reject)
 	}
 
 	public loadImage(url: string): Promise<number> {
 		return new Promise((resolve, reject) => {
 			const img = document.createElement('img')
-			img.addEventListener('error', e => {
+			img.addEventListener('error', (e) => {
 				reject(e)
 			})
-			img.src = url
-			img
-				.decode()
-				.then(() => {
-					const idx = this.images.findIndex(i => i === undefined)
-					if (idx >= 0) {
-						this.images[idx] = img
-						resolve(idx)
-					} else {
-						resolve(this.images.push(img) - 1)
-					}
-				})
-				.catch(reject)
+			if (this.fileSystem) {
+				this.fileSystem
+					.access(url)
+					.then(async (ok) => {
+						if (!ok || !this.fileSystem) {
+							this.innerLoadImage(img, url, resolve, reject)
+							return
+						}
+
+						const handle = this.fileSystem.getFreeFileHandle()
+						await this.fileSystem.open(handle, url, FileAccessMode.BINARY)
+						const contents = await this.fileSystem.getAllContentsBlob(handle)
+						const blobUrl = URL.createObjectURL(contents)
+						this.innerLoadImage(img, blobUrl, resolve, reject)
+					})
+					.catch(() => {
+						this.innerLoadImage(img, url, resolve, reject)
+					})
+			} else {
+				this.innerLoadImage(img, url, resolve, reject)
+			}
 		})
 	}
 
@@ -651,6 +637,14 @@ export class Console extends EventTarget implements IConsole {
 
 	public clearImage(handle: number) {
 		this.images[handle] = undefined
+	}
+
+	private static clampCoordToDimention(coord: number, max: number) {
+		if (coord < 0) {
+			return max + (coord % max)
+		} else {
+			return coord % max
+		}
 	}
 
 	private static drawImageWithWrap(
@@ -669,23 +663,14 @@ export class Console extends EventTarget implements IConsole {
 	) {
 		let curDX = dx
 		let curDY = dy
-		let curSX = sx
-		let curSY = sy
+		let curSX = Console.clampCoordToDimention(sx, image.naturalWidth)
+		let curSY = Console.clampCoordToDimention(sy, image.naturalHeight)
 		let curSW = sw
 		let curSH = sh
 
-		if (curSX < 0) {
-			curSX = sw + (Math.abs(curSX) % curSW)
-		}
-		if (curSY < 0) {
-			curSY = sy + (Math.abs(curSY) % curSH)
-		}
-		// let curDW = dw
-		// let curDH = dh
-
 		while (curDY < dy + dh) {
 			let clampedSH = Math.min(image.naturalHeight, curSY + curSH) - curSY
-			let curDH = (clampedSH / sh) * dh
+			let curDH = Math.max(1, (clampedSH / sh) * dh)
 			// skip drawing if outside of the canvas
 			if (curDY + curDH > 0 && curDY < screenHeight) {
 				while (curDX < dx + dw) {
@@ -697,17 +682,7 @@ export class Console extends EventTarget implements IConsole {
 					let curDW = (clampedSW / sw) * dw
 					// skip drawing if outside of the canvas
 					if (curDX + curDW > 0 && curDX < screenWidth) {
-						ctx.drawImage(
-							image,
-							curSX,
-							curSY,
-							clampedSW,
-							clampedSH,
-							curDX,
-							curDY,
-							curDW,
-							curDH
-						)
+						ctx.drawImage(image, curSX, curSY, clampedSW, clampedSH, curDX, curDY, curDW, curDH)
 					}
 					curSW = curSW - clampedSW
 					curSX = 0
@@ -721,7 +696,7 @@ export class Console extends EventTarget implements IConsole {
 
 			curDX = dx
 			curSW = sw
-			curSX = sx
+			curSX = Console.clampCoordToDimention(sx, image.naturalWidth)
 		}
 	}
 
@@ -736,12 +711,7 @@ export class Console extends EventTarget implements IConsole {
 		sw?: number,
 		sh?: number
 	): void {
-		if (
-			sx !== undefined &&
-			sy !== undefined &&
-			dh !== undefined &&
-			dw !== undefined
-		) {
+		if (sx !== undefined && sy !== undefined && dh !== undefined && dw !== undefined) {
 			Console.drawImageWithWrap(
 				this.ctx,
 				image,
@@ -826,17 +796,12 @@ export class Console extends EventTarget implements IConsole {
 			this._height - this.charHeight
 		)
 		this.ctx.fillStyle = this.bgcolor
-		this.ctx.fillRect(
-			0,
-			this._height - this.charHeight,
-			this._width,
-			this.charHeight
-		)
+		this.ctx.fillRect(0, this._height - this.charHeight, this._width, this.charHeight)
 		this.y -= 1
 	}
 
 	public input(newLineAfterEnter: boolean): Promise<string> {
-		return new Promise<string>(resolve => {
+		return new Promise<string>((resolve) => {
 			if (this.recording) {
 				let str = ''
 				while (this.keyBuffer.length > 0) {
@@ -992,20 +957,10 @@ export class Console extends EventTarget implements IConsole {
 
 		if (show) {
 			this.ctx.fillStyle = this.fgcolor
-			this.ctx.fillRect(
-				this.x * this.charWidth,
-				this.y * this.charHeight + this.charHeight - 2,
-				this.charWidth,
-				2
-			)
+			this.ctx.fillRect(this.x * this.charWidth, this.y * this.charHeight + this.charHeight - 2, this.charWidth, 2)
 		} else {
 			this.ctx.fillStyle = this.bgcolor
-			this.ctx.fillRect(
-				this.x * this.charWidth,
-				this.y * this.charHeight + this.charHeight - 2,
-				this.charWidth,
-				2
-			)
+			this.ctx.fillRect(this.x * this.charWidth, this.y * this.charHeight + this.charHeight - 2, this.charWidth, 2)
 		}
 
 		this.cursorShown = show
@@ -1035,19 +990,9 @@ export class Console extends EventTarget implements IConsole {
 				// clear cell
 				this.ctx.save()
 				const charRegion = new Path2D()
-				charRegion.rect(
-					this.x * this.charWidth,
-					this.y * this.charHeight,
-					this.charWidth,
-					this.charHeight
-				)
+				charRegion.rect(this.x * this.charWidth, this.y * this.charHeight, this.charWidth, this.charHeight)
 				this.ctx.clip(charRegion)
-				this.ctx.clearRect(
-					this.x * this.charWidth,
-					this.y * this.charHeight,
-					this.charWidth,
-					this.charHeight
-				)
+				this.ctx.clearRect(this.x * this.charWidth, this.y * this.charHeight, this.charWidth, this.charHeight)
 				// paint black-on-transparent character
 				this.ctx.globalCompositeOperation = 'source-over'
 				this.ctx.drawImage(
@@ -1064,21 +1009,11 @@ export class Console extends EventTarget implements IConsole {
 				// paint foreground color
 				this.ctx.globalCompositeOperation = 'source-in'
 				this.ctx.fillStyle = this.fgcolor
-				this.ctx.fillRect(
-					this.x * this.charWidth,
-					this.y * this.charHeight,
-					this.charWidth,
-					this.charHeight
-				)
+				this.ctx.fillRect(this.x * this.charWidth, this.y * this.charHeight, this.charWidth, this.charHeight)
 				// paint background color
 				this.ctx.globalCompositeOperation = 'destination-over'
 				this.ctx.fillStyle = this.bgcolor
-				this.ctx.fillRect(
-					this.x * this.charWidth,
-					this.y * this.charHeight,
-					this.charWidth,
-					this.charHeight
-				)
+				this.ctx.fillRect(this.x * this.charWidth, this.y * this.charHeight, this.charWidth, this.charHeight)
 				this.ctx.globalCompositeOperation = 'source-over'
 				this.ctx.restore()
 
@@ -1090,11 +1025,7 @@ export class Console extends EventTarget implements IConsole {
 		}
 	}
 
-	public createSprite(
-		spriteNumber: number,
-		image: HTMLImageElement,
-		frames: number = 1
-	): Promise<void> {
+	public createSprite(spriteNumber: number, image: HTMLImageElement, frames: number = 1): Promise<void> {
 		if (this.sprites[spriteNumber]) {
 			this.clearSprite(spriteNumber)
 		}
@@ -1123,7 +1054,7 @@ export class Console extends EventTarget implements IConsole {
 	}
 
 	public clearAllSprites() {
-		this.sprites.forEach(sprite => {
+		this.sprites.forEach((sprite) => {
 			if (sprite) {
 				this.container.removeChild(sprite.getElement())
 			}
@@ -1177,14 +1108,7 @@ export class Console extends EventTarget implements IConsole {
 	) {
 		const sprite = this.sprites[spriteNumber]
 		if (sprite) {
-			sprite.setAnimate(
-				startFrame,
-				endFrame,
-				speed,
-				loop ?? true,
-				pingPong ?? false,
-				pingPongFlip ?? 0
-			)
+			sprite.setAnimate(startFrame, endFrame, speed, loop ?? true, pingPong ?? false, pingPongFlip ?? 0)
 		}
 	}
 }

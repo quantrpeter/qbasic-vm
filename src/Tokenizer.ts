@@ -519,7 +519,7 @@ export class Tokenizer {
 
 		if (startPosition === this.text.length) {
 			this.finished = true
-			return new Token(this.EOF_TOKEN, '!EOF', line, position)
+			return new Token(this.EOF_TOKEN, '!xxxxEOF', line, position)
 		}
 
 		if (startPosition > 0) {

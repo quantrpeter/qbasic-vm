@@ -41,6 +41,14 @@ export interface IFileSystem {
 	 */
 	getUsedFileHandles(): number[]
 	/**
+	 * Verify that access to a file with a given fileName is possible
+	 *
+	 * @param {string} fileName
+	 * @return {*}  {Promise<boolean>}
+	 * @memberof IFileSystem
+	 */
+	access(fileName: string): Promise<boolean>
+	/**
 	 * Open a file for access in the specified mode and return it's handle
 	 *
 	 * @param {number} handle
@@ -78,6 +86,15 @@ export interface IFileSystem {
 	 */
 	read(handle: number): Promise<string | number | object>
 	/**
+	 * Get the entire contents of the file from handle, without modifying the
+	 * current file access cursor.
+	 *
+	 * @param {number} handle
+	 * @return {*}  {(Promise<Blob>)}
+	 * @memberof IFileSystem
+	 */
+	getAllContentsBlob(handle: number): Promise<Blob>
+	/**
 	 * Seek to file position. If file is in INPUT, APPEND or BINARY mode, position
 	 * is in octets since begging of file. If file is in RANDOM mode, position is
 	 * in records since beggining of file. If file is in OUTPUT mode, this is a
@@ -90,6 +107,6 @@ export interface IFileSystem {
 	 */
 	seek(handle: number, pos: number): Promise<void>
 	eof(handle: number): Promise<boolean>
-	list(fileSpec: string): Promise<string[]>
+	directory(fileSpec: string): Promise<string[]>
 	kill(fileSpec: string): Promise<void>[]
 }

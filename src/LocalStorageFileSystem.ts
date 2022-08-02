@@ -69,9 +69,7 @@ export class LocalStorageFileSystem implements IFileSystem {
 	private csvMatch = new RegExp(STRUCTURED_INPUT_MATCH)
 
 	getFreeFileHandle(): number {
-		const freeHandle = this.fileHandles.findIndex(
-			handle => handle === undefined
-		)
+		const freeHandle = this.fileHandles.findIndex((handle) => handle === undefined)
 		if (freeHandle === -1) {
 			return this.fileHandles.length
 		}
@@ -80,30 +78,20 @@ export class LocalStorageFileSystem implements IFileSystem {
 	getUsedFileHandles(): number[] {
 		return this.fileHandles
 			.map((handle, index) => (handle === undefined ? undefined : index))
-			.filter(index => index !== undefined) as number[]
+			.filter((index) => index !== undefined) as number[]
 	}
-	async open(
-		handle: number,
-		fileName: string,
-		mode: FileAccessMode
-	): Promise<void> {
+	async open(handle: number, fileName: string, mode: FileAccessMode): Promise<void> {
 		let meta: Record<string, string | number>
 		try {
-			meta = JSON.parse(
-				localStorage.getItem(
-					`${STORAGE_PREFIX}:${META_PREFIX}:${fileName}`
-				) as string
-			) || {
-				created: Date.now()
+			meta = JSON.parse(localStorage.getItem(`${STORAGE_PREFIX}:${META_PREFIX}:${fileName}`) as string) || {
+				created: Date.now(),
 			}
 		} catch {
 			meta = {
-				created: Date.now()
+				created: Date.now(),
 			}
 		}
-		let someContents: string | ArrayBuffer | null = localStorage.getItem(
-			`${STORAGE_PREFIX}:${fileName}`
-		)
+		let someContents: string | ArrayBuffer | null = localStorage.getItem(`${STORAGE_PREFIX}:${fileName}`)
 		let position = 0
 		if (someContents === null) {
 			const requestResult = await fetch(fileName)
@@ -111,12 +99,10 @@ export class LocalStorageFileSystem implements IFileSystem {
 				meta.url = requestResult.url
 				if (mode === FileAccessMode.BINARY) {
 					someContents = await requestResult.arrayBuffer()
-					meta.contentType =
-						requestResult.headers.get('content-type') || KNOWN_MIME_TYPES.BINARY
+					meta.contentType = requestResult.headers.get('content-type') || KNOWN_MIME_TYPES.BINARY
 				} else {
 					someContents = await requestResult.text()
-					meta.contentType =
-						requestResult.headers.get('content-type') || KNOWN_MIME_TYPES.PLAIN
+					meta.contentType = requestResult.headers.get('content-type') || KNOWN_MIME_TYPES.PLAIN
 				}
 			} else {
 				someContents = null
@@ -172,7 +158,7 @@ export class LocalStorageFileSystem implements IFileSystem {
 			mode,
 			contents,
 			position,
-			meta
+			meta,
 		}
 	}
 	async close(handle: number): Promise<void> {
@@ -203,7 +189,7 @@ export class LocalStorageFileSystem implements IFileSystem {
 			return '"' + buf.replace(/"/g, '""') + '"'
 		} else {
 			return Object.keys(buf)
-				.map(key => this.serializeForWrite(buf[key]))
+				.map((key) => this.serializeForWrite(buf[key]))
 				.join(',')
 		}
 	}
@@ -224,9 +210,7 @@ export class LocalStorageFileSystem implements IFileSystem {
 
 		if (typeof fileHandle.contents === 'string') {
 			fileHandle.contents =
-				fileHandle.contents.substr(0, fileHandle.position) +
-				LocalStorageFileSystem.serializeForWrite(buf) +
-				','
+				fileHandle.contents.substr(0, fileHandle.position) + LocalStorageFileSystem.serializeForWrite(buf) + ','
 			fileHandle.position = fileHandle.contents.length
 		} else {
 			if (typeof buf === 'string') {
@@ -235,10 +219,7 @@ export class LocalStorageFileSystem implements IFileSystem {
 					buf.length,
 					...Array.from(new Uint8Array(string2ArrayBuffer(buf)))
 				)
-				fileHandle.position = Math.min(
-					fileHandle.position + buf.length,
-					fileHandle.contents.length
-				)
+				fileHandle.position = Math.min(fileHandle.position + buf.length, fileHandle.contents.length)
 			} else {
 				fileHandle.contents[fileHandle.position] = buf
 				fileHandle.position++
@@ -287,10 +268,35 @@ export class LocalStorageFileSystem implements IFileSystem {
 
 		return fileHandle.position >= fileHandle.contents.length
 	}
-	list(_fileSpec: string): Promise<string[]> {
+	directory(_fileSpec: string): Promise<string[]> {
 		throw new Error('Method not implemented.')
 	}
 	kill(_fileSpec: string): Promise<void>[] {
 		throw new Error('Method not implemented.')
+	}
+	async access(fileNameOrUri: string): Promise<boolean> {
+		// return false if it looks like a URL
+		if (fileNameOrUri.match(/^[a-z][\w\+\-]+:\/\//)) {
+			return false
+		}
+		return true
+	}
+	async getAllContentsBlob(handle: number): Promise<Blob> {
+		const fileHandle = this.fileHandles[handle]
+		if (!fileHandle) {
+			throw new Error('Invalid file handle.')
+		} else if (fileHandle.mode !== FileAccessMode.BINARY) {
+			throw new Error('Wrong file access mode.')
+		}
+
+		const contents = fileHandle.contents
+		if (typeof contents === 'string') {
+			throw new Error('Wrong file access mode.')
+		}
+
+		const contentType = (fileHandle.meta.contentType as string) ?? KNOWN_MIME_TYPES.BINARY
+
+		const data = Uint8Array.from(contents as number[])
+		return new Blob([data], { type: contentType })
 	}
 }

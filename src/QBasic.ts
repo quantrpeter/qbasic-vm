@@ -932,6 +932,8 @@ export class QBasicProgram {
 			rules.addToken('WEND', 'WEND')
 			rules.addToken('WHILE', 'WHILE')
 			rules.addToken('REM', 'REM ?.*$')
+			rules.addToken('EOF', 'EOF')
+			rules.addToken('SEEK', 'SEEK')
 			rules.addToken('OPEN', 'OPEN')
 			rules.addToken('CLOSE', 'CLOSE')
 			rules.addToken('WRITE', 'WRITE')
@@ -949,17 +951,14 @@ export class QBasicProgram {
 			rules.addRule('program: statements', this.onProgram)
 			rules.addRule('statements: statement*')
 			// rules.addRule( "statement: intconstant istatement separator" );
-			rules.addRule('statement: label istatement separator', function(
-				args,
-				locus
-			) {
+			rules.addRule('statement: label istatement separator', function (args, locus) {
 				let label = args[0]
 				if (label.substr(-1) === ':') {
 					label = label.substr(0, label.length - 1)
 				}
 				return [new AstLabel(locus, label), args[1]]
 			})
-			rules.addRule('statement: label', function(args, locus) {
+			rules.addRule('statement: label', function (args, locus) {
 				let label = args[0]
 				if (label.substr(-1) === ':') {
 					label = label.substr(0, label.length - 1)
@@ -968,200 +967,106 @@ export class QBasicProgram {
 			})
 
 			rules.addRule('statement: istatement ? separator')
-			rules.addRule("istatement: CONST identifier '=' expr", function(
-				args,
-				locus
-			) {
+			rules.addRule("istatement: CONST identifier '=' expr", function (args, locus) {
 				return new AstConstStatement(locus, args[1], args[3])
 			})
-			rules.addRule('istatement: DECLARE FUNCTION identifier ArgList', function(
-				args,
-				locus
-			) {
+			rules.addRule('istatement: DECLARE FUNCTION identifier ArgList', function (args, locus) {
 				return new AstDeclareFunction(locus, args[2], args[3], true)
 			})
-			rules.addRule('istatement: DECLARE SUB identifier ArgList', function(
-				args,
-				locus
-			) {
+			rules.addRule('istatement: DECLARE SUB identifier ArgList', function (args, locus) {
 				return new AstDeclareFunction(locus, args[2], args[3], false)
 			})
-			rules.addRule(
-				'istatement: SUB identifier ArgList STATIC? statements END SUB',
-				function(args, locus) {
-					return new AstSubroutine(
-						locus,
-						args[1],
-						args[2],
-						args[4],
-						false,
-						args[3] !== null
-					)
-				}
-			)
-			rules.addRule(
-				'istatement: FUNCTION identifier ArgList statements END FUNCTION',
-				function(symbols, locus) {
-					return new AstSubroutine(
-						locus,
-						symbols[1],
-						symbols[2],
-						symbols[3],
-						true
-					)
-				}
-			)
-			rules.addRule("istatement: DEF SEG ('=' expr)?", function(_args, locus) {
+			rules.addRule('istatement: SUB identifier ArgList STATIC? statements END SUB', function (args, locus) {
+				return new AstSubroutine(locus, args[1], args[2], args[4], false, args[3] !== null)
+			})
+			rules.addRule('istatement: FUNCTION identifier ArgList statements END FUNCTION', function (symbols, locus) {
+				return new AstSubroutine(locus, symbols[1], symbols[2], symbols[3], true)
+			})
+			rules.addRule("istatement: DEF SEG ('=' expr)?", function (_args, locus) {
 				return new AstNullStatement(locus)
 			})
-			rules.addRule("istatement: DEF identifier ArgList '=' expr", function(
-				_args,
-				locus
-			) {
+			rules.addRule("istatement: DEF identifier ArgList '=' expr", function (_args, locus) {
 				return new AstNullStatement(locus)
 			})
-			rules.addRule('istatement: DEFINT identifier minus identifier', function(
-				_args,
-				locus
-			) {
+			rules.addRule('istatement: DEFINT identifier minus identifier', function (_args, locus) {
 				// TODO: Implement completely
 				return new AstDefTypeStatement(locus, 'INTEGER')
 			})
-			rules.addRule('istatement: VIEW PRINT', function(_args, locus) {
+			rules.addRule('istatement: VIEW PRINT', function (_args, locus) {
 				return new AstNullStatement(locus)
 			})
 			rules.addRule('istatement: DIM DimList', UseSecond)
-			rules.addRule('istatement: DIM SHARED DimList', function(args) {
+			rules.addRule('istatement: DIM SHARED DimList', function (args) {
 				for (let i = 0; i < args[2].length; i++) {
 					args[2][i].shared = true
 				}
 				return args[2]
 			})
-			rules.addRule(
-				'istatement: WHILE expr separator statements WEND',
-				function(args, locus) {
-					return new AstWhileLoop(locus, args[1], args[3])
-				}
-			)
-			rules.addRule('istatement: DO separator statements LOOP', function(
-				args,
-				locus
-			) {
-				return new AstDoStatement(
-					locus,
-					args[2],
-					null,
-					AstDoStatementType.INFINITE
-				)
+			rules.addRule('istatement: WHILE expr separator statements WEND', function (args, locus) {
+				return new AstWhileLoop(locus, args[1], args[3])
 			})
-			rules.addRule(
-				'istatement: DO separator statements LOOP WHILE expr',
-				function(args, locus) {
-					return new AstDoStatement(
-						locus,
-						args[2],
-						args[5],
-						AstDoStatementType.WHILE_AT_END
-					)
-				}
-			)
-			rules.addRule(
-				'istatement: DO separator statements LOOP UNTIL expr',
-				function(args, locus) {
-					return new AstDoStatement(
-						locus,
-						args[2],
-						args[5],
-						AstDoStatementType.UNTIL
-					)
-				}
-			)
-			rules.addRule(
-				'istatement: DO WHILE expr separator statements LOOP',
-				function(args, locus) {
-					return new AstWhileLoop(locus, args[2], args[4])
-				}
-			)
-			rules.addRule("istatement: FOR identifier '=' expr TO expr", function(
-				args,
-				locus
-			) {
-				return new AstForLoop(
-					locus,
-					args[1],
-					args[3],
-					args[5],
-					new AstConstantExpr(locus, 1)
-				)
+			rules.addRule('istatement: DO separator statements LOOP', function (args, locus) {
+				return new AstDoStatement(locus, args[2], null, AstDoStatementType.INFINITE)
 			})
-			rules.addRule(
-				"istatement: FOR identifier '=' expr TO expr STEP expr",
-				function(args, locus) {
-					return new AstForLoop(locus, args[1], args[3], args[5], args[7])
-				}
-			)
-			rules.addRule('istatement: NEXT identifiers?', function(args, locus) {
+			rules.addRule('istatement: DO separator statements LOOP WHILE expr', function (args, locus) {
+				return new AstDoStatement(locus, args[2], args[5], AstDoStatementType.WHILE_AT_END)
+			})
+			rules.addRule('istatement: DO separator statements LOOP UNTIL expr', function (args, locus) {
+				return new AstDoStatement(locus, args[2], args[5], AstDoStatementType.UNTIL)
+			})
+			rules.addRule('istatement: DO WHILE expr separator statements LOOP', function (args, locus) {
+				return new AstWhileLoop(locus, args[2], args[4])
+			})
+			rules.addRule("istatement: FOR identifier '=' expr TO expr", function (args, locus) {
+				return new AstForLoop(locus, args[1], args[3], args[5], new AstConstantExpr(locus, 1))
+			})
+			rules.addRule("istatement: FOR identifier '=' expr TO expr STEP expr", function (args, locus) {
+				return new AstForLoop(locus, args[1], args[3], args[5], args[7])
+			})
+			rules.addRule('istatement: NEXT identifiers?', function (args, locus) {
 				if (args[1] === null) {
 					args[1] = []
 				}
 				return new AstNextStatement(locus, args[1])
 			})
-			rules.addRule('istatement: EXIT (FOR|DO)', function(args, locus) {
+			rules.addRule('istatement: EXIT (FOR|DO)', function (args, locus) {
 				return new AstExitStatement(locus, args[1])
 			})
 			rules.addRule('identifiers: MoreIdentifiers* identifier', JoinListsLR)
 			rules.addRule("MoreIdentifiers: identifier ','", UseFirst)
-			rules.addRule('istatement: END', function(_args, locus) {
+			rules.addRule('istatement: END', function (_args, locus) {
 				return new AstEndStatement(locus)
 			})
-			rules.addRule('istatement: GOSUB identifier', function(args, locus) {
+			rules.addRule('istatement: GOSUB identifier', function (args, locus) {
 				return new AstGosubStatement(locus, args[1])
 			})
-			rules.addRule('istatement: GOTO identifier', function(args, locus) {
+			rules.addRule('istatement: GOTO identifier', function (args, locus) {
 				return new AstGotoStatement(locus, args[1])
 			})
-			rules.addRule('istatement: IF expr THEN istatement', function(
-				args,
-				locus
-			) {
+			rules.addRule('istatement: IF expr THEN istatement', function (args, locus) {
 				return new AstIfStatement(locus, args[1], args[3], null)
 			})
-			rules.addRule(
-				'istatement: IF expr THEN separator statements ElseClause END IF',
-				function(args, locus) {
-					return new AstIfStatement(locus, args[1], args[4], args[5])
-				}
-			)
-			rules.addRule(
-				'ElseClause: ELSE IF expr THEN separator statements ElseClause',
-				function(args, locus) {
-					return new AstIfStatement(locus, args[2], args[5], args[6])
-				}
-			)
+			rules.addRule('istatement: IF expr THEN separator statements ElseClause END IF', function (args, locus) {
+				return new AstIfStatement(locus, args[1], args[4], args[5])
+			})
+			rules.addRule('ElseClause: ELSE IF expr THEN separator statements ElseClause', function (args, locus) {
+				return new AstIfStatement(locus, args[2], args[5], args[6])
+			})
 
 			rules.addRule('ElseClause: ELSE statements', UseSecond)
 
-			rules.addRule('ElseClause:', function(_args, locus) {
+			rules.addRule('ElseClause:', function (_args, locus) {
 				return new AstNullStatement(locus)
 			})
-			rules.addRule(
-				'istatement: SELECT CASE expr separator case* END SELECT',
-				function(args, locus) {
-					return new AstSelectStatement(locus, args[2], args[4])
-				}
-			)
+			rules.addRule('istatement: SELECT CASE expr separator case* END SELECT', function (args, locus) {
+				return new AstSelectStatement(locus, args[2], args[4])
+			})
 
-			rules.addRule('case: CASE exprList separator statements', function(
-				args,
-				locus
-			) {
+			rules.addRule('case: CASE exprList separator statements', function (args, locus) {
 				return new AstCaseStatement(locus, args[1], args[3])
 			})
 
-			rules.addRule('case: CASE ELSE separator statements', function(
-				args,
-				locus
-			) {
+			rules.addRule('case: CASE ELSE separator statements', function (args, locus) {
 				return new AstCaseStatement(locus, [], args[3])
 			})
 
@@ -1171,31 +1076,27 @@ export class QBasicProgram {
 
 			// QBasic had [COM|STRIG|PEN|KEY](X) [ON|OFF], but we don't need that
 			// so we ignore any EVENT(X) [ON|OFF] statements for compatibility
-			rules.addRule("istatement: EVENT '\\(' expr '\\)' (ON|OFF)",
-				function (_args, locus) {
-					return new AstNullStatement(locus)
-				}
-			)
+			rules.addRule("istatement: EVENT '\\(' expr '\\)' (ON|OFF)", function (_args, locus) {
+				return new AstNullStatement(locus)
+			})
 
-			rules.addRule("istatement: ON EVENT '\\(' expr '\\)' GOSUB identifier", 
-				function(args, locus) {
-					return new AstOnEventStatement(locus, args[3], args[6])
-				}
-			)
+			rules.addRule("istatement: ON EVENT '\\(' expr '\\)' GOSUB identifier", function (args, locus) {
+				return new AstOnEventStatement(locus, args[3], args[6])
+			})
 
 			rules.addRule(
 				"istatement: OPEN Reference FOR ('OUTPUT'|'INPUT'|'APPEND'|'BINARY'|'RANDOM') AS FileItem",
-				function(args, locus) {
+				function (args, locus) {
 					return new AstOpenStatement(locus, args[1], args[3], args[5])
 				}
 			)
 			rules.addRule(
 				"istatement: OPEN FileName FOR ('OUTPUT'|'INPUT'|'APPEND'|'BINARY'|'RANDOM') AS FileItem",
-				function(args, locus) {
+				function (args, locus) {
 					return new AstOpenStatement(locus, args[1], args[3], args[5])
 				}
 			)
-			rules.addRule('istatement: CLOSE FileItems?', function(args, locus) {
+			rules.addRule('istatement: CLOSE FileItems?', function (args, locus) {
 				let fileItems: (AstVariableReference | AstConstantExpr)[]
 				if (Array.isArray(args[1])) {
 					fileItems = [...args[1]]
@@ -1207,149 +1108,127 @@ export class QBasicProgram {
 				return new AstCloseStatement(locus, fileItems)
 			})
 			rules.addRule('FileName: stringconstant', this.onString)
-			rules.addRule("FileItems: MoreFileItems* FileItem ','?", function(args) {
+			rules.addRule("FileItems: MoreFileItems* FileItem ','?", function (args) {
 				return args[0]
 			})
-			rules.addRule("FileItems: FileItem (';'|',')?", function(args) {
+			rules.addRule("FileItems: FileItem (';'|',')?", function (args) {
 				return args[0]
 			})
-			rules.addRule("MoreFileItems: FileItem (';'|',')", function(args) {
+			rules.addRule("MoreFileItems: FileItem (';'|',')", function (args) {
 				return args[0]
 			})
 			rules.addRule('FileItem: Reference')
 			rules.addRule('FileItem: fileconstant', this.onFileNumber)
-			rules.addRule("istatement: WRITE FileItem? ',' PrintItems", function(
-				args,
-				locus
-			) {
+			rules.addRule("istatement: SEEK FileItem ',' expr", function (args, locus) {
+				return new AstCallStatement(locus, args[1], args[3])
+			})
+			rules.addRule('istatement: EOF FileItem', function (_args, _locus) {
+				debugger
+				// return new AstCallStatement(locus, args[1], [])
+				// return new AstNullStatement(locus)
+			})
+			rules.addRule("istatement: WRITE FileItem? ',' PrintItems", function (args, locus) {
 				return new AstWriteStatement(locus, args[1], args[3])
 			})
-			rules.addRule('istatement: WRITE PrintItems', function(args, locus) {
+			rules.addRule('istatement: WRITE PrintItems', function (args, locus) {
 				return new AstPrintStatement(locus, args[1])
 			})
 
-			rules.addRule(
-				"istatement: LINE? INPUT (';')? constant? (';'|',') identifiers",
-				function(args, locus) {
-					return new AstInputStatement(
-						locus,
-						!!args[0],
-						args[3],
-						// if arg[3] is set, this means that the semicolon matched
-						// at arg[4] is the one following the promptExpr
-						args[3] ? args[4] === ';' : false,
-						args[5],
-						// if arg[3] is not set, this means that the semicolon matched
-						// at arg[4] is the one following the INPUT statement
-						args[3] ? args[2] !== ';' : args[4]
-					)
-				}
-			)
-			rules.addRule(
-				"istatement: LINE? INPUT FileItem ',' identifiers",
-				function(args, locus) {
-					return new AstInputStatement(
-						locus,
-						!!args[0],
-						null,
-						// if arg[3] is set, this means that the semicolon matched
-						// at arg[4] is the one following the promptExpr
-						false,
-						args[4],
-						// if arg[3] is not set, this means that the semicolon matched
-						// at arg[4] is the one following the INPUT statement
-						false,
-						args[2]
-					)
-				}
-			)
-			rules.addRule('istatement: LINE? INPUT identifiers', function(
-				args,
-				locus
-			) {
+			rules.addRule("istatement: LINE? INPUT (';')? constant? (';'|',') identifiers", function (args, locus) {
+				return new AstInputStatement(
+					locus,
+					!!args[0],
+					args[3],
+					// if arg[3] is set, this means that the semicolon matched
+					// at arg[4] is the one following the promptExpr
+					args[3] ? args[4] === ';' : false,
+					args[5],
+					// if arg[3] is not set, this means that the semicolon matched
+					// at arg[4] is the one following the INPUT statement
+					args[3] ? args[2] !== ';' : args[4]
+				)
+			})
+			rules.addRule("istatement: LINE? INPUT FileItem ',' identifiers", function (args, locus) {
+				return new AstInputStatement(
+					locus,
+					!!args[0],
+					null,
+					// if arg[3] is set, this means that the semicolon matched
+					// at arg[4] is the one following the promptExpr
+					false,
+					args[4],
+					// if arg[3] is not set, this means that the semicolon matched
+					// at arg[4] is the one following the INPUT statement
+					false,
+					args[2]
+				)
+			})
+			rules.addRule('istatement: LINE? INPUT identifiers', function (args, locus) {
 				return new AstInputStatement(locus, !!args[0], null, false, args[2])
 			})
-			rules.addRule("istatement: POKE expr ',' expr", function(_args, locus) {
+			rules.addRule("istatement: POKE expr ',' expr", function (_args, locus) {
 				return new AstNullStatement(locus)
 			})
-			rules.addRule('istatement: PRINT', function(_args, locus) {
+			rules.addRule('istatement: PRINT', function (_args, locus) {
 				return new AstPrintStatement(locus, [])
 			})
-			rules.addRule('istatement: PRINT PrintItems', function(args, locus) {
+			rules.addRule('istatement: PRINT PrintItems', function (args, locus) {
 				return new AstPrintStatement(locus, args[1])
 			})
-			rules.addRule("istatement: PRINT USING [expr,';'] (';'|',')?", function(
-				args,
-				locus
-			) {
+			rules.addRule("istatement: PRINT USING [expr,';'] (';'|',')?", function (args, locus) {
 				return new AstPrintUsingStatement(locus, args[2], args[3])
 			})
-			rules.addRule('PrintItems: PrintItem', function(args, _locus) {
+			rules.addRule('PrintItems: PrintItem', function (args, _locus) {
 				return args
 			})
-			rules.addRule(
-				"PrintItems: MorePrintItems* PrintItem (';'|',')?",
-				function(args, _locus) {
-					args[1].terminator = args[2]
-					args[0].push(args[1])
-					return args[0]
-				}
-			)
-			rules.addRule("MorePrintItems: PrintItem (';'|',')", function(
-				args,
-				_locus
-			) {
+			rules.addRule("PrintItems: MorePrintItems* PrintItem (';'|',')?", function (args, _locus) {
+				args[1].terminator = args[2]
+				args[0].push(args[1])
+				return args[0]
+			})
+			rules.addRule("MorePrintItems: PrintItem (';'|',')", function (args, _locus) {
 				args[0].terminator = args[1]
 				return args[0]
 			})
 
-			rules.addRule('PrintItem: expr', function(args, locus) {
+			rules.addRule('PrintItem: expr', function (args, locus) {
 				return new AstPrintItem(locus, AstPrintItemType.EXPR, args[0], null)
 			})
 
-			rules.addRule("PrintItem: TAB '\\(' expr '\\)'", function(args, locus) {
+			rules.addRule("PrintItem: TAB '\\(' expr '\\)'", function (args, locus) {
 				return new AstPrintItem(locus, AstPrintItemType.TAB, args[2], null)
 			})
 
-			rules.addRule('PrintItem:', function(_args, locus) {
+			rules.addRule('PrintItem:', function (_args, locus) {
 				return new AstPrintItem(locus, AstPrintItemType.EXPR, null, null)
 			})
-			rules.addRule('istatement: RESTORE identifier?', function(args, locus) {
+			rules.addRule('istatement: RESTORE identifier?', function (args, locus) {
 				return new AstRestoreStatement(locus, args[1])
 			})
-			rules.addRule('istatement: RETURN', function(_args, locus) {
+			rules.addRule('istatement: RETURN', function (_args, locus) {
 				return new AstReturnStatement(locus, undefined)
 			})
-			rules.addRule("istatement: DATA [DataConstant,',']", function(
-				args,
-				locus
-			) {
+			rules.addRule("istatement: DATA [DataConstant,',']", function (args, locus) {
 				return new AstDataStatement(locus, args[1])
 			})
-			rules.addRule('DataConstant: identifier', function(args, locus) {
+			rules.addRule('DataConstant: identifier', function (args, locus) {
 				return new AstConstantExpr(locus, args[0])
 			})
 			rules.addRule('DataConstant: constant')
-			rules.addRule('DataConstant:', function(_args, locus) {
+			rules.addRule('DataConstant:', function (_args, locus) {
 				return new AstConstantExpr(locus, null)
 			})
-			rules.addRule(
-				'istatement: TYPE identifier separator TypeMembers END TYPE',
-				function(args, locus) {
-					return new AstUserType(locus, args[1], args[3])
-				}
-			)
+			rules.addRule('istatement: TYPE identifier separator TypeMembers END TYPE', function (args, locus) {
+				return new AstUserType(locus, args[1], args[3])
+			})
 			rules.addRule('istatement: AssignStatement')
-			rules.addRule("AssignStatement: ReferenceList '=' expr2", function(
-				args,
-				locus
-			) {
+			rules.addRule("AssignStatement: ReferenceList '=' expr2", function (args, locus) {
 				return new AstAssignStatement(locus, args[0], args[2])
 			})
-			rules.addRule('istatement: REM', function() {
+			rules.addRule('istatement: REM', function () {
 				return undefined
 			})
-			rules.addRule('istatement: identifier Parameters', function(args, locus) {
+			rules.addRule('istatement: identifier Parameters', function (args, locus) {
 				return new AstCallStatement(locus, args[0], args[1])
 			})
 			rules.addRule('Parameters: ', EmptyList)
@@ -1357,28 +1236,25 @@ export class QBasicProgram {
 			rules.addRule('Parameters: ParameterList')
 			rules.addRule("ParameterList: [Parameter,',']")
 			rules.addRule('Parameter: expr')
-			rules.addRule('Parameter:', function(_args, locus) {
+			rules.addRule('Parameter:', function (_args, locus) {
 				return new AstConstantExpr(locus, null)
 			})
 
 			rules.addRule('DimList: Dim MoreDims*', JoinLists)
 			rules.addRule("MoreDims: ',' Dim", UseSecond)
-			rules.addRule('Dim: identifier AsType?', function(args, locus) {
+			rules.addRule('Dim: identifier AsType?', function (args, locus) {
 				return new AstDimStatement(locus, args[0], [], args[1])
 			})
-			rules.addRule("Dim: identifier '\\(' RangeList '\\)' AsType?", function(
-				args,
-				locus
-			) {
+			rules.addRule("Dim: identifier '\\(' RangeList '\\)' AsType?", function (args, locus) {
 				return new AstDimStatement(locus, args[0], args[2], args[4])
 			})
 			rules.addRule('AsType: AS identifier', UseSecond)
-			rules.addRule('RangeList:', function() {
+			rules.addRule('RangeList:', function () {
 				return null
 			})
 			rules.addRule('RangeList: Range MoreRanges*', JoinLists)
 			rules.addRule("MoreRanges: ',' Range", UseSecond)
-			rules.addRule('Range: expr EndRange?', function(symbols, locus) {
+			rules.addRule('Range: expr EndRange?', function (symbols, locus) {
 				if (symbols[1]) {
 					return new AstRange(locus, symbols[0], symbols[1])
 				} else {
@@ -1387,25 +1263,19 @@ export class QBasicProgram {
 			})
 			rules.addRule('EndRange: TO expr', UseSecond)
 			rules.addRule('TypeMembers: TypeMember*')
-			rules.addRule('TypeMember: identifier AS identifier separator', function(
-				args,
-				locus
-			) {
+			rules.addRule('TypeMember: identifier AS identifier separator', function (args, locus) {
 				return new AstTypeMember(locus, args[0], args[2])
 			})
-			rules.addRule('ArgList:', function() {
+			rules.addRule('ArgList:', function () {
 				return []
 			})
-			rules.addRule("ArgList: '\\(' [ Argument , ',' ] '\\)'", function(args) {
+			rules.addRule("ArgList: '\\(' [ Argument , ',' ] '\\)'", function (args) {
 				return args[1]
 			})
-			rules.addRule('Argument: identifier OptParen? AS identifier', function(
-				args,
-				locus
-			) {
+			rules.addRule('Argument: identifier OptParen? AS identifier', function (args, locus) {
 				return new AstArgument(locus, args[0], args[3], args[1] !== null)
 			})
-			rules.addRule('Argument: identifier OptParen?', function(args, locus) {
+			rules.addRule('Argument: identifier OptParen?', function (args, locus) {
 				return new AstArgument(locus, args[0], null, args[1] !== null)
 			})
 			rules.addRule("OptParen: '\\(' '\\)'")
@@ -1437,7 +1307,7 @@ export class QBasicProgram {
 			rules.addRule('expr7: expr8')
 			rules.addRule("expr8: '\\(' expr '\\)'", this.onBracketExpr)
 			// rules.addRule( "expr8: expr8 '\\.' expr10", onBinaryOp );
-			rules.addRule('expr8: NOT expr9', function(args, locus) {
+			rules.addRule('expr8: NOT expr9', function (args, locus) {
 				return new AstUnaryOperator(locus, 'NOT', args[1])
 			})
 			rules.addRule('expr8: expr9')
@@ -1448,21 +1318,15 @@ export class QBasicProgram {
 			rules.addRule('constant: intconstant', this.onNumber)
 			rules.addRule('constant: floatconstant', this.onNumber)
 			rules.addRule('constant: stringconstant', this.onString)
-			rules.addRule("ReferenceList: ReferenceList '\\.' identifier", function(
-				args,
-				locus
-			) {
+			rules.addRule("ReferenceList: ReferenceList '\\.' identifier", function (args, locus) {
 				return new AstMemberDeref(locus, args[0], args[2])
 			})
 
-			rules.addRule(
-				"ReferenceList: ReferenceList '\\(' ParameterList '\\)'",
-				function(args, locus) {
-					return new AstArrayDeref(locus, args[0], args[2])
-				}
-			)
+			rules.addRule("ReferenceList: ReferenceList '\\(' ParameterList '\\)'", function (args, locus) {
+				return new AstArrayDeref(locus, args[0], args[2])
+			})
 			rules.addRule('ReferenceList: Reference')
-			rules.addRule('Reference: identifier', function(args, locus) {
+			rules.addRule('Reference: identifier', function (args, locus) {
 				return new AstVariableReference(locus, args[0], args[0])
 			})
 

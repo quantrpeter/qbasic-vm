@@ -102,7 +102,7 @@ export class EarleyParser {
 		this.rules = ruleSet.rules
 		this.first = ruleSet.first
 
-		// this.debug = true;
+		// lthis.debug = true
 	}
 
 	public getNonTerminal(name) {

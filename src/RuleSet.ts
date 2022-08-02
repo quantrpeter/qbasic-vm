@@ -113,7 +113,7 @@ export class RuleSet {
 		}
 
 		// should be calculated later to be something not in the grammar.
-		this.EOF_TOKEN = "'EOF'"
+		this.EOF_TOKEN = "'xxxxEOF'"
 
 		this.addRule('_start', ['start', this.EOF_TOKEN])
 	}
