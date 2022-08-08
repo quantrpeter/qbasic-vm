@@ -21,7 +21,6 @@
 
 import { getDebugConsole as dbg } from './DebugConsole'
 import { IConsole } from './IConsole'
-import { FileAccessMode, IFileSystem } from './IFileSystem'
 import { Sprite } from './Sprite'
 
 export class ImageManipulator {
@@ -166,19 +165,8 @@ export class Console extends EventTarget implements IConsole {
 	private containerWidth: number | undefined
 	private containerHeight: number | undefined
 
-	private fileSystem: IFileSystem | undefined
-
-	constructor(
-		parentElement: HTMLElement,
-		className?: string,
-		width?: number,
-		height?: number,
-		assetPath = 'assets/',
-		fileSystem?: IFileSystem
-	) {
+	constructor(parentElement: HTMLElement, className?: string, width?: number, height?: number, assetPath = 'assets/') {
 		super()
-
-		this.fileSystem = fileSystem
 
 		this.canvas = document.createElement('canvas')
 		this.container = document.createElement('div')
@@ -599,31 +587,17 @@ export class Console extends EventTarget implements IConsole {
 			.catch(reject)
 	}
 
-	public loadImage(url: string): Promise<number> {
+	public loadImage(urlOrData: string | Blob): Promise<number> {
 		return new Promise((resolve, reject) => {
 			const img = document.createElement('img')
 			img.addEventListener('error', (e) => {
 				reject(e)
 			})
-			if (this.fileSystem) {
-				this.fileSystem
-					.access(url)
-					.then(async (ok) => {
-						if (!ok || !this.fileSystem) {
-							this.innerLoadImage(img, url, resolve, reject)
-							return
-						}
-
-						const handle = this.fileSystem.getFreeFileHandle()
-						await this.fileSystem.open(handle, url, FileAccessMode.BINARY)
-						const contents = await this.fileSystem.getAllContentsBlob(handle)
-						const blobUrl = URL.createObjectURL(contents)
-						this.innerLoadImage(img, blobUrl, resolve, reject)
-					})
-					.catch(() => {
-						this.innerLoadImage(img, url, resolve, reject)
-					})
+			if (typeof urlOrData !== 'string') {
+				const blobUrl = URL.createObjectURL(urlOrData)
+				this.innerLoadImage(img, blobUrl, resolve, reject)
 			} else {
+				const url = urlOrData
 				this.innerLoadImage(img, url, resolve, reject)
 			}
 		})

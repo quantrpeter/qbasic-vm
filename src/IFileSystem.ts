@@ -27,6 +27,13 @@ export enum FileAccessMode {
 
 export interface IFileSystem {
 	/**
+	 * Path separator string
+	 *
+	 * @type {string}
+	 * @memberof IFileSystem
+	 */
+	readonly pathSeparator: string
+	/**
 	 * Get a number of a free file handle
 	 *
 	 * @return {*}  {number}

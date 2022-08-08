@@ -55,9 +55,13 @@
 					network.reset()
 					const program = new qb.QBasicProgram(code)
 					if (program.errors.length === 0) {
-						const fileNameAbsUrl = new URL(fileName, window.location.href)
-						const baseUrl = new URL('./', fileNameAbsUrl.toString())
-						virtualMachine.cwd = baseUrl.toString()
+						const path = fileName.split(fileSystem.pathSeparator);
+						if (path.length > 1) {
+							path.pop();
+							virtualMachine.cwd = path.join(fileSystem.pathSeparator) + fileSystem.pathSeparator;
+						} else {
+							virtualMachine.cwd = fileSystem.pathSeparator;
+						}
 
 						virtualMachine.run(program, false)
 						virtualMachine.on('error', error => {
@@ -76,13 +80,13 @@
 			}
 
 			const demoPrgs = [
-				'imgPutDebug.bas',
-				'helloWorld.bas',
-				'events.bas',
+				'stock/stock.bas',
 				'driveBy/driveBy.bas',
 				'artic/artic.bas',
-				'stock/stock.bas',
+				'helloWorld.bas',
+				'events.bas',
 				'nibbles.bas',
+				'imgPutDebug.bas',
 			]
 
 			const fileName = demoPrgs[0]

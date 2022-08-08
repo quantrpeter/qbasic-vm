@@ -1044,15 +1044,38 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 		minArgs: 1,
 		action: function (vm) {
 			vm.suspend()
+			let urlOrData: string | Blob
 			let fileName = vm.stack.pop()
+			const isUrl = !!fileName.match(/^https?:\/\//)
 
-			if (!fileName.match(/^https?:\/\//)) {
-				fileName = vm.cwd + fileName
+			if (isUrl || !vm.fileSystem) {
+				// either this is a file or we don't have a file system, fallback to Internet-style references
+				if (!isUrl) {
+					fileName = vm.cwd + fileName
+				}
+				urlOrData = fileName
+				vm.cons
+					.loadImage(urlOrData)
+					.then((idx) => {
+						vm.stack.push(idx)
+						vm.resume()
+					})
+					.catch(() => {
+						vm.stack.push(-1)
+						vm.resume()
+					})
+				return
 			}
 
-			vm.cons
-				.loadImage(fileName)
-				.then((idx) => {
+			const fs = vm.fileSystem
+			const handle = fs.getFreeFileHandle()
+			fileName = vm.cwd + fileName
+			fs.open(handle, fileName, FileAccessMode.BINARY)
+				.then(async () => {
+					const blob = await fs.getAllContentsBlob(handle)
+					urlOrData = blob
+					await fs.close(handle)
+					const idx = await vm.cons.loadImage(urlOrData)
 					vm.stack.push(idx)
 					vm.resume()
 				})
@@ -1060,6 +1083,7 @@ export const SystemFunctions: SystemFunctionsDefinition = {
 					vm.stack.push(-1)
 					vm.resume()
 				})
+			return
 		},
 	},
 
@@ -1775,12 +1799,6 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 		},
 	},
 
-	BEEP: {
-		action: function () {
-			// NOT IMPLEMENTED
-		},
-	},
-
 	CLS: {
 		action: function (vm) {
 			// clears the console screen.
@@ -1862,6 +1880,92 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 			if (vm.audio) {
 				vm.audio.makeSound(frequency, length, volume).catch((e) => console.error(e))
 			}
+		},
+	},
+
+	BEEP: {
+		args: ['INTEGER'],
+		minArgs: 0,
+		action: function (vm) {
+			const argCount = vm.stack.pop()
+			let beepId = 0
+			if (argCount > 0) {
+				beepId = getArgValue(vm.stack.pop())
+			}
+
+			if (vm.audio) {
+				vm.suspend()
+				vm.audio
+					.beep(beepId)
+					.then(() => vm.resume())
+					.catch(() => vm.resume())
+			}
+		},
+	},
+
+	BEEPLOAD: {
+		args: ['INTEGER', 'STRING'],
+		minArgs: 2,
+		action: function (vm) {
+			let urlOrData: string | Blob
+			let fileName = getArgValue(vm.stack.pop())
+			const beepId = getArgValue(vm.stack.pop())
+			const isUrl = !!fileName.match(/^https?:\/\//)
+
+			if (!vm.audio) {
+				vm.stack.push(-1)
+				return
+			}
+
+			if (isUrl || !vm.fileSystem) {
+				// either this is a file or we don't have a file system, fallback to Internet-style references
+				if (!isUrl) {
+					fileName = vm.cwd + fileName
+				}
+				urlOrData = fileName
+				vm.suspend()
+				vm.audio
+					.setBeep(beepId, urlOrData)
+					.then((idx) => {
+						vm.stack.push(idx)
+						vm.resume()
+					})
+					.catch(() => {
+						vm.stack.push(-1)
+						vm.resume()
+					})
+				return
+			}
+
+			const audio = vm.audio
+			const fs = vm.fileSystem
+			const handle = fs.getFreeFileHandle()
+			fileName = vm.cwd + fileName
+			fs.open(handle, fileName, FileAccessMode.BINARY)
+				.then(async () => {
+					const blob = await fs.getAllContentsBlob(handle)
+					urlOrData = blob
+					await fs.close(handle)
+					const idx = await audio.setBeep(beepId, urlOrData)
+					vm.stack.push(idx)
+					vm.resume()
+				})
+				.catch(() => {
+					vm.stack.push(-1)
+					vm.resume()
+				})
+			return
+		},
+	},
+
+	BEEPCLR: {
+		args: ['INTEGER'],
+		minArgs: 1,
+		action: function (vm) {
+			const beepId = getArgValue(vm.stack.pop())
+			if (!vm.audio) return
+
+			vm.audio.clearBeep(beepId)
 		},
 	},
 
@@ -2342,7 +2446,7 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 		},
 	},
 
-	IMGCLEAR: {
+	IMGCLR: {
 		args: ['INTEGER', 'INTEGER', 'INTEGER'],
 		minArgs: 3,
 		action: function (vm) {

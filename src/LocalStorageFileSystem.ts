@@ -29,6 +29,7 @@ enum KNOWN_MIME_TYPES {
 
 type FileHandle = {
 	fileName: string
+	modified: boolean
 	mode: FileAccessMode
 	contents: string | number[] | object[]
 	position: number
@@ -68,6 +69,7 @@ export class LocalStorageFileSystem implements IFileSystem {
 	private fileHandles: (FileHandle | undefined)[] = []
 	private csvMatch = new RegExp(STRUCTURED_INPUT_MATCH)
 
+	readonly pathSeparator: string = '/'
 	getFreeFileHandle(): number {
 		const freeHandle = this.fileHandles.findIndex((handle) => handle === undefined)
 		if (freeHandle === -1) {
@@ -156,6 +158,7 @@ export class LocalStorageFileSystem implements IFileSystem {
 		this.fileHandles[handle] = {
 			fileName,
 			mode,
+			modified: false,
 			contents,
 			position,
 			meta,
@@ -168,7 +171,7 @@ export class LocalStorageFileSystem implements IFileSystem {
 			throw new Error('Invalid file handle.')
 		}
 
-		if (fileHandle.mode !== FileAccessMode.INPUT) {
+		if (fileHandle.mode !== FileAccessMode.INPUT && fileHandle.modified) {
 			const contents =
 				fileHandle.mode === FileAccessMode.BINARY
 					? arrayBuffer2String(fileHandle.contents as number[])
@@ -226,6 +229,7 @@ export class LocalStorageFileSystem implements IFileSystem {
 			}
 		}
 
+		fileHandle.modified = true
 		fileHandle.meta.modified = Date.now()
 	}
 	async read(handle: number): Promise<string | number | object> {

@@ -74,7 +74,7 @@ export interface IConsole {
 	newline(): void
 	print(str: string): void
 
-	loadImage(url: String): Promise<number>
+	loadImage(urlOrData: string | Blob): Promise<number>
 	getImage(handle: number): HTMLImageElement
 	clearImage(handle: number): void
 

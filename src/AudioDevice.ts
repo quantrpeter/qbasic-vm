@@ -89,31 +89,41 @@ export class AudioDevice implements IAudioDevice {
 			if (!this.beeps[num]) reject('Beep not set')
 			this.beeps[num].currentTime = 0
 			this.beeps[num].addEventListener('ended', endedHandler)
-			this.beeps[num].play().catch(e => reject(e))
+			this.beeps[num].play().catch((e) => reject(e))
 		})
 	}
-	setBeep(num: number, urlOrData: string | Blob): Promise<void> {
+	setBeep(num: number, urlOrData: string | Blob | HTMLAudioElement): Promise<void> {
 		return new Promise((resolve, reject) => {
 			let beepAudio: HTMLAudioElement
 			if (typeof urlOrData === 'string') {
 				beepAudio = new Audio(urlOrData)
+			} else if (urlOrData instanceof HTMLAudioElement) {
+				beepAudio = urlOrData
 			} else {
 				beepAudio = new Audio(URL.createObjectURL(urlOrData))
 			}
 			this.beeps[num] = beepAudio
-			beepAudio.addEventListener('canplaythrough', () => {
+			if ((beepAudio.networkState === 2 || beepAudio.readyState < 4) && !beepAudio.error) {
+				beepAudio.addEventListener('canplaythrough', () => {
+					resolve()
+				})
+				beepAudio.addEventListener('error', (e) => {
+					reject(e)
+				})
+			} else {
+				if (beepAudio.error) {
+					reject(beepAudio.error)
+					return
+				}
 				resolve()
-			})
-			beepAudio.addEventListener('error', e => {
-				reject(e)
-			})
+			}
 		})
 	}
 	clearBeep(num: number): void {
 		delete this.beeps[num]
 	}
 	playMusic(mml: string, repeat?: number): Promise<void> {
-		return new Promise<void>(resolve => {
+		return new Promise<void>((resolve) => {
 			const config = { context: this.audioContext }
 
 			if (this.currentMMLEmitter) {
@@ -122,7 +132,7 @@ export class AudioDevice implements IAudioDevice {
 			}
 
 			const mmlEmitter = new MMLEmitter(mml, config)
-			mmlEmitter.on('note', e => {
+			mmlEmitter.on('note', (e) => {
 				// console.log('NOTE: ' + JSON.stringify(e))
 				this.playNote(e)
 			})
@@ -130,9 +140,7 @@ export class AudioDevice implements IAudioDevice {
 				// console.log('END : ' + JSON.stringify(e))
 				// loop forever
 				if (repeat === undefined || repeat > 1) {
-					resolve(
-						this.playMusic(mml, repeat === undefined ? undefined : repeat - 1)
-					)
+					resolve(this.playMusic(mml, repeat === undefined ? undefined : repeat - 1))
 				} else {
 					resolve()
 				}
@@ -161,8 +169,7 @@ export class AudioDevice implements IAudioDevice {
 		const osc1 = this.audioContext.createOscillator()
 		const osc2 = this.audioContext.createOscillator()
 		const amp = this.audioContext.createGain()
-		const volume =
-			(1 / this.currentMMLEmitter!.tracksNum / 3) * (e.velocity / 128)
+		const volume = (1 / this.currentMMLEmitter!.tracksNum / 3) * (e.velocity / 128)
 
 		osc1.frequency.value = this.mtof(e.noteNumber)
 		osc1.detune.setValueAtTime(+12, t0)
@@ -185,7 +192,7 @@ export class AudioDevice implements IAudioDevice {
 	}
 	makeSound(frequency: number, duration: number, volume = 0.05): Promise<void> {
 		frequency = Math.min(Math.max(12, frequency), 4000)
-		return new Promise<void>(resolve => {
+		return new Promise<void>((resolve) => {
 			const baseTime = this.audioContext.currentTime
 			const t0 = baseTime
 			const t1 = t0 + duration / 1000
