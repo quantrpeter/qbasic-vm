@@ -215,7 +215,10 @@ export class CodeGenerator implements IVisitor {
 	}
 
 	public visitProgram(program: any) {
+		console.log('program.subs.length', program.subs.length);
+		debugger;
 		for (let i = 0; i < program.subs.length; i++) {
+			console.log(` > program.subs[${i}] = ${program.subs[i].name}, ${program.subs[i].args}`);
 			program.subs[i].accept(this)
 		}
 

@@ -64,7 +64,7 @@
 							virtualMachine.cwd = fileSystem.pathSeparator;
 						}
 						console.log('virtualMachine.cwd', virtualMachine.cwd);
-						virtualMachine.run(program, false)
+						virtualMachine.run(program, true)
 						virtualMachine.on('error', error => {
 							dbg.print('Runtime error: ' + error + ' at ' + error.locus + '\n')
 						})
@@ -81,6 +81,7 @@
 			}
 
 			const demoPrgs = [
+				'peter.bas',
 				'stock/stock.bas',
 				'driveBy/driveBy.bas',
 				'artic/artic.bas',
@@ -88,7 +89,6 @@
 				'events.bas',
 				'nibbles.bas',
 				'imgPutDebug.bas',
-				'peter.bas',
 			]
 
 			const fileName = demoPrgs[0]

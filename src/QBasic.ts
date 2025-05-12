@@ -126,6 +126,7 @@ export class AstDeclareFunction implements AstStatement {
 	}
 
 	public accept(visitor: IVisitor) {
+		debugger;
 		visitor.visitDeclareFunction(this)
 	}
 }
@@ -818,7 +819,7 @@ export interface ILocus {
 export interface IError {}
 
 export interface IParser {
-	parse(code: string): AstProgram | null
+	parse(code: string, printout: boolean): AstProgram | null
 	errors: IError[]
 }
 
@@ -1123,7 +1124,6 @@ export class QBasicProgram {
 				return new AstCallStatement(locus, args[1], args[3])
 			})
 			rules.addRule('istatement: EOF FileItem', function (_args, _locus) {
-				debugger
 				// return new AstCallStatement(locus, args[1], [])
 				// return new AstNullStatement(locus)
 			})
@@ -1348,7 +1348,8 @@ export class QBasicProgram {
 		input += '\n' // parse doesn't handle no newline at end of input.
 
 		// Parse the program into abstract syntax tree.
-		const astProgram = this.parser.parse(input)
+		console.log('this.parser', this.parser);
+		const astProgram = this.parser.parse(input, true)
 		if (astProgram === null) {
 			this.errors = this.parser.errors
 			dbg().printf('Parse failed.\n')
@@ -1378,6 +1379,7 @@ export class QBasicProgram {
 	}
 
 	private onProgram(symbols, locus) {
+		debugger;
 		const program = new AstProgram(
 			locus,
 			new AstSubroutine(locus, '_main', [], symbols[0], false)

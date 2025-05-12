@@ -104,7 +104,7 @@ export class StackFrame {
 	}
 }
 
-const DEBUG = false
+const DEBUG = true
 
 /**
  The VirtualMachine runs the bytecode given to it. It can run in one of two
@@ -259,14 +259,15 @@ export class VirtualMachine extends EventEmitter<'error' | 'suspended' | 'resume
 	*/
 	public run(program: QBasicProgram, synchronous: boolean) {
 		console.log('VirtualMachine run', this.instructions);
-		console.trace();
+		// console.trace();
 		this.reset(program)
 		this.asynchronous = !synchronous
 
 		if (synchronous) {
 			try {
-				console.log('VirtualMachine run 2', this.instructions);
+				console.log('VirtualMachine run this.instructions', this.instructions);
 				while (this.pc < this.instructions.length) {
+					console.log(`${this.pc}, ${this.instructions[this.pc]}`)
 					this.runOneInstruction()
 				}
 			} catch (e) {

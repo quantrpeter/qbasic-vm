@@ -216,7 +216,7 @@ export class Token {
 	}
 
 	public toString() {
-		return 'Token(' + this.text + ')'
+		return `Token id=${this.id},\t text=${this.text}`;
 	}
 }
 
