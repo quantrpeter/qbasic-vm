@@ -53,6 +53,7 @@
 				.then(code => {
 					virtualMachine.reset()
 					network.reset()
+					console.log('code', code);
 					const program = new qb.QBasicProgram(code)
 					if (program.errors.length === 0) {
 						const path = fileName.split(fileSystem.pathSeparator);
@@ -62,7 +63,7 @@
 						} else {
 							virtualMachine.cwd = fileSystem.pathSeparator;
 						}
-
+						console.log('virtualMachine.cwd', virtualMachine.cwd);
 						virtualMachine.run(program, false)
 						virtualMachine.on('error', error => {
 							dbg.print('Runtime error: ' + error + ' at ' + error.locus + '\n')
@@ -87,6 +88,7 @@
 				'events.bas',
 				'nibbles.bas',
 				'imgPutDebug.bas',
+				'peter.bas',
 			]
 
 			const fileName = demoPrgs[0]

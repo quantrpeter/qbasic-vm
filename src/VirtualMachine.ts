@@ -258,11 +258,14 @@ export class VirtualMachine extends EventEmitter<'error' | 'suspended' | 'resume
 	In asynchronous mode, it returns immediately.
 	*/
 	public run(program: QBasicProgram, synchronous: boolean) {
+		console.log('VirtualMachine run', this.instructions);
+		console.trace();
 		this.reset(program)
 		this.asynchronous = !synchronous
 
 		if (synchronous) {
 			try {
+				console.log('VirtualMachine run 2', this.instructions);
 				while (this.pc < this.instructions.length) {
 					this.runOneInstruction()
 				}
