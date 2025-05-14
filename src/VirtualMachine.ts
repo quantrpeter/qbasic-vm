@@ -192,6 +192,8 @@ export class VirtualMachine extends EventEmitter<'error' | 'suspended' | 'resume
 
 	cwd: string = ''
 
+	debug=true
+
 	/**
 	 * @param console A Console object that will be used as the screen.
 	 */
@@ -2020,6 +2022,7 @@ export const SystemSubroutines: SystemSubroutinesDefinition = {
 
 	print_using: {
 		action: function (vm) {
+			debugger;
 			// pop # args
 			let argCount = vm.stack.pop()
 
@@ -3940,6 +3943,7 @@ export const Instructions: InstructionDefinition = {
 	SYSCALL: {
 		name: 'syscall',
 		execute: function (vm, arg) {
+			debugger;
 			let variable
 			let type
 			let x
@@ -3948,7 +3952,7 @@ export const Instructions: InstructionDefinition = {
 			// Execute a system function or subroutine. The argument is a
 			// javascript string containing the name of the routine.
 			if (vm.debug) {
-				vm.trace.printf('Execute syscall %s\n', arg)
+				vm.trace.printf('Peter Execute syscall %s\n', arg)
 			}
 			if (arg === 'print') {
 				let num = 1

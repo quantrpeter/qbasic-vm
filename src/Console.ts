@@ -210,6 +210,7 @@ export class Console extends EventTarget implements IConsole {
 		this.ctx.setTransform(1, 0, 0, 1, 0, 0)
 		this.ctx.imageSmoothingEnabled = false
 		this.charImg = document.createElement('img')
+		console.log('assetPath', assetPath);
 		this.charImg.src = assetPath + 'charmap.png'
 
 		this._width = width || this.canvas.width
@@ -982,6 +983,9 @@ export class Console extends EventTarget implements IConsole {
 				)
 				// paint foreground color
 				this.ctx.globalCompositeOperation = 'source-in'
+				console.log('str', str);
+				console.log('this.fgcolor', this.fgcolor);
+				console.log('this.bgcolor', this.bgcolor);
 				this.ctx.fillStyle = this.fgcolor
 				this.ctx.fillRect(this.x * this.charWidth, this.y * this.charHeight, this.charWidth, this.charHeight)
 				// paint background color
