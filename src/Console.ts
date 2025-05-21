@@ -55,7 +55,7 @@ const VIDEO_COLORS = [
 	'#8b8b8b', // 12: Grey
 	'#82fb85', // 13: Light green
 	'#7764e8', // 14: Light blue
-	'#afafaf', // 15: Light grey
+	'#ececec', // 15: Light grey
 ]
 
 // binary mask to only select the lowest 4 bits of a color number
