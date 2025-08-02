@@ -1,3 +1,11 @@
+# Info
+
+fork from https://github.com/jstarpl/qbasic-vm
+
+v24.3.0 (npm v11.4.2)
+
+# Detail
+
 qbasic-vm
 =========
 
