@@ -89,7 +89,7 @@ const VIDEO_MODES: { [key: number]: IVideoMode } = {
 	// Portrait low-res mode
 	1: { width: 160, height: 300, rows: 37, cols: 20 },
 	// Portrait high-res mode
-	2: { width: '320', height: 600, rows: 75, cols: 40 },
+	2: { width: 320, height: 600, rows: 75, cols: 40 },
 	// Landscape low-res mode
 	3: { width: 300, height: 160, rows: 20, cols: 37, landscape: true },
 	// Landscape high-res mode
